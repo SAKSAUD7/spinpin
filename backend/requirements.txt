@@ -1,0 +1,43 @@
+# Core Django
+Django==5.1.4
+
+# Django REST Framework
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.4.0
+drf-spectacular==0.28.0
+django-filter==24.3
+
+# Django Extensions
+django-cors-headers==4.6.0
+django-storages[azure]==1.14.4
+
+# Database
+psycopg2-binary==2.9.10
+
+# Azure Storage
+azure-storage-blob==12.24.0
+
+# Static Files
+whitenoise==6.5.0
+azure-communication-email==1.0.0
+
+# Server
+gunicorn==23.0.0
+
+# PDF Generation
+reportlab==4.2.5
+
+# Image Processing
+Pillow==11.0.0
+
+# Environment & Configuration
+python-dotenv==1.0.1
+python-decouple==3.8
+
+# Authentication
+PyJWT==2.10.1
+
+# Utilities
+pytz==2024.2
+python-dateutil==2.9.0
+requests==2.32.3

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - Ninja Inflatable Park</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4CAF50;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .booking-details {
+            margin: 30px 0;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .booking-number {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .important-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Booking Confirmed!</h1>
+            <p>Thank you for choosing Ninja Inflatable Park</p>
+        </div>
+
+        <div class="booking-number">
+            <strong>Booking Number:</strong> {{ booking_uuid }}
+        </div>
+
+        <p>Hi {{ customer_name }},</p>
+
+        <p>Great news! Your booking at Ninja Inflatable Park has been confirmed. We're excited to see you!</p>
+
+        <div class="booking-details">
+            <h3 style="margin-top: 0; color: #4CAF50;">📅 Your Booking Details</h3>
+
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ booking_date|date:"l, F j, Y" }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">{{ booking_time }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Duration:</span>
+                <span class="detail-value">{{ duration }} minutes</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Adults:</span>
+                <span class="detail-value">{{ adults }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Kids:</span>
+                <span class="detail-value">{{ kids }}</span>
+            </div>
+
+            {% if spectators %}
+            <div class="detail-row">
+                <span class="detail-label">Spectators:</span>
+                <span class="detail-value">{{ spectators }}</span>
+            </div>
+            {% endif %}
+
+            <div class="detail-row">
+                <span class="detail-label">Total Amount:</span>
+                <span class="detail-value"><strong>₹{{ amount }}</strong></span>
+            </div>
+        </div>
+
+        <div class="important-note">
+            <strong>⚠️ Important:</strong>
+            <ul style="margin: 10px 0;">
+                <li>Please arrive 10 minutes before your scheduled time</li>
+                <li>Bring this confirmation email or your booking number</li>
+                <li>Wear comfortable clothing and socks are mandatory</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <p>Need to make changes to your booking?</p>
+            <a href="tel:+919845471611" class="cta-button">📞 Call Us: +91 98454 71611</a>
+        </div>
+
+        <div class="footer">
+            <p><strong>Ninja Inflatable Park</strong></p>
+            <p>India's Biggest Inflatable Park</p>
+            <p>📧 Email: info@ninjapark.com | 📱 Phone: +91 98454 71611</p>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                This is an automated confirmation email. Please do not reply to this email.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

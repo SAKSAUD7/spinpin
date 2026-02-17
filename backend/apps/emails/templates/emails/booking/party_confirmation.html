@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Booking Confirmation - Ninja Inflatable Park</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #FF6B6B;
+        }
+
+        .header h1 {
+            color: #FF6B6B;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .party-banner {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .party-banner h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .booking-details {
+            margin: 30px 0;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #FF6B6B;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .booking-number {
+            background: #FF6B6B;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #FF6B6B;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .party-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .birthday-badge {
+            background: #FFE66D;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎂 Party Booking Confirmed!</h1>
+            <p>Get ready for an amazing celebration!</p>
+        </div>
+
+        <div class="party-banner">
+            <h2>🎉 {{ package_name }} Package</h2>
+            <div class="birthday-badge">
+                🎈 {{ birthday_child_name }}'s {{ birthday_child_age }}th Birthday 🎈
+            </div>
+        </div>
+
+        <div class="booking-number">
+            <strong>Booking Number:</strong> {{ booking_uuid }}
+        </div>
+
+        <p>Hi {{ customer_name }},</p>
+
+        <p>Fantastic news! Your party booking at Ninja Inflatable Park has been confirmed. We can't wait to make {{
+            birthday_child_name }}'s birthday extra special!</p>
+
+        <div class="booking-details">
+            <h3 style="margin-top: 0; color: #FF6B6B;">🎊 Party Details</h3>
+
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ booking_date|date:"l, F j, Y" }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">{{ booking_time }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Package:</span>
+                <span class="detail-value">{{ package_name }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Birthday Child:</span>
+                <span class="detail-value">{{ birthday_child_name }} ({{ birthday_child_age }} years old)</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Kids:</span>
+                <span class="detail-value">{{ kids }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Adults:</span>
+                <span class="detail-value">{{ adults }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Total Amount:</span>
+                <span class="detail-value"><strong>₹{{ amount }}</strong></span>
+            </div>
+        </div>
+
+        <div class="party-info">
+            <strong>🎁 What's Included:</strong>
+            <ul style="margin: 10px 0;">
+                <li>Exclusive party area for your group</li>
+                <li>Dedicated party host</li>
+                <li>Birthday decorations</li>
+                <li>Special birthday announcement</li>
+                <li>Unlimited access to all inflatables</li>
+            </ul>
+        </div>
+
+        <div class="party-info" style="border-left-color: #FF6B6B; background: #ffe6e6;">
+            <strong>⚠️ Important Party Guidelines:</strong>
+            <ul style="margin: 10px 0;">
+                <li>Please arrive 15 minutes before your scheduled time</li>
+                <li>Bring this confirmation email or your booking number</li>
+                <li>Outside food is not allowed (except birthday cake)</li>
+                <li>All participants must wear socks</li>
+                <li>Parents/guardians must sign waivers for all children</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <p>Questions about your party?</p>
+            <a href="tel:+919845471611" class="cta-button">📞 Call Our Party Team: +91 98454 71611</a>
+        </div>
+
+        <div class="footer">
+            <p><strong>Ninja Inflatable Park</strong></p>
+            <p>India's Biggest Inflatable Park - Perfect for Birthday Parties!</p>
+            <p>📧 Email: parties@ninjapark.com | 📱 Phone: +91 98454 71611</p>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                This is an automated confirmation email. Please do not reply to this email.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
