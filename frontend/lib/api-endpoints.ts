@@ -1,5 +1,5 @@
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export const API_ENDPOINTS = {
     // CMS Endpoints
@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
         group_benefits: `${API_BASE_URL}/cms/group-benefits/`,
         contact_messages: `${API_BASE_URL}/cms/contact-messages/`,
         pricing_carousel_images: `${API_BASE_URL}/cms/pricing-carousel-images/`,
+        timing_cards: `${API_BASE_URL}/cms/timing-cards/`,
         upload: `${API_BASE_URL}/cms/upload/`,
     },
 
@@ -59,8 +60,8 @@ export const API_ENDPOINTS = {
 
     // Auth Endpoints
     auth: {
-        token: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/api/token/`,
-        refresh: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000'}/api/token/refresh/`,
+        token: `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}/api/token/`,
+        refresh: `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}/api/token/refresh/`,
     },
 };
 

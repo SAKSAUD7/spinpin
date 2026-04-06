@@ -2,9 +2,9 @@ import { Attraction } from "@repo/types";
 
 export const attractions: Attraction[] = [
     {
-        id: "ninja-obstacle-course",
-        title: "Ninja Obstacle Course",
-        description: "Test your agility and strength on our ultimate ninja warrior-style inflatable course. Climb, jump, and conquer!",
+        id: "Spin Pin-obstacle-course",
+        title: "Spin Pin Obstacle Course",
+        description: "Test your agility and strength on our ultimate Spin Pin warrior-style inflatable course. Climb, jump, and conquer!",
         image: "/images/uploads/img-3.jpg",
         category: "obstacle",
         minAge: 7,

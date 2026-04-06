@@ -200,7 +200,7 @@ export default function ParticipantCollection({ onSubmit, onBack, totalParticipa
                                                 value={adult.phone}
                                                 onChange={(e) => updateAdult(adult.id, 'phone', e.target.value)}
                                                 className="w-full px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg focus:border-primary focus:outline-none text-white placeholder:text-slate-400"
-                                                placeholder="9845471611"
+                                                placeholder="07700 900000"
                                             />
                                         </div>
 

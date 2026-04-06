@@ -24,7 +24,7 @@ export const weekdayPricing: PricingTier[] = [
         features: [
             "1 Hour Unlimited Play",
             "All Attractions Access",
-            "Ninja Obstacle Course",
+            "Spin Pin Obstacle Course",
             "Giant Slides & More",
             "Safety Equipment Included",
         ],
@@ -68,7 +68,7 @@ export const weekendPricing: PricingTier[] = [
         features: [
             "1 Hour Unlimited Play",
             "All Attractions Access",
-            "Ninja Obstacle Course",
+            "Spin Pin Obstacle Course",
             "Giant Slides & More",
             "Safety Equipment Included",
         ],
@@ -90,7 +90,7 @@ export const weekendPricing: PricingTier[] = [
 
 export const addOns = [
     { id: "extra-hour", title: "Extra 1 Hour", price: 200 },
-    { id: "ninja-socks", title: "Ninja Grip Socks", price: 50 },
+    { id: "Spin Pin-socks", title: "grip socks", price: 50 },
     { id: "locker", title: "Secure Locker", price: 50 },
     { id: "photo-package", title: "Photo Package", price: 299 },
 ];

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, BookOpen, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 export function BookingInformationEditor() {
     const [bookingInfo, setBookingInfo] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export function BookingInformationEditor() {
 
     const loadBookingInfo = async () => {
         try {
-            const response = await fetch('/api/cms/booking-information/');
+            const response = await fetch(`${API_URL}/cms/booking-information/`);
             const data = await response.json();
             setBookingInfo(Array.isArray(data) ? data : []);
         } catch (error) {
@@ -36,7 +38,7 @@ export function BookingInformationEditor() {
 
         setSaving(true);
         try {
-            const response = await fetch(`/api/cms/booking-information/${current.id}/`, {
+            const response = await fetch(`${API_URL}/cms/booking-information/${current.id}/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(current)
@@ -152,8 +154,8 @@ export function BookingInformationEditor() {
                 <button
                     onClick={() => setSelectedType('SESSION')}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedType === 'SESSION'
-                            ? 'bg-primary text-white'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                         }`}
                 >
                     Session Booking
@@ -161,8 +163,8 @@ export function BookingInformationEditor() {
                 <button
                     onClick={() => setSelectedType('PARTY')}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedType === 'PARTY'
-                            ? 'bg-primary text-white'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                         }`}
                 >
                     Party Booking

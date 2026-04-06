@@ -1,27 +1,17 @@
 """
-Update settings for party availability
+Update PartyBookingConfig with SpinPin party availability days.
+Run: python update_party_settings.py (from backend/ folder)
 """
-import os
-import sys
-import django
-
-# Setup Django
+import os, sys, django
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ninja_backend.settings')
 django.setup()
 
-from apps.cms.models import Settings
+from apps.cms.models import PartyBookingConfig
 
-def update_settings():
-    """Update settings with SpinPin party availability"""
-    
-    settings = Settings.objects.first()
-    if settings:
-        settings.party_availability = "Thursday's to Sunday's"
-        settings.save()
-        print(f"✓ Updated party availability: {settings.party_availability}")
-    else:
-        print("⚠ No settings found")
-
-if __name__ == '__main__':
-    update_settings()
+config, created = PartyBookingConfig.objects.get_or_create(id=1)
+config.available_time_slots = "Thursday to Sunday"
+config.save()
+action = "CREATED" if created else "UPDATED"
+print(f"[{action}] PartyBookingConfig: available_time_slots = '{config.available_time_slots}'")
+print("Done!")

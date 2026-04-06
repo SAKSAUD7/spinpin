@@ -166,7 +166,7 @@ export function AdminSidebar({ permissions = [] }: AdminSidebarProps) {
                 <div className="flex items-center gap-3">
                     <Logo size="lg" className="shrink-0" />
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Ninja Admin</h1>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Spin Pin Admin</h1>
                         <p className="text-xs text-slate-500 font-medium">Management Portal</p>
                     </div>
                 </div>

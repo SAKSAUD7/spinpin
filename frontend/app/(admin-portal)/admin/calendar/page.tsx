@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
@@ -28,6 +28,7 @@ interface CalendarEvent {
     start: Date;
     end: Date;
     type: 'session' | 'party';
+    activity?: string;
     bookingId: number;
     customerName: string;
     customerEmail: string;
@@ -51,6 +52,7 @@ export default function CalendarPage() {
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [filterType, setFilterType] = useState<'all' | 'session' | 'party'>('all');
+    const [activityFilter, setActivityFilter] = useState<'all' | 'skating' | 'bowling' | 'arcade'>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [summary, setSummary] = useState({
         totalBookings: 0,
@@ -107,6 +109,15 @@ export default function CalendarPage() {
             filtered = filtered.filter(e => e.type === filterType);
         }
 
+        // Filter by activity for session bookings
+        if (activityFilter !== 'all') {
+            filtered = filtered.filter(e => {
+                if (e.type !== 'session') return false;
+                const act = (e.activity || e.title || '').toLowerCase();
+                return act.includes(activityFilter);
+            });
+        }
+
         // Filter by search query
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
@@ -118,7 +129,7 @@ export default function CalendarPage() {
         }
 
         return filtered;
-    }, [events, filterType, searchQuery]);
+    }, [events, filterType, activityFilter, searchQuery]);
 
     const handleNavigate = (newDate: Date) => {
         setCurrentDate(newDate);
@@ -134,17 +145,25 @@ export default function CalendarPage() {
     };
 
     const eventStyleGetter = (event: CalendarEvent) => {
-        const isSession = event.type === 'session';
+        let bg = '#a855f7'; // default: party = violet
+        if (event.type === 'session') {
+            const act = (event.activity || event.title || '').toLowerCase();
+            if (act.includes('skating') || act.includes('roller')) bg = '#ec4899'; // pink = skating
+            else if (act.includes('bowling')) bg = '#3b82f6'; // blue = bowling
+            else if (act.includes('arcade')) bg = '#8b5cf6'; // purple = arcade
+            else bg = '#f97316'; // orange = combo/unknown session
+        }
         return {
             style: {
-                backgroundColor: isSession ? '#3b82f6' : '#a855f7',
+                backgroundColor: bg,
                 borderRadius: '6px',
-                opacity: 0.9,
+                opacity: 0.92,
                 color: 'white',
                 border: 'none',
                 display: 'block',
-                fontSize: '0.875rem',
+                fontSize: '0.8rem',
                 padding: '2px 6px',
+                fontWeight: 600,
             }
         };
     };
@@ -179,7 +198,7 @@ export default function CalendarPage() {
                     </div>
                     <div className="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
                         <p className="text-sm text-green-700">Total Revenue</p>
-                        <p className="text-2xl font-bold text-green-900">₹{summary.totalRevenue.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-green-900">£{summary.totalRevenue.toLocaleString()}</p>
                     </div>
                     <div className="bg-orange-50 p-4 rounded-xl shadow-sm border border-orange-200">
                         <p className="text-sm text-orange-700">Total Participants</p>
@@ -244,13 +263,34 @@ export default function CalendarPage() {
                         <Filter size={18} className="text-slate-500" />
                         <select
                             value={filterType}
-                            onChange={(e) => setFilterType(e.target.value as any)}
+                            onChange={(e) => { setFilterType(e.target.value as any); setActivityFilter('all'); }}
                             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">All Bookings</option>
                             <option value="session">Session Only</option>
                             <option value="party">Party Only</option>
                         </select>
+                        {/* Activity sub-filter – only relevant for sessions */}
+                        {(filterType === 'all' || filterType === 'session') && (
+                            <select
+                                value={activityFilter}
+                                onChange={(e) => setActivityFilter(e.target.value as any)}
+                                className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            >
+                                <option value="all">All Activities</option>
+                                <option value="skating">🛼 Roller Skating</option>
+                                <option value="bowling">🎳 Ten Pin Bowling</option>
+                                <option value="arcade">🕹️ Arcade Games</option>
+                            </select>
+                        )}
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex items-center gap-3 text-xs font-medium">
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-pink-500 inline-block"></span> Skating</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Bowling</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-purple-500 inline-block"></span> Arcade</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-violet-500 inline-block"></span> Party</span>
                     </div>
 
                     {/* Search */}

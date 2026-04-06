@@ -1,10 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import AttractionsContent from "./components/AttractionsContent";
 import { getActivities } from "../../actions/activities";
 import { getFacilityItems } from "../../actions/facility-items";
 import { getPageSections } from "../../actions/page-sections";
-
-
 import { getAttractionVideo } from "../../actions/attraction-video";
 
 export default async function AttractionsPage() {
@@ -55,10 +53,10 @@ export default async function AttractionsPage() {
 
     return (
         <AttractionsContent
-            activities={activities}
-            facilities={facilities}
-            hero={hero}
-            videoData={videoData}
-        />
+                activities={activities}
+                facilities={facilities}
+                hero={hero}
+                videoData={videoData}
+            />
     );
 }

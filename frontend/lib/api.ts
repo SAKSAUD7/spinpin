@@ -1,5 +1,5 @@
 /**
- * Centralized API configuration for Ninja Inflatable Park
+ * Centralized API configuration for Spin Pin Leicester
  * All backend API endpoints are defined here
  * 
  * IMPORTANT: This file now uses server-side authentication from lib/server-api.ts

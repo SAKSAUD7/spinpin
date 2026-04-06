@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ScrollReveal, BouncyButton } from "@repo/ui";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle } from "lucide-react";
+import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle, School } from "lucide-react";
 import { createPartyBooking } from "../../actions/createPartyBooking";
 import ParticipantCollection from "../../../components/ParticipantCollection";
 import { PaymentStep } from "../../../components/PaymentStep";
 import { fetchBookingBlocks, isDateBlocked, BookingBlock } from "@/lib/api/booking-blocks";
 import { PageSection } from "@/lib/cms/types";
+import { SmartCalendar } from "@/components/SmartCalendar";
+import { isSchoolHoliday } from "@/lib/api/types";
 
 interface PartyBookingWizardProps {
     cmsContent?: PageSection[];
@@ -250,8 +252,8 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                 <h3 className="font-bold text-lg mb-4 text-white">Booking Summary</h3>
                                 <div className="space-y-2 text-white/70">
                                     <p><strong className="text-white">Booking ID:</strong> {bookingDetails.bookingId}</p>
-                                    <p><strong className="text-white">Total Amount:</strong> ₹{costs.total.toFixed(2)}</p>
-                                    <p><strong className="text-white">Deposit Required (50%):</strong> ₹{costs.deposit.toFixed(2)}</p>
+                                    <p><strong className="text-white">Total Amount:</strong> £{costs.total.toFixed(2)}</p>
+                                    <p><strong className="text-white">Deposit Required (50%):</strong> £{costs.deposit.toFixed(2)}</p>
                                     <p><strong className="text-white">Date:</strong> {formData.date}</p>
                                     <p><strong className="text-white">Time:</strong> {formData.time}</p>
                                     <p><strong className="text-white">Participants:</strong> {formData.participants}</p>
@@ -294,7 +296,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                             </span>
                         </h1>
                         <p className="text-xl text-white/70 max-w-2xl mx-auto">
-                            Fill in the details below to reserve your party at Ninja Inflatable Park
+                            Fill in the details below to reserve your party at Spin Pin Leicester
                         </p>
                     </ScrollReveal>
                 </div>
@@ -390,7 +392,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white"
-                                            placeholder="9845471611"
+                                            placeholder="07700 900000"
                                         />
                                     </div>
 
@@ -427,13 +429,32 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                             <Calendar className="w-4 h-4 inline mr-2" />
                                             Party Date *
                                         </label>
-                                        <input
-                                            type="date"
-                                            required
+                                        <SmartCalendar
                                             value={formData.date}
-                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white"
+                                            onChange={(d) => {
+                                                const blockReason = isDateBlocked(d, bookingBlocks);
+                                                if (blockReason) {
+                                                    alert(`This date is not available due to ${blockReason}`);
+                                                    return;
+                                                }
+                                                setFormData({ ...formData, date: d });
+                                            }}
+                                            bookingBlocks={bookingBlocks}
                                         />
+                                        {/* School holiday note */}
+                                        {formData.date && (() => {
+                                            const dow = new Date(formData.date + 'T12:00:00').getDay();
+                                            const isWeekday = dow >= 2 && dow <= 5;
+                                            if (isWeekday && isSchoolHoliday(formData.date)) {
+                                                return (
+                                                    <div className="mt-2 flex items-start gap-2 p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs">
+                                                        <School className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                                        <span><strong>School holiday!</strong> Extra time slots may be available from 10:00 AM. 🎒</span>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
 
                                     <div>
@@ -564,29 +585,29 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                     <div className="space-y-3 mb-6">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-white/70">Participants ({formData.participants})</span>
-                                            <span className="text-white font-bold">₹{(formData.participants * 1500).toLocaleString()}</span>
+                                            <span className="text-white font-bold">£{(formData.participants * ((config?.participant_price || 1500) / 100)).toFixed(2)}</span>
                                         </div>
                                         {formData.spectators > 10 && (
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-white/70">Extra Spectators ({formData.spectators - 10})</span>
-                                                <span className="text-white font-bold">₹{((formData.spectators - 10) * 100).toLocaleString()}</span>
+                                                <span className="text-white font-bold">£{((formData.spectators - 10) * 100).toLocaleString()}</span>
                                             </div>
                                         )}
                                         <div className="flex justify-between text-sm">
                                             <span className="text-white/70">Subtotal</span>
-                                            <span className="text-white font-bold">₹{costs.subtotal.toLocaleString()}</span>
+                                            <span className="text-white font-bold">£{costs.subtotal.toLocaleString()}</span>
                                         </div>
                                         <div className="text-sm">
                                             <span className="text-white/70">GST ({config?.gst_rate || 18}%)</span>
-                                            <span className="text-white font-bold">₹{costs.gst.toFixed(2)}</span>
+                                            <span className="text-white font-bold">£{costs.gst.toFixed(2)}</span>
                                         </div>
                                         <div className="border-t border-white/10 pt-3 flex justify-between">
                                             <span className="font-bold text-white">Total</span>
-                                            <span className="font-bold text-xl text-primary">₹{costs.total.toFixed(2)}</span>
+                                            <span className="font-bold text-xl text-primary">£{costs.total.toFixed(2)}</span>
                                         </div>
                                         <div className="bg-accent/10 border border-accent/30 rounded-lg p-3">
                                             <p className="text-xs text-white/70">
-                                                <strong className="text-accent">Deposit ({config?.deposit_percentage || 50}%):</strong> ₹{costs.deposit.toFixed(2)}
+                                                <strong className="text-accent">Deposit ({config?.deposit_percentage || 50}%):</strong> £{costs.deposit.toFixed(2)}
                                             </p>
                                         </div>
                                     </div>

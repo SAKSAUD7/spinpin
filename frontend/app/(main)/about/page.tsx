@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import AboutContent from "./components/AboutContent";
 import { getPageSections } from "../../actions/page-sections";
 import { getStatCards } from "../../actions/stat-cards";
@@ -6,7 +6,6 @@ import { getTimelineItems } from "../../actions/timeline-items";
 import { getValueItems } from "../../actions/value-items";
 import { getFaqs } from "../../actions/faqs";
 import { getInstagramReels } from "../../actions/instagram-reels";
-
 
 export default async function AboutPage() {
     const [
@@ -47,13 +46,13 @@ export default async function AboutPage() {
 
     return (
         <AboutContent
-            values={activeValues}
-            stats={stats}
-            timeline={activeTimeline}
-            faqs={activeFaqs}
-            reels={reels.filter((r: any) => r.active)} // Reels usually have active flag
-            hero={hero}
-            story={story}
-        />
+                values={activeValues}
+                stats={stats}
+                timeline={activeTimeline}
+                faqs={activeFaqs}
+                reels={reels.filter((r: any) => r.active)}
+                hero={hero}
+                story={story}
+            />
     );
 }

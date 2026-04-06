@@ -1,8 +1,8 @@
 export const galleryData = [
     {
-        id: "ninja-course",
+        id: "Spin Pin-course",
         src: "/images/gallery-1.jpg",
-        title: "Ninja Obstacle Course",
+        title: "Spin Pin Obstacle Course",
         desc: "Test your agility and speed",
     },
     {

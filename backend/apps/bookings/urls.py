@@ -9,6 +9,11 @@ from .views import (
     PublicBookingBlockViewSet, PublicSiteAlertViewSet
 )
 from .calendar_views import calendar_bookings
+from .customer_auth import (
+    customer_register, customer_login, customer_logout,
+    customer_me, customer_update_profile, customer_change_password,
+    customer_my_bookings
+)
 
 router = DefaultRouter()
 router.register(r'customers', CustomerViewSet)
@@ -25,7 +30,15 @@ router.register(r'public/booking-blocks', PublicBookingBlockViewSet, basename='p
 router.register(r'site-alerts', PublicSiteAlertViewSet, basename='site-alerts')
 
 urlpatterns = [
-    # Calendar endpoint
+    # ── Customer Account Auth ─────────────────────────────────────────────────
+    path('customer-auth/register/', customer_register, name='customer-register'),
+    path('customer-auth/login/', customer_login, name='customer-login'),
+    path('customer-auth/logout/', customer_logout, name='customer-logout'),
+    path('customer-auth/me/', customer_me, name='customer-me'),
+    path('customer-auth/profile/', customer_update_profile, name='customer-update-profile'),
+    path('customer-auth/change-password/', customer_change_password, name='customer-change-password'),
+    path('customer-auth/my-bookings/', customer_my_bookings, name='customer-my-bookings'),
+    # ── Calendar endpoint ─────────────────────────────────────────────────────
     path('calendar/', calendar_bookings, name='calendar-bookings'),
     # Custom party booking endpoints (bypasses serializer bug)
     path('party-bookings/', create_party_booking_view, name='party-bookings-list-create'),

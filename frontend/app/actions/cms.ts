@@ -4,7 +4,7 @@ import { fetchAPI, postAPI, putAPI, deleteAPI, API_ENDPOINTS } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ninjainflablepark-gbhwbbdna5hjgvf9.centralindia-01.azurewebsites.net/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://Spin Pininflablepark-gbhwbbdna5hjgvf9.centralindia-01.azurewebsites.net/api/v1';
 
 // Pricing Carousel Actions
 

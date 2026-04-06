@@ -18,8 +18,8 @@ export function Logo({ size = "md", className = "" }: LogoProps) {
     return (
         <Link href="/admin" className={`inline-block ${className}`}>
             <Image
-                src="/ninja-logo.png"
-                alt="Ninja Inflatable Park"
+                src="/spinpin-logo.png"
+                alt="Spin Pin Leicester"
                 width={dimensions.width}
                 height={dimensions.height}
                 className="object-contain"

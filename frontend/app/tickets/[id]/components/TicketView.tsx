@@ -38,7 +38,7 @@ export const TicketView = ({ booking }: TicketViewProps) => {
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            pdf.save(`Ninja-Park-Ticket-${booking.id}.pdf`);
+            pdf.save(`SpinPin-Ticket-${booking.id}.pdf`);
         } catch (error) {
             console.error('Error generating PDF:', error);
         } finally {
@@ -75,8 +75,8 @@ export const TicketView = ({ booking }: TicketViewProps) => {
                     {/* Header */}
                     <div className="bg-black text-white p-8 flex justify-between items-center print:bg-black print:text-white">
                         <div>
-                            <h2 className="text-3xl font-black font-display uppercase tracking-wider">Ninja Inflatable Park</h2>
-                            <p className="opacity-70 text-sm mt-1">Adventure Awaits!</p>
+                            <h2 className="text-3xl font-black font-display uppercase tracking-wider">Spin Pin Leicester</h2>
+                            <p className="opacity-70 text-sm mt-1">Skating · Bowling · Arcade</p>
                         </div>
                         <div className="text-right">
                             <p className="text-xs opacity-50 uppercase tracking-widest">Booking Ref</p>
@@ -164,7 +164,7 @@ export const TicketView = ({ booking }: TicketViewProps) => {
                                 <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">Location</p>
                                 <div className="flex items-start gap-2 text-sm text-gray-600">
                                     <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
-                                    <p>Ninja Inflatable Park, 123 Adventure Lane, Fun City, FC 56789</p>
+                                    <p>Spin Pin, Navigation Street, Leicester, LE1 3UR</p>
                                 </div>
                             </div>
                         </div>
@@ -186,15 +186,15 @@ export const TicketView = ({ booking }: TicketViewProps) => {
                             </div>
                             <div className="text-center">
                                 <p className="text-xs text-gray-400 uppercase tracking-widest">Total Paid</p>
-                                <p className="text-2xl font-black text-black">₹ {booking.amount.toLocaleString('en-IN')}</p>
+                                <p className="text-2xl font-black text-black">£ {(booking.amount / 100).toFixed(2)}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Footer */}
                     <div className="bg-gray-50 p-6 text-center text-xs text-gray-400 border-t border-gray-100 print:bg-gray-50 print:text-gray-400">
-                        <p>Please arrive 15 minutes before your scheduled session. Grip socks are mandatory.</p>
-                        <p className="mt-1">For support, contact support@ninjapark.com or +91 98765 43210</p>
+                        <p>Please arrive 15 minutes before your scheduled session. Grip socks required for skating.</p>
+                        <p className="mt-1">For support, contact info@spinpin.co.uk or call 07349 110 865</p>
                     </div>
                 </div>
             </div>

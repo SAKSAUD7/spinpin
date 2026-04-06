@@ -117,7 +117,7 @@ export const WaiverForm = () => {
                         </label>
                         <div className="relative">
                             <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/50 border-r border-white/10 pr-3 font-medium">
-                                +91
+                                +44
                             </div>
                             <input
                                 type="tel"

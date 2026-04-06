@@ -3,7 +3,7 @@
  * Handles all HTTP requests to the backend API
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 interface ApiResponse<T = any> {
     success: boolean;
@@ -91,7 +91,7 @@ class ApiClient {
     async login(email: string, password: string) {
         // Use the root API URL for token, not v1 prefix if it's different, but here we put it in v1/../token or root/api/token
         // My Django URLs: /api/token/
-        const tokenUrl = 'http://localhost:9000/api/token/';
+        const tokenUrl = 'http://localhost:8000/api/token/';
 
         const response = await this.request<{ access: string; refresh: string }>(tokenUrl, {
             method: 'POST',

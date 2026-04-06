@@ -16,9 +16,9 @@ export function AboutEditor({ section: initialSection, pageSlug }: AboutEditorPr
     const [section, setSection] = useState(initialSection || {
         page: pageSlug,
         section_key: 'about',
-        title: "India's Biggest Inflatable Park",
-        content: "Ninja Inflatable Park was born from a simple idea: create a space where people of all ages can unleash their inner ninja, challenge themselves, and have an absolute blast doing it.",
-        image_url: '/park-slides-action.jpg',
+        title: "Leicester's Premier Entertainment Venue",
+        content: "Spin Pin Leicester was born from a simple idea: create a space where people of all ages can enjoy roller skating, bowling, and arcade games together – all under one roof at Navigation Street, Leicester City Centre.",
+        image_url: '/images/spinpin/unnamed (4).webp',
         active: true,
         order: 1
     });

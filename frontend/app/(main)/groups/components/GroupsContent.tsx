@@ -146,7 +146,7 @@ export default function GroupsContent({ hero, packages, benefits }: GroupsConten
                                     </p>
 
                                     <div className="mb-8">
-                                        <span className="text-5xl font-black text-white">₹{pkg.price}</span>
+                                        <span className="text-5xl font-black text-white">£{pkg.price}</span>
                                         <span className="text-white/60 text-sm ml-2">{pkg.price_note}</span>
                                     </div>
 

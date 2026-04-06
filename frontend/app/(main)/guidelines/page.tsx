@@ -1,10 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { getPageSections } from '@/app/actions/page-sections';
 import { getGuidelineCategories } from '@/app/actions/guideline-categories';
 import { getLegalDocuments } from '@/app/actions/legal-documents';
 import { getFaqs } from '@/app/actions/faqs';
 import GuidelinesContent from "./components/GuidelinesContent";
-
 
 export default async function GuidelinesPage() {
     // Fetch all data in parallel
@@ -31,10 +30,10 @@ export default async function GuidelinesPage() {
 
     return (
         <GuidelinesContent
-            hero={hero}
-            categories={activeCategories}
-            legalDocuments={activeLegalDocs}
-            faqs={activeFaqs}
-        />
+                hero={hero}
+                categories={activeCategories}
+                legalDocuments={activeLegalDocs}
+                faqs={activeFaqs}
+            />
     );
 }

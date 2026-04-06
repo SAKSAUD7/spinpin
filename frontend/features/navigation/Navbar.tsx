@@ -22,7 +22,7 @@ export function Navbar({ settings }: { settings?: any }) {
     const { state, dispatch } = useUI();
     const { isMobileMenuOpen } = state;
     const phone = settings?.contactPhone || "07349110865";
-    const [logoUrl, setLogoUrl] = useState("/logo_transparent.png");
+    const [logoUrl, setLogoUrl] = useState("/spinpin-logo.png");
 
     useEffect(() => {
         // Fetch dynamic logo on mount

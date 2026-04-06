@@ -82,7 +82,7 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
         try {
             const dataUrl = await toPng(invitationRef.current, { cacheBust: true, pixelRatio: 2 });
             const link = document.createElement('a');
-            link.download = `ninja-invitation-${bookingId}.png`;
+            link.download = `Spin Pin-invitation-${bookingId}.png`;
             link.href = dataUrl;
             link.click();
             toast.success("Invitation downloaded!");
@@ -117,7 +117,7 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
                     custom_message: customMessage,
                     party_date: bookingDetails.date,
                     party_time: bookingDetails.time,
-                    venue: "Ninja Inflatable Park"
+                    venue: "Spin Pin Leicester"
                 })
             });
 
@@ -195,7 +195,7 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
                                                 {bookingDetails.date ? new Date(bookingDetails.date).toLocaleDateString() : 'Date'}
                                             </p>
                                             <p className="font-bold">@ {bookingDetails.time || 'Time'}</p>
-                                            <p className="text-sm opacity-90 mt-2">Ninja Inflatable Park</p>
+                                            <p className="text-sm opacity-90 mt-2">Spin Pin Leicester</p>
                                         </div>
 
                                         {customMessage && (

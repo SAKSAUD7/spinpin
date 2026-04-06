@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * Payments List Page
@@ -163,7 +163,7 @@ export default function PaymentsListPage() {
                 </div>
                 <div className="bg-primary/10 backdrop-blur-md p-4 rounded-xl border border-primary/30">
                     <p className="text-primary text-sm font-medium">Total Revenue</p>
-                    <p className="text-2xl font-black text-primary mt-1">₹{stats.totalAmount.toLocaleString('en-IN')}</p>
+                    <p className="text-2xl font-black text-primary mt-1">£{stats.totalAmount.toLocaleString('en-GB')}</p>
                 </div>
             </div>
 
@@ -292,7 +292,7 @@ export default function PaymentsListPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
                                             <span className={payment.amount < 0 ? "text-red-400" : "text-green-400"}>
-                                                {payment.amount < 0 ? "-" : ""}₹{Math.abs(payment.amount).toLocaleString('en-IN')}
+                                                {payment.amount < 0 ? "-" : ""}£{Math.abs(payment.amount).toLocaleString('en-GB')}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -302,7 +302,7 @@ export default function PaymentsListPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-white/60">
-                                            {new Date(payment.created_at).toLocaleDateString('en-IN', {
+                                            {new Date(payment.created_at).toLocaleDateString('en-GB', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',

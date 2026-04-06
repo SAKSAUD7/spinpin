@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { format } from "date-fns";
@@ -224,7 +224,7 @@ export function BookingTable({ bookings, title, type, readOnly = false }: Bookin
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 font-medium text-slate-900">
-                                        ₹{booking.amount.toLocaleString()}
+                                        £{booking.amount.toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1">

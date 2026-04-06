@@ -25,7 +25,7 @@ export default async function CmsDashboard() {
         { name: 'Banners', href: '/admin/banners', icon: Image, description: 'Homepage hero sliders' },
         { name: 'Logos', href: '/admin/cms/logos', icon: Image, description: 'Site logos and branding' },
 
-        { name: 'FAQs', href: '/admin/faqs', icon: HelpCircle, description: 'Questions and answers' },
+        { name: 'FAQs', href: '/admin/faqs', icon: HelpCircle, description: 'Questions and answers (FAQ page)' },
         { name: 'Social Links', href: '/admin/cms/social-links', icon: Users, description: 'Social media profiles' },
         { name: 'Gallery', href: '/admin/cms/gallery', icon: Image, description: 'Photo gallery items' },
         { name: 'Stat Cards', href: '/admin/cms/stat-cards', icon: Award, description: 'Homepage statistics' },
@@ -49,6 +49,9 @@ export default async function CmsDashboard() {
         { name: 'Facilities Page', href: '/admin/cms/facilities', icon: Layout, description: 'Facilities page content' },
         { name: 'Privacy Policy', href: '/admin/cms/privacy', icon: Shield, description: 'Privacy policy page content' },
         { name: 'Waiver Terms', href: '/admin/cms/waiver-terms', icon: FileText, description: 'Waiver terms page content' },
+
+        // Global Components
+        { name: 'Timing Cards', href: '/admin/cms/timing-cards', icon: Calendar, description: 'Opening hours shown on all pages' },
     ];
 
     return (
@@ -73,7 +76,7 @@ export default async function CmsDashboard() {
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-slate-900 group-hover:text-primary transition-colors">
-                                    {page.title.replace(/ - Ninja Inflatable Park|Ninja Inflatable Park - /g, '').trim()}
+                                    {page.title.replace(/ - Spin Pin Leicester|Spin Pin Leicester - /g, '').trim()}
                                 </span>
                                 <span className={`text-xs px-2 py-1 rounded-full ${page.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
                                     }`}>

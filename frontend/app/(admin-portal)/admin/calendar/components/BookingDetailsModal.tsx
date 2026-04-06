@@ -1,4 +1,4 @@
-import { X, User, Mail, Phone, Users, Calendar, Clock, DollarSign, CheckCircle, AlertCircle, MapPin } from 'lucide-react';
+﻿import { X, User, Mail, Phone, Users, Calendar, Clock, DollarSign, CheckCircle, AlertCircle, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface CalendarEvent {
@@ -135,7 +135,7 @@ export const BookingDetailsModal = ({ event, onClose, onRefresh }: BookingDetail
                                 <DollarSign size={18} className="text-slate-500" />
                                 <div>
                                     <p className="text-xs text-slate-500">Amount</p>
-                                    <p className="font-semibold text-slate-900">₹{event.amount.toLocaleString()}</p>
+                                    <p className="font-semibold text-slate-900">£{event.amount.toLocaleString()}</p>
                                 </div>
                             </div>
                         </div>

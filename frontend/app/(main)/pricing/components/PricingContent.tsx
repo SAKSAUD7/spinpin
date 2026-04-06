@@ -7,6 +7,7 @@ import { Check, Clock, AlertCircle, Users, Mail } from "lucide-react";
 import { formatCurrency } from "@repo/utils";
 import { getMediaUrl } from "@/lib/media-utils";
 import PricingCarousel from "./PricingCarousel";
+import { TimingCardsClient } from "@/components/TimingCardsClient";
 
 interface PricingContentProps {
     plans: any[];
@@ -26,7 +27,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
     const activePlans = plans.filter(p => !p.hasOwnProperty('active') || p.active);
 
     const heroTitle = hero?.title || "Pricing Plans";
-    const heroSubtitle = hero?.subtitle || "Choose the perfect package for your ninja adventure.";
+    const heroSubtitle = hero?.subtitle || "Choose the perfect package for your Spin Pin adventure.";
 
     return (
         <main className="bg-background text-white min-h-screen">
@@ -69,6 +70,9 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
 
                 <SectionDivider position="bottom" variant="curve" color="fill-background" />
             </section>
+
+            {/* Timing Cards — below hero */}
+            <TimingCardsClient />
 
             {/* Pricing Cards */}
             <section className="relative px-4 pb-32 md:pb-40 pt-16">

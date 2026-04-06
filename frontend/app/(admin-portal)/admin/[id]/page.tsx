@@ -79,7 +79,7 @@ export default async function BookingDetailPage({ params }: { params: { id: stri
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-semibold">Total Amount</label>
-                                <p className="text-xl font-bold text-green-600">₹{booking.amount}</p>
+                                <p className="text-xl font-bold text-green-600">£{booking.amount}</p>
                             </div>
                         </div>
                     </div>

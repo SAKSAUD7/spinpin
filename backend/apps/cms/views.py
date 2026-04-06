@@ -10,7 +10,7 @@ from .models import (
     StatCard, InstagramReel, MenuSection, GroupPackage, GuidelineCategory, LegalDocument,
     PageSection, PricingPlan, ContactInfo, PartyPackage, TimelineItem, ValueItem, FacilityItem,
     Page, ContactMessage, FreeEntry, SessionBookingConfig, PartyBookingConfig, PricingCarouselImage,
-    BookingInformation
+    BookingInformation, TimingCard
 )
 from .serializers import (
     BannerSerializer, ActivitySerializer, FaqSerializer, 
@@ -20,7 +20,7 @@ from .serializers import (
     PageSectionSerializer, PricingPlanSerializer, ContactInfoSerializer, PartyPackageSerializer,
     TimelineItemSerializer, ValueItemSerializer, FacilityItemSerializer,
     PageSerializer, ContactMessageSerializer, FreeEntrySerializer, SessionBookingConfigSerializer, PartyBookingConfigSerializer,
-    PricingCarouselImageSerializer, BookingInformationSerializer
+    PricingCarouselImageSerializer, BookingInformationSerializer, TimingCardSerializer
 )
 
 class BaseCmsViewSet(viewsets.ModelViewSet):
@@ -530,3 +530,10 @@ class BookingInformationViewSet(BaseCmsViewSet):
     queryset = BookingInformation.objects.all()
     serializer_class = BookingInformationSerializer
     filterset_fields = ['active', 'booking_type']
+
+class TimingCardViewSet(BaseCmsViewSet):
+    queryset = TimingCard.objects.all()
+    serializer_class = TimingCardSerializer
+    filterset_fields = ['active']
+    ordering_fields = ['order']
+    ordering = ['order']

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * Payment Overview Widget
@@ -122,7 +122,7 @@ export function PaymentOverviewWidget() {
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-slate-500 uppercase">Total Revenue</p>
-                            <h3 className="text-2xl font-bold text-slate-900">₹{stats.total_revenue.toLocaleString('en-IN')}</h3>
+                            <h3 className="text-2xl font-bold text-slate-900">£{stats.total_revenue.toLocaleString('en-GB')}</h3>
                         </div>
                     </div>
                     <p className="text-xs text-slate-600">
@@ -137,11 +137,11 @@ export function PaymentOverviewWidget() {
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-slate-500 uppercase">Today's Revenue</p>
-                            <h3 className="text-2xl font-bold text-slate-900">₹{stats.today_revenue.toLocaleString('en-IN')}</h3>
+                            <h3 className="text-2xl font-bold text-slate-900">£{stats.today_revenue.toLocaleString('en-GB')}</h3>
                         </div>
                     </div>
                     <p className="text-xs text-slate-600">
-                        This week: ₹{stats.this_week_revenue.toLocaleString('en-IN')}
+                        This week: £{stats.this_week_revenue.toLocaleString('en-GB')}
                     </p>
                 </div>
 
@@ -167,7 +167,7 @@ export function PaymentOverviewWidget() {
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-slate-500 uppercase">Avg Transaction</p>
-                            <h3 className="text-2xl font-bold text-slate-900">₹{Math.round(stats.avg_transaction_value).toLocaleString('en-IN')}</h3>
+                            <h3 className="text-2xl font-bold text-slate-900">£{Math.round(stats.avg_transaction_value).toLocaleString('en-GB')}</h3>
                         </div>
                     </div>
                     <p className="text-xs text-slate-600">
@@ -213,7 +213,7 @@ export function PaymentOverviewWidget() {
                                         </td>
                                         <td className="px-4 py-3 text-sm font-bold">
                                             <span className={payment.amount < 0 ? "text-red-600" : "text-green-600"}>
-                                                {payment.amount < 0 ? "-" : ""}₹{Math.abs(payment.amount).toLocaleString('en-IN')}
+                                                {payment.amount < 0 ? "-" : ""}£{Math.abs(payment.amount).toLocaleString('en-GB')}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3">
@@ -222,7 +222,7 @@ export function PaymentOverviewWidget() {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-600">
-                                            {new Date(payment.created_at).toLocaleDateString('en-IN', {
+                                            {new Date(payment.created_at).toLocaleDateString('en-GB', {
                                                 day: 'numeric',
                                                 month: 'short'
                                             })}

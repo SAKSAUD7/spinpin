@@ -22,6 +22,27 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
+
+class CustomerToken(models.Model):
+    """
+    Stores customer account credentials (hashed password + auth tokens).
+    Separate from admin User model — for public customer login only.
+    """
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE, related_name='auth_token')
+    password_hash = models.CharField(max_length=255)
+    token = models.CharField(max_length=100, unique=True, db_index=True)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Customer Token'
+        verbose_name_plural = 'Customer Tokens'
+
+    def __str__(self):
+        return f"Token for {self.customer.email}"
+
+
 class Booking(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     STATUS_CHOICES = [
@@ -67,6 +88,8 @@ class Booking(models.Model):
     waiver_status = models.CharField(max_length=20, choices=WAIVER_STATUS_CHOICES, default='PENDING')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='SESSION')
+    activity = models.CharField(max_length=100, null=True, blank=True, help_text="Activity type: roller-skating, ten-pin-bowling, arcade")
+    add_ons = models.JSONField(null=True, blank=True, help_text="Selected add-ons: [{id, label, qty, price_each, subtotal}]")
     qr_code = models.CharField(max_length=255, unique=True, null=True, blank=True)
     booking_number = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique booking number (NIP-YYYYMMDD-XXXX)")
     

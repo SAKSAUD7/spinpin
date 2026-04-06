@@ -1,9 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import ContactContent from "./components/ContactContent";
 import { getSettings } from "../../actions/settings";
 import { siteConfig } from "@repo/config";
-
-
 import { getPageSections } from "../../actions/page-sections";
 
 export default async function ContactPage() {
@@ -28,10 +26,10 @@ export default async function ContactPage() {
 
     return (
         <ContactContent
-            settings={settings}
-            defaultConfig={siteConfig}
-            hero={heroData}
-            form={formData}
-        />
+                settings={settings}
+                defaultConfig={siteConfig}
+                hero={heroData}
+                form={formData}
+            />
     );
 }

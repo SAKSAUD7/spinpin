@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -19,7 +19,7 @@ export default function RevenueChart({ data }: { data: { name: string; total: nu
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `₹${value}`}
+                    tickFormatter={(value) => `£${value}`}
                 />
                 <Tooltip
                     cursor={{ fill: '#f1f5f9' }}

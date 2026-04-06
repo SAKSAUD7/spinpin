@@ -13,7 +13,7 @@ export const Footer = ({ settings, socialLinks }: { settings?: any; socialLinks?
         { icon: <Twitter className="w-5 h-5" />, href: siteConfig.links.twitter, label: "Twitter" },
     ];
 
-    const [logoUrl, setLogoUrl] = useState("/logo_transparent.png");
+    const [logoUrl, setLogoUrl] = useState("/spinpin-logo.png");
 
     useEffect(() => {
         // Fetch dynamic logo on mount

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 // Use 127.0.0.1 for server-side requests to avoid Node.js 18+ IPv6 resolution issues
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:9000/api/v1").replace('localhost', '127.0.0.1');
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1").replace('localhost', '127.0.0.1');
 
 export function getAuthHeader(): Record<string, string> {
     const token = cookies().get("admin_token")?.value;

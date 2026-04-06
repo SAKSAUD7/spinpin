@@ -4,6 +4,7 @@ import { ScrollReveal, SectionDivider, BouncyButton } from "@repo/ui";
 import { motion } from "framer-motion";
 import { Heart, Shield, Users, Zap, Target, Award, Sparkles, Calendar, HelpCircle, Instagram, Play } from "lucide-react";
 import Link from "next/link";
+import { TimingCardsClient } from "@/components/TimingCardsClient";
 
 interface AboutContentProps {
     values: any[];
@@ -51,6 +52,9 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                 <SectionDivider position="bottom" variant="curve" color="fill-background" />
             </section>
 
+            {/* Timing Cards — below hero */}
+            <TimingCardsClient />
+
             {/* Stats */}
             <section className="py-20 px-4 bg-background">
                 <div className="max-w-7xl mx-auto">
@@ -75,7 +79,7 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                             // Fallback Stats
                             [
                                 { value: "20,000+", label: "Sq Ft of Fun" },
-                                { value: "50,000+", label: "Happy Ninjas" },
+                                { value: "50,000+", label: "Happy Spin Pins" },
                                 { value: "11+", label: "Unique Zones" },
                                 { value: "100%", label: "Safety Record" },
                             ].map((stat, index) => (
@@ -115,9 +119,9 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                                         <div dangerouslySetInnerHTML={{ __html: story.content }} />
                                     ) : (
                                         <>
-                                            <p>Ninja Inflatable Park was born from a simple idea: create a space where people of all ages can unleash their inner ninja, challenge themselves, and have an absolute blast doing it.</p>
+                                            <p>Spin Pin Leicester was born from a simple idea: create a space where people of all ages can enjoy roller skating, bowling, and arcade games together. We're passionate about fun, family, and creating unforgettable experiences.</p>
                                             <p>Spanning over 20,000 square feet, we've created India's largest inflatable adventure park with 11+ unique zones designed to thrill, challenge, and entertain.</p>
-                                            <p>Whether you're looking for a fun family outing, an adrenaline-pumping workout, or the perfect venue for your next celebration, Ninja Park is your destination for unforgettable memories.</p>
+                                            <p>Whether you're looking for a fun family outing, an adrenaline-pumping workout, or the perfect venue for your next celebration, Spin Pin is your destination for unforgettable memories.</p>
                                         </>
                                     )}
                                 </div>
@@ -127,8 +131,8 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                         <ScrollReveal animation="slideRight">
                             <div className="relative rounded-3xl overflow-hidden aspect-square">
                                 <img
-                                    src={story?.image || "/park-slides-action.jpg"}
-                                    alt="Kids having fun at Ninja Inflatable Park"
+                                    src={story?.image || "/images/spinpin/unnamed (11).webp"}
+                                    alt="Kids having fun at Spin Pin Leicester"
                                     className="w-full h-full object-cover rounded-3xl"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
@@ -174,7 +178,7 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                                 [
                                     { year: "2020", title: "The Dream Begins", desc: "Conceptualized India's biggest inflatable adventure park" },
                                     { year: "2021", title: "Construction Starts", desc: "Began building our 20,000 sq ft facility with state-of-the-art equipment" },
-                                    { year: "2022", title: "Grand Opening", desc: "Opened doors to thousands of excited ninjas!" },
+                                    { year: "2022", title: "Grand Opening", desc: "Opened doors to thousands of excited Spin Pins!" },
                                     { year: "2024", title: "Expansion & Growth", desc: "Added new zones and became India's #1 inflatable park" },
                                 ].map((item, index) => (
                                     <ScrollReveal key={index} animation={index % 2 === 0 ? "slideLeft" : "slideRight"}>
@@ -240,7 +244,7 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                     <ScrollReveal animation="fade" className="text-center mb-16">
                         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-black mb-4">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-primary to-secondary">
-                                People Reviews on Ninja
+                                People Reviews on Spin Pin
                             </span>
                         </h2>
                         <p className="text-xl text-white/70 max-w-2xl mx-auto mb-8">

@@ -1,9 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import PricingContent from "./components/PricingContent";
 import { getPricingPlans } from "../../actions/pricing-plans";
 import { getSettings } from "../../actions/settings";
-
-
 import { getPublicPageSections, getPublicPricingCarouselImages } from "@/lib/public-api";
 
 export default async function Pricing() {
@@ -29,10 +27,10 @@ export default async function Pricing() {
 
     return (
         <PricingContent
-            plans={plans}
-            settings={settings}
-            hero={hero}
-            carouselImages={carouselImages}
-        />
+                plans={plans}
+                settings={settings}
+                hero={hero}
+                carouselImages={carouselImages}
+            />
     );
 }

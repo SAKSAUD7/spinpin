@@ -2,6 +2,7 @@ import React from "react";
 import { Navbar } from "../../features/navigation/Navbar";
 import { Footer } from "../../components/Footer";
 import { ToastProvider } from "../../components/ToastProvider";
+import { MobileBottomNav } from "../../components/MobileBottomNav";
 import { getSettings } from "@/app/actions/settings";
 import { getPublicSocialLinks } from "@/lib/public-api";
 
@@ -29,10 +30,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <ToastProvider>
             <div suppressHydrationWarning className="flex flex-col min-h-screen overflow-x-hidden">
                 <Navbar settings={settings} />
-                <main className="flex-grow">
+                <main className="flex-grow pb-16 md:pb-0">
                     {children}
                 </main>
                 <Footer settings={settings} socialLinks={socialLinks} />
+                <MobileBottomNav />
             </div>
         </ToastProvider>
     );

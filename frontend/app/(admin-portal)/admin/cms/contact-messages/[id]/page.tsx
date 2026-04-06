@@ -204,7 +204,7 @@ export default function ContactMessageDetailPage({ params }: { params: { id: str
                 {/* Reply Button */}
                 <div className="pt-4 border-t border-slate-200">
                     <a
-                        href={`mailto:${message.email}?subject=Re: Your message to Ninja Inflatable Park&body=Hi ${message.name},%0D%0A%0D%0A`}
+                        href={`mailto:${message.email}?subject=Re: Your message to Spin Pin&body=Hi ${message.name},%0D%0A%0D%0A`}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
                     >
                         <Mail className="w-5 h-5" />

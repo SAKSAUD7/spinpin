@@ -8,23 +8,23 @@ export default function Safety() {
         {
             title: "General Rules",
             items: [
-                "Safety briefing is mandatory before entering the play area.",
-                "Ninja Grip Socks must be worn at all times. No shoes or bare feet.",
-                "Remove all jewelry, watches, keys, and sharp objects.",
-                "No phones or cameras allowed on the equipment.",
-                "No food, drink, or chewing gum in the play zones.",
-                "Do not participate if you are pregnant or have health issues."
+                "Safety briefing is mandatory before entering the skating rink.",
+                "Appropriate grip socks must be worn when skating. No bare feet.",
+                "Remove all jewelry, watches, keys, and sharp objects before skating.",
+                "Stay aware of others around you at all times.",
+                "No food, drink, or chewing gum in the skating rink or bowling lanes.",
+                "Do not participate if you are pregnant or have relevant health issues."
             ]
         },
         {
-            title: "Play Etiquette",
+            title: "Skating Etiquette",
             items: [
-                "No pushing, racing, or dangerous stunts.",
-                "One person at a time on slides and climbing walls.",
-                "Always slide feet first. No headfirst diving.",
-                "Move in one direction on obstacle courses.",
+                "No pushing, racing, or dangerous stunts on the rink.",
+                "Skate in the same direction as indicated on the rink.",
+                "No sitting or lying on the rink floor.",
+                "Beginners should stay to the outer edge of the rink.",
                 "Be aware of others around you, especially smaller children.",
-                "Follow all instructions given by the Ninja Marshals."
+                "Follow all instructions given by Spin Pin staff."
             ]
         }
     ];
@@ -103,7 +103,7 @@ export default function Safety() {
                         <div>
                             <h3 className="text-2xl font-bold text-white mb-3">Parental Supervision</h3>
                             <p className="text-white/80 text-lg leading-relaxed">
-                                Ninja Inflatable Park staff (Marshals) are present to supervise and ensure safety. However,
+                                Spin Pin staff are present to supervise and ensure safety. However,
                                 <span className="font-bold text-yellow-300"> parents/guardians are responsible for supervising their children at all times.</span>
                                 Failure to follow safety rules may result in removal from the park without refund.
                             </p>

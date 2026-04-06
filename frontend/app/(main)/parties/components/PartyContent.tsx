@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Check, PartyPopper, Mail, Utensils, Cake, Gift, Music, AlertCircle, CheckCircle, Eye } from "lucide-react";
 import { getMediaUrl } from "@/lib/media-utils";
 import { MenuPopup } from "@/components/MenuPopup";
+import { TimingCardsClient } from "@/components/TimingCardsClient";
 
 interface PartyContentProps {
     packages: any[];
@@ -68,6 +69,9 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                     </ScrollReveal>
                 </div>
             </section>
+
+            {/* Timing Cards — below hero */}
+            <TimingCardsClient />
 
             {/* Dynamic Packages */}
             <section className="relative px-4 py-12 bg-background">

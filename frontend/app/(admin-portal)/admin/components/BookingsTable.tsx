@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Eye, Edit2 } from "lucide-react";
@@ -51,7 +51,7 @@ export default function BookingsTable({ bookings }: BookingsTableProps) {
                                         {booking.guests}
                                     </td>
                                     <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                                        ₹{booking.amount}
+                                        £{booking.amount}
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium

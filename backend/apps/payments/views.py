@@ -298,7 +298,6 @@ def get_payment_stats(request):
     try:
         from .models import Payment
         from apps.bookings.models import Booking
-        from apps.party_bookings.models import PartyBooking
         from django.db.models import Sum, Count, Q, Avg
         from django.utils import timezone
         from datetime import timedelta
@@ -342,13 +341,13 @@ def get_payment_stats(request):
         
         # Payment methods breakdown
         payment_methods = {
+            'STRIPE': all_payments.filter(provider='STRIPE').count(),
             'MOCK': all_payments.filter(provider='MOCK').count(),
-            'RAZORPAY': all_payments.filter(provider='RAZORPAY').count()
         }
         
         # Recent payments (last 10)
         recent_payments_qs = all_payments.select_related(
-            'booking', 'party_booking'
+            'booking'
         ).order_by('-created_at')[:10]
         
         recent_payments = []
@@ -361,14 +360,6 @@ def get_payment_stats(request):
                     'name': payment.booking.name,
                     'email': payment.booking.email,
                     'date': payment.booking.date.isoformat() if payment.booking.date else None,
-                }
-            elif payment.party_booking:
-                booking_info = {
-                    'id': payment.party_booking.id,
-                    'type': 'party',
-                    'name': payment.party_booking.name,
-                    'email': payment.party_booking.email,
-                    'date': payment.party_booking.date.isoformat() if payment.party_booking.date else None,
                 }
             
             recent_payments.append({

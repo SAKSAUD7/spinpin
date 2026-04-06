@@ -1,4 +1,4 @@
-import { getVouchers, deleteVoucher } from "@/app/actions/vouchers";
+﻿import { getVouchers, deleteVoucher } from "@/app/actions/vouchers";
 import Link from "next/link";
 import { Plus, Ticket, Trash2, Edit } from "lucide-react";
 
@@ -46,10 +46,10 @@ export default async function VouchersPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="font-bold text-slate-700">
-                                            {voucher.discountType === "PERCENTAGE" ? `${voucher.discountValue}%` : `₹${voucher.discountValue}`}
+                                            {voucher.discountType === "PERCENTAGE" ? `${voucher.discountValue}%` : `£${voucher.discountValue}`}
                                         </span>
                                         {voucher.minOrderAmount && (
-                                            <p className="text-xs text-slate-500">Min: ₹{voucher.minOrderAmount}</p>
+                                            <p className="text-xs text-slate-500">Min: £{voucher.minOrderAmount}</p>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-slate-600">

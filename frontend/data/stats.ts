@@ -8,7 +8,7 @@ export const statsData = [
     {
         id: "visitors",
         value: "50,000+",
-        label: "Happy Jumpers",
+        label: "Happy Visitors",
         icon: "Users",
     },
     {

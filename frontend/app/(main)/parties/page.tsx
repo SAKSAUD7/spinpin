@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import PartyContent from "./components/PartyContent";
 import { getPartyPackages } from "../../actions/party-packages";
 import { getMenuSections } from "../../actions/menu-sections";
@@ -41,12 +41,12 @@ export default async function Parties() {
 
     return (
         <PartyContent
-            packages={partyPackages}
-            menus={menuSections}
-            hero={hero}
-            settings={settings}
-            terms={termsSection?.content}
-            carouselImages={carouselImages}
-        />
+                packages={partyPackages}
+                menus={menuSections}
+                hero={hero}
+                settings={settings}
+                terms={termsSection?.content}
+                carouselImages={carouselImages}
+            />
     );
 }

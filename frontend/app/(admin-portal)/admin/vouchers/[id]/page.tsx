@@ -102,7 +102,7 @@ export default function EditVoucherPage() {
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-slate-900"
                         >
                             <option value="PERCENTAGE">Percentage (%)</option>
-                            <option value="FLAT">Flat Amount (₹)</option>
+                            <option value="FLAT">Flat Amount (£)</option>
                         </select>
                     </div>
                     <div>
@@ -127,7 +127,7 @@ export default function EditVoucherPage() {
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">
                             <DollarSign size={16} className="inline mr-1" />
-                            Min Order Amount (₹)
+                            Min Order Amount (£)
                         </label>
                         <input
                             name="minOrderAmount"

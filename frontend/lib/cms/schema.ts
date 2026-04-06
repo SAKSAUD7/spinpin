@@ -58,9 +58,9 @@ export const schemas: SchemaMap = {
     stat_card: {
         name: "Stat Card",
         fields: [
-            { name: "label", label: "Label", type: "text", required: true, helpText: "e.g., 'Happy Jumpers'" },
+            { name: "label", label: "Label", type: "text", required: true, helpText: "e.g., 'Happy Visitors'" },
             { name: "value", label: "Value", type: "text", required: true, helpText: "e.g., '5,000+'" },
-            { name: "unit", label: "Unit", type: "text", required: true, helpText: "e.g., 'Happy Jumpers'" },
+            { name: "unit", label: "Unit", type: "text", required: true, helpText: "e.g., 'Happy Visitors'" },
             { name: "icon", label: "Icon Name", type: "text", required: true },
             { name: "color", label: "Color", type: "text", defaultValue: "primary" },
             { name: "page", label: "Page", type: "text", defaultValue: "home" },
@@ -286,5 +286,28 @@ export const schemas: SchemaMap = {
             { name: "created_at", label: "Submitted On", type: "text", readOnly: true },
             { name: "is_read", label: "Read Status", type: "boolean", defaultValue: false },
         ],
-    }
+    },
+    timing_card: {
+        name: "Timing Card",
+        fields: [
+            { name: "day_label", label: "Day / Period", type: "text", required: true, helpText: "e.g. 'Monday – Friday' or 'Weekends'" },
+            { name: "open_time", label: "Opening Time", type: "text", required: true, helpText: "e.g. '10:00 AM'" },
+            { name: "close_time", label: "Closing Time", type: "text", required: true, helpText: "e.g. '9:00 PM'" },
+            { name: "note", label: "Note (optional)", type: "text", helpText: "e.g. 'Last entry 8:30 PM'" },
+            { name: "icon", label: "Icon Name (Lucide)", type: "text", defaultValue: "Clock" },
+            {
+                name: "color",
+                label: "Color",
+                type: "select",
+                defaultValue: "primary",
+                options: [
+                    { label: "Primary", value: "primary" },
+                    { label: "Secondary", value: "secondary" },
+                    { label: "Accent", value: "accent" },
+                ],
+            },
+            { name: "active", label: "Active", type: "boolean", defaultValue: true },
+            { name: "order", label: "Order", type: "number", defaultValue: 0 },
+        ],
+    },
 };

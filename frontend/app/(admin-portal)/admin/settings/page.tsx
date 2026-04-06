@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Save, Upload, Lock, Bell, Shield, Globe, Power, Loader2 } from "lucide-react";
@@ -135,8 +135,8 @@ function BusinessSettings({ settings, onUpdate }: { settings: any; onUpdate: (s:
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <InputGroup name="sessionDuration" label="Session Duration (mins)" defaultValue={settings.sessionDuration} type="number" />
-                <InputGroup name="adultPrice" label="Adult Price (₹)" defaultValue={settings.adultPrice} type="number" />
-                <InputGroup name="childPrice" label="Child Price (₹)" defaultValue={settings.childPrice} type="number" />
+                <InputGroup name="adultPrice" label="Adult Price (£)" defaultValue={settings.adultPrice} type="number" />
+                <InputGroup name="childPrice" label="Child Price (£)" defaultValue={settings.childPrice} type="number" />
             </div>
             <div className="pt-4">
                 <button

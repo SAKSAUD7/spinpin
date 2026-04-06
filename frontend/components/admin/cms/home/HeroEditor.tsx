@@ -15,9 +15,9 @@ export function HeroEditor({ section: initialSection, pageSlug }: HeroEditorProp
     const [section, setSection] = useState(initialSection || {
         page: pageSlug,
         section_key: 'hero',
-        title: 'ARE YOU A NINJA?',
-        content: 'Get ready to jump, climb, bounce, and conquer the ultimate inflatable adventure!',
-        image_url: '/park-slides-action.jpg',
+        title: 'SPIN PIN LEICESTER',
+        content: 'Roller Skating, Ten Pin Bowling, Arcade Games and more — the ultimate entertainment destination in Leicester City Centre!',
+        image_url: '/images/spinpin/unnamed.webp',
         active: true,
         order: 0
     });

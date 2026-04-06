@@ -56,12 +56,12 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
         }
     };
 
-    const phone = settings?.contact_phone || defaultConfig?.contact?.phone || "+91 98454 71611";
+    const phone = settings?.contact_phone || defaultConfig?.contact?.phone || "0116 280 0000";
     // ... existing consts ...
-    const email = settings?.contact_email || defaultConfig?.contact?.email || "info@ninjapark.com";
-    const address = settings?.address || defaultConfig?.contact?.address || "Ramdoot House, First Floor - 2/3 Navigation Street, Leicester, LE13UR";
+    const email = settings?.contact_email || defaultConfig?.contact?.email || "info@spinpin.co.uk";
+    const address = settings?.address || defaultConfig?.contact?.address || "Ramdoot House, First Floor - 2/3 Navigation Street, Leicester, LE1 3UR";
     const mapUrl = settings?.map_url || defaultConfig?.contact?.mapUrl || "https://goo.gl/maps/xyz";
-    const openingHours = typeof settings?.opening_hours === 'string' ? settings.opening_hours : "12:00 PM - 10:00 PM";
+    const openingHours = typeof settings?.opening_hours === 'string' ? settings.opening_hours : "Tue–Fri 2PM–10PM | Sat 12PM–11PM | Sun 12PM–10PM";
 
     const contactInfo = [
         // ... existing contactInfo array ...
@@ -202,7 +202,7 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white placeholder:text-white/40"
-                                            placeholder="9845471611"
+                                            placeholder="e.g. 07700 900123"
                                         />
                                     </div>
                                     <div>

@@ -31,8 +31,8 @@ export const Navbar = () => {
                     <Link href="/" className="flex items-center space-x-2 group">
                         <div className="relative">
                             <img
-                                src="/ninja-logo.png"
-                                alt="Ninja Inflatable Park"
+                                src="/spinpin-logo.png"
+                                alt="SpinPin"
                                 className="h-12 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-neon-blue"
                             />
                         </div>

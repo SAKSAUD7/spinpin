@@ -1,6 +1,42 @@
 import { z } from "zod";
 import { isAfter, isBefore, startOfDay, addHours } from "date-fns";
 
+// ─── Leicester City Council School Holiday Dates 2025–2027 ──────────────────
+// Source: Leicester City Council & Leicestershire County Council calendars
+// These are DATE RANGES where schools are CLOSED (holidays/half-terms).
+// On these days, weekday opening hours extend to match weekend hours (from 10:00).
+const SCHOOL_HOLIDAY_RANGES: Array<[string, string]> = [
+    // 2025
+    ["2025-05-26", "2025-05-30"], // Spring half-term
+    ["2025-07-23", "2025-08-31"], // Summer holiday
+    ["2025-10-20", "2025-10-24"], // Autumn half-term
+    ["2025-12-20", "2026-01-04"], // Christmas & New Year
+    // 2026 (Leicester City Council 2026/27)
+    ["2026-02-16", "2026-02-20"], // Spring half-term
+    ["2026-03-30", "2026-04-10"], // Easter holidays
+    ["2026-05-25", "2026-05-29"], // Summer half-term
+    ["2026-07-22", "2026-08-30"], // Summer holiday + Bank Holiday 31 Aug
+    ["2026-10-19", "2026-10-23"], // Autumn half-term
+    ["2026-12-19", "2027-01-03"], // Christmas & New Year
+    // 2027
+    ["2027-02-15", "2027-02-19"], // Spring half-term
+    ["2027-03-22", "2027-04-02"], // Easter holidays
+    ["2027-05-31", "2027-06-04"], // Summer half-term
+    ["2027-07-12", "2027-08-31"], // Summer holiday
+];
+
+/**
+ * Returns true if the given date (YYYY-MM-DD) falls within a school holiday period.
+ * During school holidays, SpinPin opens earlier on weekdays (like weekends).
+ */
+export function isSchoolHoliday(date: string): boolean {
+    if (!date) return false;
+    for (const [start, end] of SCHOOL_HOLIDAY_RANGES) {
+        if (date >= start && date <= end) return true;
+    }
+    return false;
+}
+
 export interface Stat {
     id: string;
     value: string;
@@ -30,8 +66,8 @@ export interface Activity {
     order: number;
 }
 
-// Phone number validation for India (+91 format)
-const phoneRegex = /^(\+91|91)?[6-9]\d{9}$/;
+// Phone number validation - accepts UK and international formats
+const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
 
 // Email validation (comprehensive)
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -97,8 +133,8 @@ export const bookingSchema = z.object({
 
     phone: z.string()
         .min(1, "Phone number is required")
-        .regex(phoneRegex, "Please enter a valid 10-digit Indian mobile number")
-        .transform((phone) => formatPhoneNumber(phone)),
+        .regex(phoneRegex, "Please enter a valid phone number")
+        .transform((phone) => phone.trim()),
 
     // Waiver Details
     dateOfBirth: z.string().min(1, "Date of birth is required"),
@@ -120,10 +156,10 @@ export const bookingSchema = z.object({
     waiverAccepted: z.boolean()
         .refine((val) => val === true, "You must accept the waiver to proceed")
 }).refine((data) => {
-    // At least one jumper (adult or kid) must be selected
+    // At least one participant (adult or kid) must be selected
     return data.adults > 0 || data.kids > 0;
 }, {
-    message: "At least one jumper (adult or kid) is required for booking",
+    message: "At least one participant (adult or kid) is required for booking",
     path: ["adults"]
 }).refine((data) => {
     // Total guests should not exceed 100
@@ -138,14 +174,7 @@ export type BookingFormData = z.infer<typeof bookingSchema>;
 
 // Helper function to format phone number
 export function formatPhoneNumber(phone: string): string {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.startsWith('91') && cleaned.length === 12) {
-        return cleaned.substring(2);
-    }
-    if (cleaned.length === 10) {
-        return cleaned;
-    }
-    return cleaned;
+    return phone.trim();
 }
 
 // Helper function to check if selected time is in the past
@@ -175,19 +204,45 @@ export function isValidBookingDate(date: string): boolean {
     }
 }
 
-// Get available time slots for a given date
+// Get available time slots for a given date based on SpinPin UK opening hours:
+// Mon: Closed
+// Tue-Fri (term-time): 14:00-22:00
+// Updated hours:
+// Monday: CLOSED
+// Tue-Fri: 12:00 PM – 10:00 PM (also open in school holidays)
+// Sat: 12:00 PM – 11:00 PM
+// Sun: 12:00 PM – 10:00 PM
+// For today's date, only show slots at least 2 hours from now
 export function getAvailableTimeSlots(date: string): string[] {
-    const allSlots = [
-        "10:00", "11:00", "12:00", "13:00", "14:00",
-        "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"
-    ];
-    const selectedDate = new Date(date);
+    const selectedDate = new Date(date + 'T12:00:00');
+    const dayOfWeek = selectedDate.getDay(); // 0=Sun, 1=Mon, 2=Tue...
+
+    // Monday is always closed
+    if (dayOfWeek === 1) return [];
+
+    let allSlots: string[];
+
+    if (dayOfWeek === 6) {
+        // Saturday: 12:00 PM – 11:00 PM
+        allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
+    } else if (dayOfWeek === 0) {
+        // Sunday: 12:00 PM – 10:00 PM
+        allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+    } else {
+        // Tue-Fri: 12:00 PM – 10:00 PM (same for school holidays — open all week except Mon)
+        allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+    }
+
+    // For today's date, only show slots at least 2 hours from now
     const today = new Date();
     if (selectedDate.toDateString() === today.toDateString()) {
         const currentHour = today.getHours();
+        const currentMinute = today.getMinutes();
+        // Must be at least 2 hours from now
+        const minSlotHour = currentMinute > 0 ? currentHour + 3 : currentHour + 2;
         return allSlots.filter(slot => {
             const [slotHour] = slot.split(':').map(Number);
-            return slotHour > currentHour;
+            return slotHour >= minSlotHour;
         });
     }
     return allSlots;

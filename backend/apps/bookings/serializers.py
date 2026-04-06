@@ -101,8 +101,8 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = ['id', 'uuid', 'booking_number', 'name', 'email', 'phone', 'date', 'time', 'duration',
                   'adults', 'kids', 'spectators', 'subtotal', 'discount_amount', 'amount',
                   'voucher_code', 'status', 'booking_status', 'payment_status', 'waiver_status',
-                  'type', 'qr_code', 'customer', 'customer_details', 'voucher', 'transactions',
-                  'arrived', 'arrived_at',  # Arrival tracking
+                  'type', 'activity', 'add_ons', 'qr_code', 'customer', 'customer_details',
+                  'voucher', 'transactions', 'arrived', 'arrived_at',
                   # 'waivers',  # Temporarily removed
                   'created_at', 'updated_at']
 

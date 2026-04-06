@@ -83,12 +83,12 @@ export const SEO_CONFIG = {
   siteName: "Spin Pin",
   title: "Spin Pin | Bowling, Roller Skating & Arcade in Leicester",
   description: "Experience the ultimate fun at Spin Pin Leicester! Enjoy ten pin bowling, roller skating on Leicester's first roller rink, and exciting arcade games. Perfect for birthday parties, family entertainment, and group events. Book your session now!",
-  baseUrl: "http://localhost:5000",
+  baseUrl: "https://www.spinpin.uk",
   keywords: SEO_KEYWORDS,
   openGraph: {
     type: "website",
     locale: "en_GB",
-    url: "http://localhost:5000/",
+    url: "https://www.spinpin.uk/",
     siteName: "Spin Pin",
     images: [
       {

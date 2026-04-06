@@ -93,7 +93,7 @@ export function AdminSessionBookingForm() {
                                 type="tel"
                                 required
                                 className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900 placeholder:text-slate-400"
-                                placeholder="+91 98765 43210"
+                                placeholder="+44 7700 900000"
                             />
                         </div>
                     </div>

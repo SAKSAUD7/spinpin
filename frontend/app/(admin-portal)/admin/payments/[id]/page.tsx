@@ -191,7 +191,7 @@ export default function PaymentDetailPage() {
                             <div>
                                 <p className="text-white/60 text-sm mb-1">Amount</p>
                                 <p className={`text-2xl font-black ${payment.amount < 0 ? "text-red-400" : "text-green-400"}`}>
-                                    {payment.amount < 0 ? "-" : ""}₹{Math.abs(payment.amount).toLocaleString('en-IN')}
+                                    {payment.amount < 0 ? "-" : ""}£{Math.abs(payment.amount).toLocaleString('en-GB')}
                                 </p>
                             </div>
                             <div>
@@ -262,7 +262,7 @@ export default function PaymentDetailPage() {
                                         className="w-full px-4 py-2 bg-surface-900 border border-white/10 rounded-lg text-white focus:border-primary focus:outline-none"
                                     />
                                     <p className="text-xs text-white/40 mt-1">
-                                        Max: ₹{payment.amount.toLocaleString('en-IN')}
+                                        Max: £{payment.amount.toLocaleString('en-GB')}
                                     </p>
                                 </div>
 

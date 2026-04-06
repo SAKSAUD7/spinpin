@@ -1,9 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { getPageSections } from '@/app/actions/page-sections';
 import { getGroupPackages } from '@/app/actions/group-packages';
 import { getGroupBenefits } from '@/app/actions/group-benefits';
 import GroupsContent from './components/GroupsContent';
-
 
 export default async function GroupsPage() {
     // Fetch all data in parallel
@@ -28,9 +27,9 @@ export default async function GroupsPage() {
 
     return (
         <GroupsContent
-            hero={hero}
-            packages={activePackages}
-            benefits={activeBenefits}
-        />
+                hero={hero}
+                packages={activePackages}
+                benefits={activeBenefits}
+            />
     );
 }

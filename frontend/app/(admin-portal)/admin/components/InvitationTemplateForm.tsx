@@ -45,7 +45,7 @@ export function InvitationTemplateForm({ initialId }: InvitationTemplateFormProp
             name: "",
             background_image: "",
             default_title: "You're Invited!",
-            default_message: "Come join us for a party at Ninja Inflatable Park!",
+            default_message: "Come join us for a party at Spin Pin Leicester!",
             is_active: true,
         },
     });

@@ -23,7 +23,7 @@ export default function TermsPage() {
                     title: "General Rules",
                     content: [
                         "Only authorised members of the public are allowed into our premises.",
-                        "Ninja Inflatable reserves the right to refuse entry, and you may be asked to leave for noncompliance with our rules.",
+                        "Spin Pin reserves the right to refuse entry, and you may be asked to leave for noncompliance with our rules.",
                         "In the interest of safety, entry may be refused if you are found under the influence of alcohol or drugs.",
                         "Adults must remain on the premises and supervise children under their care at all times.",
                         "Play time is limited to the duration of the booked session only.",
@@ -33,9 +33,9 @@ export default function TermsPage() {
                 {
                     title: "Parking",
                     content: [
-                        "We provide free parking for 2 hours.",
-                        "If your stay exceeds 2 hours, please register your car at reception to avoid a parking penalty.",
-                        "Ninja Inflatable accepts no liability for parking fines."
+                        "Paid parking is available nearby (£3.00 per visit).",
+                        "Please ensure your vehicle is parked legally and responsibly.",
+                        "Spin Pin accepts no liability for parking fines."
                     ]
                 },
                 {
@@ -53,9 +53,9 @@ export default function TermsPage() {
                     title: "Your Stay Whilst You Play",
                     content: [
                         "Please inform us immediately if any participant has an accident, however minor. Our qualified first aiders are available to assist.",
-                        "If someone becomes lost in the play area, please notify a member of staff immediately.",
-                        "Ninja Inflatable accepts no liability for the loss or damage of valuables.",
-                        "Participants must not run in non-play areas or behave in a way that endangers others.",
+                        "If someone becomes separated from your group, please notify a member of staff immediately.",
+                        "Spin Pin accepts no liability for the loss or damage of valuables.",
+                        "Participants must not run recklessly or behave in a way that endangers others.",
                         "We operate a zero-tolerance policy towards bullying, fighting, aggressive, or inappropriate behaviour towards staff, management, or other visitors.",
                         "Sharp objects, weapons, alcohol, or drugs are strictly prohibited. Such items will be confiscated and the individual removed immediately. Where appropriate, the police will be contacted."
                     ]
@@ -63,10 +63,10 @@ export default function TermsPage() {
                 {
                     title: "Food & Drinks",
                     content: [
-                        "Only food and drinks purchased at Ninja Inflatable may be consumed on the premises.",
-                        "During peak times, food service may take up to 45 minutes.",
-                        "Eating areas are kept separate from play areas for health and safety reasons.",
-                        "Food, drink, sweets, and chewing gum are not allowed in or near the inflatables."
+                        "Only food and drinks purchased at Spin Pin may be consumed on the premises.",
+                        "During busy periods, food service may take up to 45 minutes.",
+                        "Eating areas are kept separate from activity areas for health and safety reasons.",
+                        "Food, drink, and chewing gum are not allowed on the skating rink or bowling lanes."
                     ]
                 },
                 {
@@ -79,14 +79,14 @@ export default function TermsPage() {
                     ]
                 },
                 {
-                    title: "Play Time Rules",
+                    title: "Activity Rules",
                     content: [
                         "All activities and equipment are subject to availability. Management reserves the right to close an activity at any time without prior notice. Refunds will not be issued.",
-                        "Our inflatables and obstacles are designed to meet strict safety and quality standards. However, Ninja Inflatable cannot be held responsible for accidents resulting from improper use or failure to follow rules.",
-                        "Separate age-appropriate zones and height restrictions are in place. Please ensure these are followed for everyone’s safety.",
-                        "Unwell participants should not use the inflatables.",
-                        "Entry may be refused if participants are not wearing appropriate clothing/socks, do not meet height restrictions, are unwell, in plaster casts, carrying injuries, or fail to follow rules and staff instructions.",
-                        "Staff supervise the play areas to help ensure safety, but they are not a replacement for parental or guardian supervision."
+                        "Our facilities are designed to meet strict safety and quality standards. However, Spin Pin cannot be held responsible for accidents resulting from improper use or failure to follow rules.",
+                        "Grip socks/appropriate footwear must be worn in skating areas. Skate hire is available at an additional cost.",
+                        "Unwell participants should not skate or participate in physical activities.",
+                        "Entry to activities may be refused if participants do not meet safety requirements or fail to follow rules and staff instructions.",
+                        "Staff supervise the activity areas to help ensure safety, but they are not a replacement for parental or guardian supervision."
                     ]
                 }
             ]
@@ -169,8 +169,8 @@ export default function TermsPage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-6 py-2 rounded-full font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                                        ? "bg-primary text-black shadow-neon-blue"
-                                        : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                                    ? "bg-primary text-black shadow-neon-blue"
+                                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
                                     }`}
                             >
                                 {tab.icon}

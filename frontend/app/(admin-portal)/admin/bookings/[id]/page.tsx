@@ -146,10 +146,48 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-semibold">Total Amount</label>
-                                <p className="text-xl font-bold text-green-600">₹{booking.amount}</p>
+                                <p className="text-xl font-bold text-green-600">£{booking.amount}</p>
                             </div>
+                            {booking.activity && (
+                                <div>
+                                    <label className="text-xs text-slate-400 uppercase font-semibold">Activity</label>
+                                    <p className="text-slate-900 font-medium capitalize">
+                                        {booking.activity === 'roller-skating' && '🛼 Roller Skating'}
+                                        {booking.activity === 'ten-pin-bowling' && '🎳 Ten Pin Bowling'}
+                                        {booking.activity === 'arcade' && '🕹️ Arcade'}
+                                        {!['roller-skating', 'ten-pin-bowling', 'arcade'].includes(booking.activity) && booking.activity}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
+
+                    {/* Add-ons breakdown (parking, locker, skate hire etc.) */}
+                    {booking.add_ons && booking.add_ons.length > 0 && (
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <h2 className="text-lg font-bold text-slate-900 mb-4">➕ Add-ons &amp; Extras</h2>
+                            <div className="space-y-3">
+                                {booking.add_ons.map((ao: any, i: number) => (
+                                    <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xl">{ao.emoji}</span>
+                                            <div>
+                                                <p className="font-semibold text-slate-900">{ao.label}</p>
+                                                <p className="text-sm text-slate-500">{ao.qty} × £{Number(ao.price_each).toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                        <span className="font-bold text-slate-900">£{Number(ao.subtotal).toFixed(2)}</span>
+                                    </div>
+                                ))}
+                                <div className="flex justify-between items-center pt-3 border-t border-slate-200 mt-2">
+                                    <span className="font-bold text-slate-700">Add-ons Total</span>
+                                    <span className="font-bold text-green-600">
+                                        £{booking.add_ons.reduce((s: number, ao: any) => s + Number(ao.subtotal), 0).toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Guest Summary - Always show from booking data */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

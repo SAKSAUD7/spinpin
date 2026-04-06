@@ -462,28 +462,36 @@ class SessionBookingConfig(models.Model):
     """Configuration for session booking wizard - makes all pricing and labels editable from CMS"""
     
     # Adult Pricing & Labels
-    adult_price = models.DecimalField(max_digits=10, decimal_places=2, default=899, help_text="Price per adult")
-    adult_label = models.CharField(max_length=100, default="Ninja Warrior (7+ Years)", help_text="Display label for adults")
-    adult_description = models.CharField(max_length=200, default="₹ 899 + GST per person", help_text="Price description for adults")
+    adult_price = models.DecimalField(max_digits=10, decimal_places=2, default=9.95, help_text="Price per adult in GBP")
+    adult_label = models.CharField(max_length=100, default="Adults (7+ Years)", help_text="Display label for adults")
+    adult_description = models.CharField(max_length=200, default="£9.95 per person", help_text="Price description for adults")
     
     # Kid Pricing & Labels
-    kid_price = models.DecimalField(max_digits=10, decimal_places=2, default=500, help_text="Price per kid")
-    kid_label = models.CharField(max_length=100, default="Little Ninjas (1-7 Years)", help_text="Display label for kids")
-    kid_description = models.CharField(max_length=200, default="₹ 500 + GST per person", help_text="Price description for kids")
+    kid_price = models.DecimalField(max_digits=10, decimal_places=2, default=9.95, help_text="Price per kid in GBP")
+    kid_label = models.CharField(max_length=100, default="Kids (1-7 Years)", help_text="Display label for kids")
+    kid_description = models.CharField(max_length=200, default="£9.95 per person", help_text="Price description for kids")
     
     # Spectator Pricing & Labels
-    spectator_price = models.DecimalField(max_digits=10, decimal_places=2, default=150, help_text="Price per spectator")
-    spectator_label = models.CharField(max_length=100, default="Spectators", help_text="Display label for spectators")
-    spectator_description = models.CharField(max_length=200, default="₹ 150 + GST per person", help_text="Price description for spectators")
+    spectator_price = models.DecimalField(max_digits=10, decimal_places=2, default=2.95, help_text="Price per spectator in GBP")
+    spectator_label = models.CharField(max_length=100, default="Spectators (Age 4+)", help_text="Display label for spectators")
+    spectator_description = models.CharField(max_length=200, default="£2.95 per person", help_text="Price description for spectators")
     
     # Tax Configuration
-    gst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=18.00, help_text="GST percentage (e.g., 18 for 18%)")
+    gst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="VAT percentage (0 for no VAT)")
     
     # Duration Configuration
     duration_minutes = models.IntegerField(default=60, help_text="Session duration in minutes")
     duration_label = models.CharField(max_length=100, default="60 Minutes", help_text="Display label for duration")
     duration_description = models.CharField(max_length=200, default="Standard Session", help_text="Duration description")
-    
+
+    # Add-on Pricing (per item, GBP)
+    skate_hire_price = models.DecimalField(max_digits=10, decimal_places=2, default=2.95, help_text="Skate hire price per pair")
+    shoe_hire_price = models.DecimalField(max_digits=10, decimal_places=2, default=1.50, help_text="Bowling shoe hire price per pair")
+    locker_hire_price = models.DecimalField(max_digits=10, decimal_places=2, default=2.00, help_text="Locker hire price per locker")
+    token_pack_20_price = models.DecimalField(max_digits=10, decimal_places=2, default=5.00, help_text="Arcade token pack (20 tokens)")
+    token_pack_50_price = models.DecimalField(max_digits=10, decimal_places=2, default=10.00, help_text="Arcade token pack (50 tokens)")
+    parking_price = models.DecimalField(max_digits=10, decimal_places=2, default=3.00, help_text="Parking price per car")
+
     # Meta
     active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -512,8 +520,8 @@ class PartyBookingConfig(models.Model):
     participant_price = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
-        default=1500.00,
-        help_text="Price per participant"
+        default=14.95,
+        help_text="Price per participant in GBP"
     )
     participant_label = models.CharField(
         max_length=200, 
@@ -522,7 +530,7 @@ class PartyBookingConfig(models.Model):
     )
     participant_description = models.CharField(
         max_length=500, 
-        default="₹ 1500 per person",
+        default="£14.95 per person",
         help_text="Description shown for participants"
     )
     
@@ -671,3 +679,30 @@ class PricingCarouselImage(models.Model):
 
     def __str__(self):
         return self.title or f"Image {self.id}"
+
+
+class TimingCard(models.Model):
+    """Timing/operating hours cards shown site-wide on all pages."""
+    COLOR_CHOICES = [
+        ('primary', 'Primary'),
+        ('secondary', 'Secondary'),
+        ('accent', 'Accent'),
+    ]
+    day_label = models.CharField(max_length=100, help_text="e.g. 'Monday – Friday' or 'Weekends'")
+    open_time = models.CharField(max_length=20, help_text="Opening time, e.g. '10:00 AM'")
+    close_time = models.CharField(max_length=20, help_text="Closing time, e.g. '9:00 PM'")
+    note = models.CharField(max_length=200, null=True, blank=True, help_text="Optional note, e.g. 'Last entry 8 PM'")
+    icon = models.CharField(max_length=50, default='Clock', help_text="Lucide icon name, e.g. 'Clock'")
+    color = models.CharField(max_length=20, choices=COLOR_CHOICES, default='primary', help_text="Card accent color")
+    active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Timing Card"
+        verbose_name_plural = "Timing Cards"
+
+    def __str__(self):
+        return f"{self.day_label}: {self.open_time} – {self.close_time}"

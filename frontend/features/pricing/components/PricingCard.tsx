@@ -49,7 +49,7 @@ export const PricingCard = ({ tier, index }: PricingCardProps) => {
             <div className="mb-6">
                 <div className="flex items-baseline gap-1">
                     <span className="text-5xl font-display font-black text-primary">
-                        ₹{tier.price}
+                        £{tier.price}
                     </span>
                     <span className="text-white/60">/{tier.duration}min</span>
                 </div>

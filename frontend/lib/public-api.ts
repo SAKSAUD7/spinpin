@@ -1,5 +1,5 @@
 // Public API functions - fetch from Django backend
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 async function fetchFromAPI(endpoint: string) {
     try {
@@ -158,3 +158,7 @@ export async function getPublicPricingCarouselImages() {
     return images.filter((i: any) => i.active);
 }
 
+export async function getPublicTimingCards() {
+    const cards = await fetchFromAPI('/cms/timing-cards/');
+    return cards.filter((c: any) => c.active);
+}

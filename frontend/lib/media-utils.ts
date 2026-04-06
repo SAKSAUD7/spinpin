@@ -5,23 +5,20 @@
 export const getMediaUrl = (path: string | null | undefined): string => {
     if (!path) return '';
 
-    // Azure Storage Base URL
-    const AZURE_MEDIA_URL = 'https://ninjapark.blob.core.windows.net/media';
-
-    // If it's already an absolute URL, return it directly
+    // Already an absolute URL — return directly
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
     }
 
-    // Handle relative uploads/media paths to point to Azure
-    if (path.startsWith('uploads/') || path.startsWith('media/') || path.startsWith('logos/')) {
-        // Remove leading slash if present
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        return `${AZURE_MEDIA_URL}/${cleanPath}`;
+    // Local frontend public assets — served by Next.js, not backend
+    // e.g. /images/spinpin/..., /spinpin-logo.png, /icons/...
+    const frontendPaths = ['/images/', '/icons/', '/spinpin-logo.png', '/fonts/'];
+    if (frontendPaths.some(prefix => path.startsWith(prefix) || path === prefix.slice(0, -1))) {
+        return path; // return as-is; Next.js serves from /public
     }
 
-    // Get API base URL for other internal paths
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+    // Backend media paths — proxy through backend (Django)
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
     const API_ROOT = API_BASE_URL.replace('/api/v1', '');
 
     if (path.startsWith('/')) {

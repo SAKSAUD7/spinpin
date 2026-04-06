@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createVoucher } from "@/app/actions/vouchers";
 import { useRouter } from "next/navigation";
@@ -66,7 +66,7 @@ export default function NewVoucherPage() {
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent outline-none text-slate-900"
                         >
                             <option value="PERCENTAGE">Percentage (%)</option>
-                            <option value="FLAT">Flat Amount (₹)</option>
+                            <option value="FLAT">Flat Amount (£)</option>
                         </select>
                     </div>
 

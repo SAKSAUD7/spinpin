@@ -46,12 +46,12 @@ export default function WaiverTermsPage() {
                                 </h2>
                                 <div className="text-white/70 space-y-3">
                                     <p>
-                                        I understand and acknowledge that participation in activities at Ninja Inflatable Park involves inherent risks, including but not limited to:
+                                        I understand and acknowledge that participation in activities at Spin Pin Leicester involves inherent risks, including but not limited to:
                                     </p>
                                     <ul className="list-disc list-inside space-y-2 ml-4">
-                                        <li>Physical injury from jumping, bouncing, and other inflatable activities</li>
+                                        <li>Physical injury from skating, bowling, or arcade activities</li>
                                         <li>Collisions with other participants or equipment</li>
-                                        <li>Falls, slips, and trips</li>
+                                        <li>Falls, slips, and trips on the skating rink</li>
                                         <li>Sprains, strains, fractures, or other bodily injuries</li>
                                     </ul>
                                     <p>
@@ -64,7 +64,7 @@ export default function WaiverTermsPage() {
                                 <h2 className="text-2xl font-bold text-primary mb-4">2. Release of Liability</h2>
                                 <div className="text-white/70 space-y-3">
                                     <p>
-                                        I hereby release, waive, discharge, and covenant not to sue Ninja Inflatable Park, its owners, operators, employees, agents, and affiliates from any and all liability, claims, demands, actions, and causes of action whatsoever arising out of or related to any loss, damage, or injury, including death, that may be sustained by me or any property belonging to me, while participating in such activities.
+                                        I hereby release, waive, discharge, and covenant not to sue Spin Pin Leicester, its owners, operators, employees, agents, and affiliates from any and all liability, claims, demands, actions, and causes of action whatsoever arising out of or related to any loss, damage, or injury, including death, that may be sustained by me or any property belonging to me, while participating in such activities.
                                     </p>
                                 </div>
                             </section>
@@ -73,7 +73,7 @@ export default function WaiverTermsPage() {
                                 <h2 className="text-2xl font-bold text-primary mb-4">3. Medical Conditions</h2>
                                 <div className="text-white/70 space-y-3">
                                     <p>
-                                        I certify that I (and any minors for whom I am signing) am physically fit and have no medical conditions that would prevent safe participation in inflatable activities. I agree to immediately inform staff of any medical conditions, injuries, or concerns.
+                                        I certify that I (and any minors for whom I am signing) am physically fit and have no medical conditions that would prevent safe participation in skating, bowling, or arcade activities at Spin Pin. I agree to immediately inform staff of any medical conditions, injuries, or concerns.
                                     </p>
                                     <p className="font-medium text-accent">
                                         Participants with the following conditions should not participate without medical clearance:
@@ -92,14 +92,14 @@ export default function WaiverTermsPage() {
                                 <h2 className="text-2xl font-bold text-primary mb-4">4. Rules and Regulations</h2>
                                 <div className="text-white/70 space-y-3">
                                     <p>
-                                        I agree to follow all posted rules, safety guidelines, and instructions from Ninja Inflatable Park staff. I understand that failure to comply may result in immediate removal from the facility without refund.
+                                        I agree to follow all posted rules, safety guidelines, and instructions from Spin Pin staff. I understand that failure to comply may result in immediate removal from the facility without refund.
                                     </p>
                                     <p className="font-medium">Safety rules include but are not limited to:</p>
                                     <ul className="list-disc list-inside space-y-2 ml-4">
-                                        <li>No shoes, sharp objects, or jewelry on inflatables</li>
-                                        <li>No food or drinks on inflatable equipment</li>
+                                        <li>Wear appropriate skates or shoes for the activity</li>
+                                        <li>No running on the skating rink surface</li>
                                         <li>No rough play, pushing, or dangerous behavior</li>
-                                        <li>Follow age and height restrictions</li>
+                                        <li>Follow age and activity restrictions</li>
                                         <li>Supervise children at all times</li>
                                     </ul>
                                 </div>
@@ -118,7 +118,7 @@ export default function WaiverTermsPage() {
                                 <h2 className="text-2xl font-bold text-primary mb-4">6. Photo/Video Release</h2>
                                 <div className="text-white/70 space-y-3">
                                     <p>
-                                        I grant Ninja Inflatable Park permission to use photographs or videos taken during my visit for promotional purposes, including social media, website, and marketing materials.
+                                        I grant Spin Pin Leicester permission to use photographs or videos taken during my visit for promotional purposes, including social media, website, and marketing materials.
                                     </p>
                                 </div>
                             </section>
@@ -127,7 +127,7 @@ export default function WaiverTermsPage() {
                                 <h2 className="text-2xl font-bold text-primary mb-4">7. Emergency Medical Treatment</h2>
                                 <div className="text-white/70 space-y-3">
                                     <p>
-                                        I authorize Ninja Inflatable Park staff to seek emergency medical treatment if necessary. I agree to be financially responsible for any medical costs incurred.
+                                        I authorise Spin Pin Leicester staff to seek emergency medical treatment if necessary. I agree to be financially responsible for any medical costs incurred.
                                     </p>
                                 </div>
                             </section>
@@ -158,9 +158,9 @@ export default function WaiverTermsPage() {
                                 If you have any questions about this waiver or our safety procedures, please contact us:
                             </p>
                             <div className="text-white/70 text-sm space-y-1">
-                                <p><strong>Phone:</strong> +91 98454 71611</p>
-                                <p><strong>Email:</strong> info@ninjainflatablepark.com</p>
-                                <p><strong>Address:</strong> Ninja Inflatable Park, Bangalore</p>
+                                <p><strong>Phone:</strong> 07349 110 865</p>
+                                <p><strong>Email:</strong> info@spinpin.co.uk</p>
+                                <p><strong>Address:</strong> Ramdoot House, Navigation Street, Leicester, LE1 3UR</p>
                             </div>
                         </div>
 

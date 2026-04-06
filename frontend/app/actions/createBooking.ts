@@ -58,14 +58,10 @@ export async function createBooking(formData: any) {
             return { success: false, error: "Invalid email format" };
         }
 
-        if (!isValidPhone(data.phone)) {
-            return { success: false, error: "Invalid phone number format" };
-        }
-
         // Sanitize inputs
         const sanitizedName = sanitizeString(data.name);
         const sanitizedEmail = data.email.toLowerCase().trim();
-        const sanitizedPhone = formatPhoneNumber(data.phone);
+        const sanitizedPhone = data.phone.trim();
 
         // Validate date is not in the past
         const selectedDate = new Date(data.date);
@@ -87,19 +83,74 @@ export async function createBooking(formData: any) {
             }
         }
 
-        // Calculate amount (server-side to prevent tampering)
-        const kidPrice = 500;
-        const adultPrice = 899;
-        const spectatorPrice = 150;
+        // ── Fetch pricing from CMS config (dynamic, admin-controlled) ─────────
+        let cmsConfig: Record<string, string> = {};
+        try {
+            const cfgRes = await fetch(`${API_URL}/cms/session-booking-config/1/`, {
+                cache: "no-store",
+                signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined,
+            });
+            if (cfgRes.ok) cmsConfig = await cfgRes.json();
+        } catch { /* fall through to defaults */ }
 
-        let subtotal = (data.kids * kidPrice) + (data.adults * adultPrice) + (data.spectators * spectatorPrice);
+        const ADULT_PRICE = cmsConfig.adult_price ? parseFloat(cmsConfig.adult_price) : 9.95;
+        const KID_PRICE = cmsConfig.kid_price ? parseFloat(cmsConfig.kid_price) : 9.95;
+        const SPEC_PRICE = cmsConfig.spectator_price ? parseFloat(cmsConfig.spectator_price) : 2.95;
+        const GST_RATE = cmsConfig.gst_rate ? parseFloat(cmsConfig.gst_rate) : 0;
 
+        let subtotal =
+            (data.adults * ADULT_PRICE) +
+            (data.kids * KID_PRICE) +
+            (data.spectators * SPEC_PRICE);
+
+        // 120-min session = extra session fee per person
         if (data.duration === "120") {
-            subtotal += (data.kids + data.adults) * 500;
+            subtotal += (data.kids + data.adults) * ADULT_PRICE;
         }
 
-        const gst = subtotal * 0.18;
-        let totalAmount = subtotal + gst;
+        // ── Add-ons — prices also driven by CMS config ─────────────────────
+        const ADD_ON_PRICES: Record<string, number> = {
+            "skate-hire": cmsConfig.skate_hire_price ? parseFloat(cmsConfig.skate_hire_price) : 2.95,
+            "bowling-shoes": cmsConfig.shoe_hire_price ? parseFloat(cmsConfig.shoe_hire_price) : 1.50,
+            "locker": cmsConfig.locker_hire_price ? parseFloat(cmsConfig.locker_hire_price) : 2.00,
+            "token-pack-small": cmsConfig.token_pack_20_price ? parseFloat(cmsConfig.token_pack_20_price) : 5.00,
+            "token-pack-large": cmsConfig.token_pack_50_price ? parseFloat(cmsConfig.token_pack_50_price) : 10.00,
+            "parking": cmsConfig.parking_price ? parseFloat(cmsConfig.parking_price) : 3.00,
+        };
+        const ADD_ON_META: Record<string, { label: string; emoji: string }> = {
+            "skate-hire": { label: "Skate Hire", emoji: "\uD83D\uDEFC" },
+            "bowling-shoes": { label: "Shoe Hire", emoji: "\uD83D\uDC5E" },
+            "locker": { label: "Locker Hire", emoji: "\uD83D\uDD12" },
+            "token-pack-small": { label: "Token Pack (20)", emoji: "\uD83E\uDE99" },
+            "token-pack-large": { label: "Token Pack (50)", emoji: "\uD83C\uDFB0" },
+            "parking": { label: "Parking", emoji: "\uD83D\uDE97" },
+        };
+
+        const formAddOns: Record<string, number> = (formData.addOns as Record<string, number>) || {};
+        const formGlobalAddOns: Record<string, number> = (formData.globalAddOns as Record<string, number>) || {};
+        const allAddOns = { ...formAddOns, ...formGlobalAddOns };
+
+        const addOnsList: object[] = [];
+        let addOnsTotal = 0;
+        for (const [id, qty] of Object.entries(allAddOns)) {
+            if (qty > 0 && ADD_ON_PRICES[id] !== undefined) {
+                const priceEach = ADD_ON_PRICES[id];
+                const lineTotal = parseFloat((priceEach * qty).toFixed(2));
+                addOnsTotal += lineTotal;
+                addOnsList.push({
+                    id,
+                    label: ADD_ON_META[id]?.label || id,
+                    emoji: ADD_ON_META[id]?.emoji || "+",
+                    qty,
+                    price_each: priceEach,
+                    subtotal: lineTotal,
+                });
+            }
+        }
+
+        subtotal = parseFloat((subtotal + addOnsTotal).toFixed(2));
+        const gst = parseFloat((subtotal * (GST_RATE / 100)).toFixed(2));
+        let totalAmount = parseFloat((subtotal + gst).toFixed(2));
         let discountAmount = 0;
         let voucherId = null;
 
@@ -137,7 +188,7 @@ export async function createBooking(formData: any) {
 
             // Check min order amount
             if (voucher.min_order_amount && subtotal < parseFloat(voucher.min_order_amount)) {
-                return { success: false, error: `Minimum order of ₹${parseFloat(voucher.min_order_amount).toLocaleString()} required to use this voucher` };
+                return { success: false, error: `Minimum order of £${parseFloat(voucher.min_order_amount).toLocaleString()} required to use this voucher` };
             }
 
             // Calculate discount
@@ -201,7 +252,9 @@ export async function createBooking(formData: any) {
             booking_status: "CONFIRMED",
             payment_status: "PENDING",
             waiver_status: "PENDING",
-            type: "SESSION"
+            type: "SESSION",
+            activity: formData.activity || null,
+            add_ons: addOnsList.length > 0 ? addOnsList : null,
         };
 
         const bookingRes = await fetch(`${API_URL}/bookings/bookings/`, {

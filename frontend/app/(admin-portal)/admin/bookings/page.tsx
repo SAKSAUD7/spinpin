@@ -35,6 +35,7 @@ export default function AdminBookings() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [dateFilter, setDateFilter] = useState("all");
     const [hasArrivedFilter, setHasArrivedFilter] = useState("all");
+    const [activityFilter, setActivityFilter] = useState("all");
     const [displayCount, setDisplayCount] = useState(25);
     const router = useRouter();
 
@@ -115,6 +116,14 @@ export default function AdminBookings() {
         // Date filter
         filtered = filterBookingsByDate(filtered, dateFilter);
 
+        // Activity filter
+        if (activityFilter !== "all") {
+            filtered = filtered.filter(booking => {
+                const act = (booking.activity || booking.activity_type || "").toLowerCase();
+                return act.includes(activityFilter);
+            });
+        }
+
         // Arrival filter
         if (hasArrivedFilter !== "all") {
             const shouldBeArrived = hasArrivedFilter === "yes";
@@ -136,6 +145,7 @@ export default function AdminBookings() {
         setStatusFilter("all");
         setDateFilter("all");
         setHasArrivedFilter("all");
+        setActivityFilter("all");
     }
 
     if (loading) {
@@ -168,10 +178,35 @@ export default function AdminBookings() {
 
             {/* Filters */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+                    <div className="flex flex-col gap-2 md:col-span-2">
+                        <label className="text-sm font-medium text-slate-700">Search</label>
+                        <input
+                            type="text"
+                            placeholder="Name, email or booking #"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
                     <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-slate-700">Date</label>
                         <DateFilter value={dateFilter} onChange={setDateFilter} />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-slate-700">Activity</label>
+                        <select
+                            value={activityFilter}
+                            onChange={(e) => setActivityFilter(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="all">All Activities</option>
+                            <option value="skating">🛼 Roller Skating</option>
+                            <option value="bowling">🎳 Ten Pin Bowling</option>
+                            <option value="arcade">🕹️ Arcade Games</option>
+                        </select>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -238,11 +273,13 @@ export default function AdminBookings() {
                         <thead className="bg-slate-100 border-b-2 border-slate-200">
                             <tr>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Booking #</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Activity</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Customer</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Time</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Amount</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Payment</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Add-ons</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Arrival</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Waiver</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Actions</th>
@@ -251,7 +288,7 @@ export default function AdminBookings() {
                         <tbody className="divide-y divide-slate-100">
                             {filteredBookings.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-6 py-16">
+                                    <td colSpan={10} className="px-6 py-16">
                                         <EmptyState
                                             icon={<Calendar size={48} />}
                                             title="No bookings found"
@@ -275,6 +312,9 @@ export default function AdminBookings() {
                                             <span className="text-sm font-bold text-slate-900">#{booking.id}</span>
                                         </td>
                                         <td className="px-6 py-4">
+                                            <ActivityBadge activity={booking.activity || booking.activity_type || ""} />
+                                        </td>
+                                        <td className="px-6 py-4">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-medium text-slate-900">{booking.customerName || booking.name}</span>
                                                 <span className="text-xs text-slate-500">{booking.customerEmail || booking.email}</span>
@@ -294,9 +334,20 @@ export default function AdminBookings() {
                                             <span className="text-sm font-bold text-slate-900">{formatCurrency(booking.amount || 0)}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                                Paid
-                                            </span>
+                                            {(() => {
+                                                const ps = (booking.payment_status || booking.paymentStatus || 'paid').toUpperCase();
+                                                const styles: Record<string, string> = {
+                                                    PAID: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                                                    PENDING: 'bg-amber-100 text-amber-700 border-amber-200',
+                                                    REFUNDED: 'bg-blue-100 text-blue-700 border-blue-200',
+                                                    FAILED: 'bg-red-100 text-red-700 border-red-200',
+                                                };
+                                                return (
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${styles[ps] || styles.PAID}`}>
+                                                        {ps}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4">
                                             <ArrivedToggle
@@ -332,6 +383,22 @@ export default function AdminBookings() {
                                                 bookingId={booking.id}
                                                 status={booking.waiverStatus || booking.waiver_status}
                                             />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {/* Add-ons */}
+                                            <div className="flex flex-wrap gap-1">
+                                                {(() => {
+                                                    const addOns = booking.add_ons || booking.addOns || {};
+                                                    const items: React.ReactNode[] = [];
+                                                    if (addOns.skate_hire > 0) items.push(<span key="sk" title={`Skate Hire x${addOns.skate_hire}`} className="text-base">🛼</span>);
+                                                    if (addOns.shoe_hire > 0) items.push(<span key="sh" title={`Shoe Hire x${addOns.shoe_hire}`} className="text-base">👟</span>);
+                                                    if (addOns.locker_hire > 0) items.push(<span key="lo" title={`Locker x${addOns.locker_hire}`} className="text-base">🔒</span>);
+                                                    if (addOns.token_pack_20 > 0) items.push(<span key="t20" title={`Token Pack 20 x${addOns.token_pack_20}`} className="text-base">🕹️</span>);
+                                                    if (addOns.token_pack_50 > 0) items.push(<span key="t50" title={`Token Pack 50 x${addOns.token_pack_50}`} className="text-base">🎮</span>);
+                                                    if (addOns.parking > 0) items.push(<span key="pk" title="Parking" className="text-base">🚗</span>);
+                                                    return items.length ? items : <span className="text-xs text-slate-400">—</span>;
+                                                })()}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
@@ -387,5 +454,35 @@ function formatTime(date: Date): string {
         minute: '2-digit',
         hour12: true
     }).toLowerCase();
+}
+
+function ActivityBadge({ activity }: { activity: string }) {
+    const lower = activity?.toLowerCase() || "";
+    if (lower.includes("skating") || lower.includes("roller")) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-pink-100 text-pink-700 border border-pink-200 whitespace-nowrap">
+                🛼 Skating
+            </span>
+        );
+    }
+    if (lower.includes("bowling")) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 whitespace-nowrap">
+                🎳 Bowling
+            </span>
+        );
+    }
+    if (lower.includes("arcade")) {
+        return (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200 whitespace-nowrap">
+                🕹️ Arcade
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
+            ⭐ Session
+        </span>
+    );
 }
 

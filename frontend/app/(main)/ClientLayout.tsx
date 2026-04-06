@@ -27,8 +27,8 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
                         const s = settingsData[0];
                         setSettings({
                             parkName: s.park_name || "Spin Pin",
-                            contactPhone: s.contact_phone || "+91 98454 71611",
-                            contactEmail: s.contact_email || "info@ninjapark.com",
+                            contactPhone: s.contact_phone || "+44 116 280 0000",
+                            contactEmail: s.contact_email || "info@spinpin.com",
                             address: s.address || "",
                             mapUrl: s.map_url || "",
                             openingHours: s.opening_hours || {},
@@ -50,8 +50,8 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     // Use default settings while loading or if fetch failed
     const defaultSettings = {
         parkName: "Spin Pin",
-        contactPhone: "+91 98454 71611",
-        contactEmail: "info@ninjapark.com",
+        contactPhone: "+44 116 280 0000",
+        contactEmail: "info@spinpin.com",
     };
 
     return (

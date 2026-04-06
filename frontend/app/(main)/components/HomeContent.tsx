@@ -5,6 +5,7 @@ import { ScrollReveal } from "../../../components/ScrollReveal";
 import { BouncyButton } from "../../../components/BouncyButton";
 import { SectionDivider } from "../../../components/SectionDivider";
 import { Marquee } from "../../../components/Marquee";
+import { TimingCardsClient } from "../../../components/TimingCardsClient";
 import { motion } from "framer-motion";
 import { Zap, Shield, Users, Trophy, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -42,8 +43,8 @@ interface HomeContentProps {
 export default function HomeContent({ stats, gallery, banners, reels, settings, activities, hero, about }: HomeContentProps) {
     const aboutText = about?.content || settings?.aboutText || "Spin Pin was founded with one mission in mind – to bring people together through fun and engaging experiences. We've created Leicester's premier entertainment venue with bowling, roller skating, and arcade games.";
     const aboutTitle = about?.title || "Leicester's Premier Entertainment Venue";
-    const aboutImage = about?.image || "/park-slides-action.jpg";
-    const phone = settings?.contactPhone || "9845471611";
+    const aboutImage = about?.image || "/images/spinpin/unnamed (4).webp";
+    const phone = settings?.contactPhone || "07700 900000";
 
     return (
         <main className="bg-background text-white">
@@ -53,6 +54,9 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                 subtitle={hero?.subtitle}
                 backgroundImage={hero?.image}
             />
+
+            {/* Timing Cards — right below hero */}
+            <TimingCardsClient />
 
             {/* Stats Section */}
             <section className="relative pt-12 md:pt-20 pb-16 md:pb-32 px-4 bg-background-light">
@@ -184,7 +188,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                                             alt=""
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                             onError={(e) => {
-                                                e.currentTarget.src = "/park-slides-action.jpg";
+                                                e.currentTarget.src = "/images/spinpin/unnamed.webp";
                                             }}
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -214,7 +218,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                             Ready to
                             <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-primary to-secondary">
-                                BOUNCE?
+                                ROLL &amp; PLAY!
                             </span>
                         </h2>
                         <p className="text-base md:text-xl text-white/70 mb-10 max-w-2xl mx-auto">

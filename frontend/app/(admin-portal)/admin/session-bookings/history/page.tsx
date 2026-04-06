@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { getSessionBookingHistory, restoreSessionBooking } from "@/app/actions/admin";
@@ -179,7 +179,7 @@ export default function SessionBookingHistoryPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-slate-900">₹{parseFloat(booking.amount).toFixed(2)}</span>
+                                            <span className="text-sm font-bold text-slate-900">£{parseFloat(booking.amount).toFixed(2)}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <Button

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { X, AlertTriangle } from "lucide-react";
 
@@ -91,7 +91,7 @@ export function RestoreConfirmationModal({
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-600">Amount:</span>
-                            <span className="font-bold text-slate-900">₹{bookingData.amount.toFixed(2)}</span>
+                            <span className="font-bold text-slate-900">£{bookingData.amount.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>

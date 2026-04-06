@@ -95,7 +95,7 @@ export default function NewUserPage() {
                         name="email"
                         type="email"
                         required
-                        placeholder="john@ninja.com"
+                        placeholder="john@Spin Pin.com"
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-slate-900"
                     />
                 </div>

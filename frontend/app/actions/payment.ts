@@ -1,127 +1,56 @@
 "use server";
 
 /**
- * Payment Actions
- * 
- * Server actions for payment gateway integration (Mock & Razorpay)
+ * Payment Actions — SumUp integration coming soon.
+ *
+ * Razorpay has been removed. Online payments will be processed
+ * via SumUp in a future release. For now bookings are confirmed
+ * and payment is collected at the venue.
  */
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 export interface PaymentOrderData {
     booking_id: number;
     booking_type: "session" | "party";
-    amount?: number; // Optional, defaults to remaining balance
+    amount?: number;
 }
 
 export interface PaymentVerificationData {
     order_id: string;
-    // For Razorpay
-    razorpay_payment_id?: string;
-    razorpay_signature?: string;
-    // For Mock
-    force_fail?: boolean;
 }
 
 /**
- * Create a payment order
+ * Stub — no payment gateway active.
+ * Will be replaced with SumUp integration.
  */
-export async function createPaymentOrder(data: PaymentOrderData) {
-    try {
-        const response = await fetch(`${API_URL}/payments/create-order/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-            cache: "no-store",
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            return {
-                success: false,
-                error: result.error || "Failed to create payment order",
-            };
-        }
-
-        return {
-            success: true,
-            ...result,
-        };
-    } catch (error) {
-        console.error("Create payment order error:", error);
-        return {
-            success: false,
-            error: "Network error. Please try again.",
-        };
-    }
+export async function createPaymentOrder(_data: PaymentOrderData) {
+    return {
+        success: true,
+        provider: "NONE",
+        order_id: `local_${Date.now()}`,
+        message: "Pay at venue. SumUp coming soon.",
+    };
 }
 
 /**
- * Verify payment
+ * Stub — no payment gateway active.
  */
-export async function verifyPayment(data: PaymentVerificationData) {
-    try {
-        const response = await fetch(`${API_URL}/payments/verify/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-            cache: "no-store",
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            return {
-                success: false,
-                error: result.error || "Payment verification failed",
-            };
-        }
-
-        return result;
-    } catch (error) {
-        console.error("Verify payment error:", error);
-        return {
-            success: false,
-            error: "Network error. Please try again.",
-        };
-    }
+export async function verifyPayment(_data: PaymentVerificationData) {
+    return {
+        success: true,
+        message: "Pay at venue. SumUp coming soon.",
+    };
 }
 
 /**
- * Get booking payment status
+ * Stub — no payment gateway active.
  */
-export async function getBookingPaymentStatus(bookingId: number, bookingType: "session" | "party") {
-    try {
-        const response = await fetch(
-            `${API_URL}/payments/booking/${bookingId}/${bookingType}/status/`,
-            {
-                cache: "no-store",
-            }
-        );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            return {
-                success: false,
-                error: result.error || "Failed to get payment status",
-            };
-        }
-
-        return {
-            success: true,
-            ...result,
-        };
-    } catch (error) {
-        console.error("Get payment status error:", error);
-        return {
-            success: false,
-            error: "Network error. Please try again.",
-        };
-    }
+export async function getBookingPaymentStatus(
+    _bookingId: number,
+    _bookingType: "session" | "party"
+) {
+    return {
+        success: true,
+        payment_status: "PENDING_VENUE",
+        message: "Payment collected at venue.",
+    };
 }

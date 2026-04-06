@@ -170,7 +170,18 @@ export default function PartyBookingsPage() {
 
             {/* Filters */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                    <div className="flex flex-col gap-2 md:col-span-2">
+                        <label className="text-sm font-medium text-slate-700">Search</label>
+                        <input
+                            type="text"
+                            placeholder="Name, email or booking #"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                    </div>
+
                     <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-slate-700">Date</label>
                         <DateFilter value={dateFilter} onChange={setDateFilter} />
@@ -243,7 +254,8 @@ export default function PartyBookingsPage() {
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Customer</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Time</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Package</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Package / Guests</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Amount</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Arrival</th>
                                 <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Waiver</th>
@@ -297,9 +309,14 @@ export default function PartyBookingsPage() {
                                                 <Package size={14} className="text-purple-400" />
                                                 <span className="text-sm text-slate-900">{booking.packageName || booking.package_name || 'Standard Party'}</span>
                                             </div>
-                                            <div className="text-xs text-slate-500 mt-1">
-                                                {(booking.kids || 0) + (booking.adults || 0)} Guests
+                                            <div className="text-xs text-slate-500 mt-1 space-y-0.5">
+                                                <div>👦 {booking.participants || booking.kids || 0} participants</div>
+                                                {(booking.spectators || 0) > 0 && <div>👁️ {booking.spectators} spectators</div>}
+                                                {booking.birthday_child_name && <div>🎂 {booking.birthday_child_name} (age {booking.birthday_child_age})</div>}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <StatusBadge status={booking.bookingStatus || booking.status || 'PENDING'} />
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-bold text-slate-900">{formatCurrency(booking.amount || 0)}</span>

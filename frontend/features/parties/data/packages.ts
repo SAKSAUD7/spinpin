@@ -2,16 +2,16 @@ import { PartyPackage } from "@repo/types";
 
 export const partyPackages: PartyPackage[] = [
     {
-        id: "ninja-party",
-        title: "Ninja Warrior Party",
+        id: "Spin Pin-party",
+        title: "Spin Pin Warrior Party",
         pricePerHead: 499,
         minGuests: 10,
         duration: 120,
-        theme: "ninja",
+        theme: "Spin Pin",
         includes: [
             "2 Hours Private Party Area",
             "Dedicated Party Host",
-            "Ninja-themed Decorations",
+            "Spin Pin-themed Decorations",
             "Birthday Cake Setup",
             "Unlimited Play Access",
             "Party Invitations (Digital)",

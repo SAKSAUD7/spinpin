@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import HomeContent from "./components/HomeContent";
 import {
     getPublicBanners,
@@ -48,7 +48,7 @@ export default async function Home() {
         icon: s.icon || 'Zap'
     })) : [
         { id: "size", value: "20,000+", label: "Sq Ft of Fun", icon: "Zap" },
-        { id: "visitors", value: "5,000+", label: "Happy Jumpers", icon: "Users" },
+        { id: "visitors", value: "5,000+", label: "Happy Visitors", icon: "Users" },
         { id: "attractions", value: `${activities.length}+`, label: "Attractions", icon: "Trophy" },
         { id: "safety", value: "100%", label: "Safe & Secure", icon: "Shield" },
     ];
@@ -79,14 +79,14 @@ export default async function Home() {
 
     return (
         <HomeContent
-            stats={stats}
-            gallery={galleryItems}
-            banners={banners.filter((b: any) => b.active)}
-            reels={reels.filter((r: any) => r.active)}
-            settings={settings}
-            activities={activities.filter((a: any) => a.active)}
-            hero={heroData}
-            about={aboutData}
-        />
+                stats={stats}
+                gallery={galleryItems}
+                banners={banners.filter((b: any) => b.active)}
+                reels={reels.filter((r: any) => r.active)}
+                settings={settings}
+                activities={activities.filter((a: any) => a.active)}
+                hero={heroData}
+                about={aboutData}
+            />
     );
 }

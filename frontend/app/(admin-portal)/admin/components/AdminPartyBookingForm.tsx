@@ -120,7 +120,7 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                                 required
                                 defaultValue={initialData?.phone}
                                 className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
-                                placeholder="+91 98765 43210"
+                                placeholder="+44 7700 900000"
                             />
                         </div>
                     </div>
@@ -266,7 +266,7 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
                         >
                             <option value="">No Theme</option>
-                            <option value="NINJA">Ninja Warrior</option>
+                            <option value="NINJA">Spin Pin Warrior</option>
                             <option value="SPACE">Space Adventure</option>
                             <option value="JUNGLE">Jungle Safari</option>
                             <option value="PRINCESS">Princess Castle</option>

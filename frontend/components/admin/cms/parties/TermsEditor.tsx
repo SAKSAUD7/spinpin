@@ -23,17 +23,17 @@ export function TermsEditor({ section: initialSection, pageSlug }: TermsEditorPr
                 <li>Balance Should Be Paid Before The Party Begins On The Day.</li>
                 <li>No Refund Is Authorised For Cancellation. However, Only 1 Date Change /Reschedule Is Permitted Subject To Availability And Notice Must Be Given 2 Weeks Before The Booked Party Date.</li>
                 <li>Rescheduling Party With 2 Weeks Before Party Date Is Free. It Can Be Changed By Managing Your Booking.</li>
-                <li>Rescheduling Less Than 2 Weeks From Party Date Is Rs 1000 Admin Charge Apply.</li>
+                <li>Rescheduling Less Than 2 Weeks From Party Date Is Subject To A £50 Admin Charge.</li>
                 <li>Balance In Full Including Any Additional Participant Or Spectator Fee Or Extras Must Be Paid Before Your Party Starts.</li>
                 <li>Additional Participants And Spectators Are Charged Extra Per Person.</li>
                 <li>Entry For Party Is For Invited Guests Only. Any Accompanying Children Or Additional Adults Must Pay Upon Entry If They Wish To Join The Party Or Wait Inside The Building. It Is The Party Host Responsibility To Ensure Payment Is Complete.</li>
                 <li>No Sprinklers Candles, Flower Pot Candles Are Allowed. Please Reduce The Number Of Candles You Use On Your Cake, A Numbered Candle Is Preferred. No Party Poppers Or Confetti Items Allowed.</li>
                 <li>Party Will Last For Approx. 2 Hours. Approx. 75 Minutes Of Play And 45 Minutes Oi Party Time In The Party Area.</li>
-                <li>All Party Guests Must Leave The Party Room / Area At The End Of The Party Time. Any Additional Time In The Party Area/ Room Will Be Charged Rs 100 For Every 10 Minutes.</li>
+                <li>All Party Guests Must Leave The Party Room / Area At The End Of The Party Time. Any Additional Time In The Party Area/ Room Will Be Charged £10 For Every 10 Minutes.</li>
                 <li>Party Staff Is Available To Help You Run Your Party Smoothly And Not For Entertainment Purpose. All Party Feast And Play Equipment's Are Subject To Availability.</li>
                 <li>Activities Will Be Closed With 10mins Prior Notice. Compensation Or Refund Will Not Be Authorised For Such Events.</li>
                 <li>All Participants Must Sign A Waiver Prior To Participating. Party Host Must Ensure The Waiver Are Complete For Their Invited Guest Participants.</li>
-                <li>Rules And Terms & Conditions Apply At All Times. Visit Www.Ninjainflatable.Com For Full List Of T&C & Rules Of Play.</li>
+                <li>Rules And Terms &amp; Conditions Apply At All Times. Visit www.spinpin.com For Full List Of T&amp;C &amp; Rules Of Play.</li>
                 <li>By Receiving The Confirmation Email Or By Signing The Booking Form You Agree To Abide By The Above-Mentioned Terms.</li>
             </ol>
         `,

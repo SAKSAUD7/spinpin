@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 // We'll need to create this action later or use a generic update one
@@ -117,7 +117,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 required
                                 defaultValue={initialData?.phone}
                                 className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
-                                placeholder="+91 98765 43210"
+                                placeholder="+44 7700 900000"
                             />
                         </div>
                     </div>
@@ -227,7 +227,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Total Amount (₹)</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Total Amount (£)</label>
                         <input
                             name="amount"
                             type="number"

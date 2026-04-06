@@ -97,7 +97,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                         <input
                             {...form.register("name")}
                             className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900"
-                            placeholder="Ninja Course"
+                            placeholder="Spin Pin Course"
                         />
                         {form.formState.errors.name && (
                             <p className="text-xs text-red-500 mt-1">{form.formState.errors.name.message}</p>

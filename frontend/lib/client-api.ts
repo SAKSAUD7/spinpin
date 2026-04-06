@@ -1,7 +1,7 @@
 // Client-side API helper for admin portal
 // This runs in the browser and can access cookies via document.cookie
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 function getTokenFromCookie(): string | null {
     if (typeof document === 'undefined') return null;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,7 +13,7 @@ import { cmsGet, cmsPatch } from '@/lib/cms-api';
 // Define the steps we want to make editable
 const SESSION_STEPS = [
     { key: 'step-1', label: 'Step 1: Session Selection', defaultTitle: 'Select Session', defaultSubtitle: 'Choose your preferred date, time and duration' },
-    { key: 'step-2', label: 'Step 2: Guests', defaultTitle: 'Select Guests', defaultSubtitle: 'Choose the number of jumpers and spectators' },
+    { key: 'step-2', label: 'Step 2: Guests', defaultTitle: 'Select Guests', defaultSubtitle: 'Choose the number of guests and spectators' },
     { key: 'step-3', label: 'Step 3: Details', defaultTitle: 'Your Details', defaultSubtitle: "We'll send your booking confirmation here" },
     { key: 'step-5', label: 'Step 5: Payment', defaultTitle: 'Summary & Payment', defaultSubtitle: 'Review your booking details' },
 ];
@@ -36,6 +36,19 @@ const pricingSchema = z.object({
     gst_rate: z.number().min(0).max(100, "GST must be between 0-100%"),
     duration_label: z.string().min(1, "Label is required"),
     duration_description: z.string().min(1, "Description is required"),
+    // Add-on pricing
+    skate_hire_price: z.number().min(0).optional(),
+    shoe_hire_price: z.number().min(0).optional(),
+    locker_hire_price: z.number().min(0).optional(),
+    token_pack_20_price: z.number().min(0).optional(),
+    token_pack_50_price: z.number().min(0).optional(),
+    parking_price: z.number().min(0).optional(),
+    // Opening hours (for reference display — actual slot logic uses these values)
+    weekday_open_time: z.string().optional(),        // e.g. "14:00" (term-time weekdays)
+    school_holiday_open_time: z.string().optional(), // e.g. "10:00" (school holiday weekdays)
+    saturday_open_time: z.string().optional(),       // e.g. "12:00"
+    sunday_open_time: z.string().optional(),         // e.g. "12:00"
+    close_time: z.string().optional(),               // e.g. "22:00"
 });
 
 type SectionFormData = z.infer<typeof sectionSchema>;
@@ -169,18 +182,31 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
     const { register, handleSubmit, formState: { errors } } = useForm<PricingFormData>({
         resolver: zodResolver(pricingSchema),
         defaultValues: {
-            adult_price: parseFloat(initialData?.adult_price) || 899,
-            adult_label: initialData?.adult_label || "Ninja Warrior (7+ Years)",
-            adult_description: initialData?.adult_description || "₹ 899 + GST per person",
-            kid_price: parseFloat(initialData?.kid_price) || 500,
-            kid_label: initialData?.kid_label || "Little Ninjas (1-7 Years)",
-            kid_description: initialData?.kid_description || "₹ 500 + GST per person",
-            spectator_price: parseFloat(initialData?.spectator_price) || 150,
-            spectator_label: initialData?.spectator_label || "Spectators",
-            spectator_description: initialData?.spectator_description || "₹ 150 + GST per person",
-            gst_rate: parseFloat(initialData?.gst_rate) || 18,
+            adult_price: parseFloat(initialData?.adult_price) || 9.95,
+            adult_label: initialData?.adult_label || "Adults & Kids 7+ Years",
+            adult_description: initialData?.adult_description || "£9.95 per person per session",
+            kid_price: parseFloat(initialData?.kid_price) || 9.95,
+            kid_label: initialData?.kid_label || "Young Kids (1–6 Years)",
+            kid_description: initialData?.kid_description || "£9.95 per person per session",
+            spectator_price: parseFloat(initialData?.spectator_price) || 2.95,
+            spectator_label: initialData?.spectator_label || "Spectators (4+)",
+            spectator_description: initialData?.spectator_description || "£2.95 per person",
+            gst_rate: parseFloat(initialData?.gst_rate) || 0,
             duration_label: initialData?.duration_label || "60 Minutes",
             duration_description: initialData?.duration_description || "Standard Session",
+            // Add-ons
+            skate_hire_price: parseFloat(initialData?.skate_hire_price) || 2.95,
+            shoe_hire_price: parseFloat(initialData?.shoe_hire_price) || 1.50,
+            locker_hire_price: parseFloat(initialData?.locker_hire_price) || 2.00,
+            token_pack_20_price: parseFloat(initialData?.token_pack_20_price) || 5.00,
+            token_pack_50_price: parseFloat(initialData?.token_pack_50_price) || 10.00,
+            parking_price: parseFloat(initialData?.parking_price) || 3.00,
+            // Opening hours
+            weekday_open_time: initialData?.weekday_open_time || "14:00",
+            school_holiday_open_time: initialData?.school_holiday_open_time || "10:00",
+            saturday_open_time: initialData?.saturday_open_time || "12:00",
+            sunday_open_time: initialData?.sunday_open_time || "12:00",
+            close_time: initialData?.close_time || "22:00",
         }
     });
 
@@ -203,12 +229,12 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             <input
                                 {...register('adult_label')}
                                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                placeholder="e.g. Ninja Warrior (7+ Years)"
+                                placeholder="e.g. Spin Pin Warrior (7+ Years)"
                             />
                             {errors.adult_label && <p className="text-red-500 text-xs mt-1">{errors.adult_label.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Price (₹)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Price (£)</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -222,7 +248,7 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             <input
                                 {...register('adult_description')}
                                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                placeholder="e.g. ₹ 899 + GST per person"
+                                placeholder="e.g. £9.95 per person"
                             />
                             {errors.adult_description && <p className="text-red-500 text-xs mt-1">{errors.adult_description.message}</p>}
                         </div>
@@ -238,12 +264,12 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             <input
                                 {...register('kid_label')}
                                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                placeholder="e.g. Little Ninjas (1-7 Years)"
+                                placeholder="e.g. Little Spin Pins (1-7 Years)"
                             />
                             {errors.kid_label && <p className="text-red-500 text-xs mt-1">{errors.kid_label.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Price (₹)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Price (£)</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -257,7 +283,7 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             <input
                                 {...register('kid_description')}
                                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                placeholder="e.g. ₹ 500 + GST per person"
+                                placeholder="e.g. £9.95 per person"
                             />
                             {errors.kid_description && <p className="text-red-500 text-xs mt-1">{errors.kid_description.message}</p>}
                         </div>
@@ -278,7 +304,7 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             {errors.spectator_label && <p className="text-red-500 text-xs mt-1">{errors.spectator_label.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Price (₹)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Price (£)</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -292,7 +318,7 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             <input
                                 {...register('spectator_description')}
                                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                                placeholder="e.g. ₹ 150 + GST per person"
+                                placeholder="e.g. £2.95 per person"
                             />
                             {errors.spectator_description && <p className="text-red-500 text-xs mt-1">{errors.spectator_description.message}</p>}
                         </div>
@@ -302,13 +328,13 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                 {/* GST & Duration */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-200">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">GST Rate (%)</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">GST / Tax Rate (%)</label>
                         <input
                             type="number"
                             step="0.01"
                             {...register('gst_rate', { valueAsNumber: true })}
                             className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                            placeholder="e.g. 18"
+                            placeholder="0 = no tax (UK standard)"
                         />
                         {errors.gst_rate && <p className="text-red-500 text-xs mt-1">{errors.gst_rate.message}</p>}
                     </div>
@@ -329,6 +355,105 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                             placeholder="e.g. Standard Session"
                         />
                         {errors.duration_description && <p className="text-red-500 text-xs mt-1">{errors.duration_description.message}</p>}
+                    </div>
+                </div>
+
+                {/* Add-on Pricing */}
+                <div className="pt-4 border-t border-slate-200">
+                    <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                        <span>🎿</span> Add-on Pricing (per item)
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="border-l-4 border-pink-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🛼 Skate Hire (£)</label>
+                            <input
+                                type="number" step="0.01"
+                                {...register('skate_hire_price', { valueAsNumber: true })}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="2.95"
+                            />
+                        </div>
+                        <div className="border-l-4 border-blue-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🎳 Shoe Hire (£)</label>
+                            <input
+                                type="number" step="0.01"
+                                {...register('shoe_hire_price', { valueAsNumber: true })}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="1.50"
+                            />
+                        </div>
+                        <div className="border-l-4 border-slate-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🔒 Locker Hire (£)</label>
+                            <input
+                                type="number" step="0.01"
+                                {...register('locker_hire_price', { valueAsNumber: true })}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="2.00"
+                            />
+                        </div>
+                        <div className="border-l-4 border-purple-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🕹️ Token Pack 20 (£)</label>
+                            <input
+                                type="number" step="0.01"
+                                {...register('token_pack_20_price', { valueAsNumber: true })}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="5.00"
+                            />
+                        </div>
+                        <div className="border-l-4 border-violet-500 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🕹️ Token Pack 50 (£)</label>
+                            <input
+                                type="number" step="0.01"
+                                {...register('token_pack_50_price', { valueAsNumber: true })}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="10.00"
+                            />
+                        </div>
+                        <div className="border-l-4 border-green-500 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🚗 Parking (£)</label>
+                            <input
+                                type="number" step="0.01"
+                                {...register('parking_price', { valueAsNumber: true })}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="3.00"
+                            />
+                        </div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-3">These prices appear in the booking wizard add-ons step and are saved to the CMS config.</p>
+                </div>
+
+                {/* Opening Hours Configuration */}
+                <div className="pt-4 border-t border-slate-200">
+                    <h4 className="font-semibold text-slate-800 mb-1 flex items-center gap-2">
+                        <span>🕐</span> Opening Hours (used in booking wizard time slots)
+                    </h4>
+                    <p className="text-xs text-slate-400 mb-4">These control which time slots appear on each day type. <strong>Monday is always closed.</strong></p>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div className="border-l-4 border-yellow-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🗓️ Weekday Open (term-time)</label>
+                            <input type="time" {...register('weekday_open_time')}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        </div>
+                        <div className="border-l-4 border-emerald-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🎒 School Holiday Open</label>
+                            <input type="time" {...register('school_holiday_open_time')}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        </div>
+                        <div className="border-l-4 border-blue-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🟣 Saturday Open</label>
+                            <input type="time" {...register('saturday_open_time')}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        </div>
+                        <div className="border-l-4 border-indigo-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🔵 Sunday Open</label>
+                            <input type="time" {...register('sunday_open_time')}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        </div>
+                        <div className="border-l-4 border-red-400 pl-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">🔴 Close Time (all days)</label>
+                            <input type="time" {...register('close_time')}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" />
+                        </div>
                     </div>
                 </div>
             </div>

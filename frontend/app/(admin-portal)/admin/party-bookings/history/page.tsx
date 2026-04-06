@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { getPartyBookingHistory, restorePartyBooking } from "@/app/actions/admin";
@@ -182,7 +182,7 @@ export default function PartyBookingHistoryPage() {
                                             {booking.packageName || "Standard"}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-bold text-slate-900">
-                                            ₹{parseFloat(booking.amount).toFixed(2)}
+                                            £{parseFloat(booking.amount).toFixed(2)}
                                         </td>
                                         <td className="px-6 py-4">
                                             <button

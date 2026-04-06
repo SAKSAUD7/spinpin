@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { createBooking } from "@/app/actions/createBooking";
@@ -103,7 +103,7 @@ export default function NewSessionBookingPage() {
                                     type="tel"
                                     required
                                     className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                    placeholder="+91 98765 43210"
+                                    placeholder="+44 7700 900000"
                                 />
                             </div>
                         </div>
@@ -195,7 +195,7 @@ export default function NewSessionBookingPage() {
                                 defaultValue="0"
                                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
-                            <p className="text-xs text-slate-500 mt-1">₹899 per adult</p>
+                            <p className="text-xs text-slate-500 mt-1">£9.95 per adult</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Kids</label>
@@ -207,7 +207,7 @@ export default function NewSessionBookingPage() {
                                 defaultValue="0"
                                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
-                            <p className="text-xs text-slate-500 mt-1">₹500 per kid</p>
+                            <p className="text-xs text-slate-500 mt-1">£9.95 per child</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Spectators</label>
