@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Customer, Booking, PartyBooking, Waiver, Transaction, BookingBlock, SessionBookingHistory, PartyBookingHistory
+from .customer_auth import CustomerToken
 
 # Payment inline for Booking admin
 class PaymentInline(admin.TabularInline):
@@ -64,6 +65,14 @@ class CustomerAdmin(admin.ModelAdmin):
     list_filter = ['created_at']
     search_fields = ['name', 'email', 'phone']
     ordering = ['-created_at']
+
+@admin.register(CustomerToken)
+class CustomerTokenAdmin(admin.ModelAdmin):
+    list_display = ['id', 'customer', 'token', 'expires_at']
+    list_filter = ['expires_at']
+    search_fields = ['customer__name', 'customer__email', 'token']
+    readonly_fields = ['token', 'password_hash']
+    ordering = ['-expires_at']
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):

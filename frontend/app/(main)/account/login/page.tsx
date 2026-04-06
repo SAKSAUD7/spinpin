@@ -109,6 +109,7 @@ export default function AccountLoginPage() {
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                         <input
                                             type="email" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
+                                            autoComplete="username"
                                             className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-primary"
                                             placeholder="your@email.com"
                                         />
@@ -120,6 +121,7 @@ export default function AccountLoginPage() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                         <input
                                             type={showPassword ? "text" : "password"} required value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
+                                            autoComplete="current-password"
                                             className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-primary"
                                             placeholder="Your password"
                                         />
@@ -162,6 +164,7 @@ export default function AccountLoginPage() {
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                         <input type="email" required value={regEmail} onChange={e => setRegEmail(e.target.value)}
+                                            autoComplete="email"
                                             className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-primary"
                                             placeholder="your@email.com" />
                                     </div>
@@ -181,6 +184,7 @@ export default function AccountLoginPage() {
                                         <div className="relative">
                                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                             <input type={showPassword ? "text" : "password"} required value={regPassword} onChange={e => setRegPassword(e.target.value)}
+                                                autoComplete="new-password"
                                                 className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-primary text-sm"
                                                 placeholder="6+ chars" />
                                         </div>
@@ -190,6 +194,7 @@ export default function AccountLoginPage() {
                                         <div className="relative">
                                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                             <input type={showPassword ? "text" : "password"} required value={regConfirm} onChange={e => setRegConfirm(e.target.value)}
+                                                autoComplete="new-password"
                                                 className={`w-full pl-10 pr-4 py-3 bg-white/5 border rounded-xl text-white placeholder-white/20 focus:outline-none text-sm ${regConfirm && regConfirm !== regPassword ? "border-red-500" : "border-white/10 focus:border-primary"
                                                     }`}
                                                 placeholder="Repeat" />

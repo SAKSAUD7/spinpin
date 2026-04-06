@@ -212,7 +212,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
     };
 
     const calculateTotal = () => {
-        const participantPrice = config?.participant_price || 1500;
+        const participantPrice = (config?.participant_price || 1500) / 100;
         const extraSpectatorPrice = config?.spectator_price || 100;
         const freeSpectators = config?.free_spectators || 10;
         const gstRate = config?.gst_rate || 18;
@@ -469,7 +469,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                             className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white"
                                         >
                                             <option value="">Select time</option>
-                                            {(config?.available_time_slots || ["12:00 PM", "2:00 PM", "4:00 PM", "6:00 PM"]).map((slot: string) => (
+                                            {(Array.isArray(config?.available_time_slots) ? config.available_time_slots : ["12:00 PM", "2:00 PM", "4:00 PM", "6:00 PM"]).map((slot: string) => (
                                                 <option key={slot} value={slot}>{slot}</option>
                                             ))}
                                         </select>

@@ -9,13 +9,13 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/images/spinpin-logo.png",
+            "src": "/spinpin-logo.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "/images/spinpin-logo.png",
+            "src": "/spinpin-logo.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
@@ -34,7 +34,7 @@
             "url": "/book",
             "icons": [
                 {
-                    "src": "/images/spinpin-logo.png",
+                    "src": "/spinpin-logo.png",
                     "sizes": "96x96"
                 }
             ]
@@ -46,7 +46,7 @@
             "url": "/kiosk/waiver",
             "icons": [
                 {
-                    "src": "/images/spinpin-logo.png",
+                    "src": "/spinpin-logo.png",
                     "sizes": "96x96"
                 }
             ]
