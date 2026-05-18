@@ -2,6 +2,7 @@ import { loginAdmin } from "@/app/actions/admin";
 import { getAdminSession } from "../../../lib/admin-auth";
 import { redirect } from "next/navigation";
 import AdminLoginForm from "./LoginForm";
+import Image from "next/image";
 
 export const metadata = {
     title: "Admin Login — Spin Pin",
@@ -29,11 +30,14 @@ export default async function AdminLoginPage() {
                         {/* Logo + brand */}
                         <div className="text-center mb-8">
                             <div className="mb-4 flex justify-center">
-                                <img
+                                {/* Use Next.js Image — no onError needed, safe in Server Components */}
+                                <Image
                                     src="/spinpin-logo.png"
                                     alt="Spin Pin"
+                                    width={120}
+                                    height={56}
                                     className="h-14 w-auto object-contain"
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    priority
                                 />
                             </div>
                             <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-3">
