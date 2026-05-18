@@ -12,7 +12,8 @@ from .calendar_views import calendar_bookings
 from .customer_auth import (
     customer_register, customer_login, customer_logout,
     customer_me, customer_update_profile, customer_change_password,
-    customer_my_bookings
+    customer_my_bookings,
+    admin_customer_account, admin_reset_customer_password, admin_revoke_customer_token
 )
 
 router = DefaultRouter()
@@ -38,6 +39,10 @@ urlpatterns = [
     path('customer-auth/profile/', customer_update_profile, name='customer-update-profile'),
     path('customer-auth/change-password/', customer_change_password, name='customer-change-password'),
     path('customer-auth/my-bookings/', customer_my_bookings, name='customer-my-bookings'),
+    # ── Admin customer account management ─────────────────────────────────────
+    path('customer-auth/admin/account/<int:customer_id>/', admin_customer_account, name='admin-customer-account'),
+    path('customer-auth/admin/reset-password/<int:customer_id>/', admin_reset_customer_password, name='admin-reset-customer-password'),
+    path('customer-auth/admin/revoke-token/<int:customer_id>/', admin_revoke_customer_token, name='admin-revoke-customer-token'),
     # ── Calendar endpoint ─────────────────────────────────────────────────────
     path('calendar/', calendar_bookings, name='calendar-bookings'),
     # Custom party booking endpoints (bypasses serializer bug)

@@ -282,3 +282,78 @@ def customer_logout(request):
     if customer:
         CustomerToken.objects.filter(customer=customer).delete()
     return Response({"message": "Logged out."})
+
+
+# ─── ADMIN-ONLY endpoints ─────────────────────────────────────────────────────
+
+from rest_framework.permissions import IsAdminUser
+from django.contrib.auth.hashers import make_password
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def admin_customer_account(request, customer_id):
+    """Admin: Get full CustomerToken details for a customer (password hash, token, expiry)."""
+    from apps.bookings.models import Customer
+    try:
+        customer = Customer.objects.get(pk=customer_id)
+    except Customer.DoesNotExist:
+        return Response({"error": "Customer not found."}, status=404)
+
+    try:
+        token_obj = CustomerToken.objects.get(customer=customer)
+        return Response({
+            "has_account": True,
+            "customer_id": customer.id,
+            "customer_name": customer.name,
+            "customer_email": customer.email,
+            "token": token_obj.token,
+            "token_expires_at": token_obj.expires_at.isoformat() if token_obj.expires_at else None,
+            "password_hash": token_obj.password_hash,
+            "created_at": token_obj.created_at.isoformat() if hasattr(token_obj, 'created_at') and token_obj.created_at else None,
+        })
+    except CustomerToken.DoesNotExist:
+        return Response({
+            "has_account": False,
+            "customer_id": customer.id,
+            "customer_name": customer.name,
+            "customer_email": customer.email,
+        })
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def admin_reset_customer_password(request, customer_id):
+    """Admin: Reset a customer's password to a new value."""
+    from apps.bookings.models import Customer
+    new_password = request.data.get("new_password", "").strip()
+    if len(new_password) < 6:
+        return Response({"error": "Password must be at least 6 characters."}, status=400)
+
+    try:
+        customer = Customer.objects.get(pk=customer_id)
+    except Customer.DoesNotExist:
+        return Response({"error": "Customer not found."}, status=404)
+
+    try:
+        token_obj = CustomerToken.objects.get(customer=customer)
+    except CustomerToken.DoesNotExist:
+        return Response({"error": "This customer does not have a login account yet."}, status=404)
+
+    token_obj.password_hash = make_password(new_password)
+    token_obj.save(update_fields=["password_hash"])
+
+    return Response({"message": f"Password reset successfully for {customer.email}."})
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAdminUser])
+def admin_revoke_customer_token(request, customer_id):
+    """Admin: Revoke/delete the customer's active token (force logout)."""
+    from apps.bookings.models import Customer
+    try:
+        customer = Customer.objects.get(pk=customer_id)
+        deleted, _ = CustomerToken.objects.filter(customer=customer).delete()
+        return Response({"message": f"Token revoked. Customer will need to log in again.", "deleted": deleted})
+    except Customer.DoesNotExist:
+        return Response({"error": "Customer not found."}, status=404)
+

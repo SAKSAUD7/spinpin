@@ -2,9 +2,10 @@ import { getAdminSession } from "@/app/lib/admin-auth";
 import { getCustomerById } from "@/app/actions/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Phone, Calendar, Package, TrendingUp, User, Shield, Key, Clock } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Calendar, Package, TrendingUp } from "lucide-react";
 import { formatDate } from "@repo/utils";
 import { fetchAPI } from "@/app/lib/server-api";
+import { AccountSecurityPanel } from "./AccountSecurityPanel";
 
 async function getCustomerBookings(customerId: string, customerEmail: string) {
     try {
@@ -186,44 +187,8 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
                 </div>
             </div>
 
-            {/* Account & Security */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                        <h2 className="text-base font-bold text-slate-900">Account & Security</h2>
-                        <p className="text-xs text-slate-400">Customer login account details</p>
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                        <p className="text-xs text-slate-500 uppercase font-semibold mb-1 flex items-center gap-1">
-                            <User className="w-3.5 h-3.5" /> Login Email
-                        </p>
-                        <p className="text-sm font-mono text-slate-900 break-all">{customer.email || '—'}</p>
-                    </div>
-                    <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                        <p className="text-xs text-slate-500 uppercase font-semibold mb-1 flex items-center gap-1">
-                            <Key className="w-3.5 h-3.5" /> Password
-                        </p>
-                        <p className="text-sm text-slate-500 italic">Stored as bcrypt hash — not viewable</p>
-                    </div>
-                    <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                        <p className="text-xs text-slate-500 uppercase font-semibold mb-1 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" /> Session Token
-                        </p>
-                        <p className="text-sm text-slate-700">Bearer token — 30 days from last login</p>
-                    </div>
-                    <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-                        <p className="text-xs text-amber-700 uppercase font-semibold mb-1">Password Reset</p>
-                        <p className="text-xs text-amber-600">
-                            Customer can reset password from the login page using their email address.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/* Account & Security — interactive client component */}
+            <AccountSecurityPanel customerId={customer.id} customerEmail={customer.email} />
 
             {/* Booking History */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
