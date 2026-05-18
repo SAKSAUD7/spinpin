@@ -269,10 +269,15 @@ export async function createBooking(formData: any) {
             try {
                 const errorText = await bookingRes.text();
                 try {
-                    const error = JSON.parse(errorText);
-                    errorMessage = error.detail || "Failed to create booking";
+                    const errorJson = JSON.parse(errorText);
+                    if (bookingRes.status === 409 && errorJson.code === 'CAPACITY_EXCEEDED') {
+                        // Friendly capacity message for the user
+                        errorMessage = errorJson.detail ||
+                            'This time slot is now fully booked. Please choose a different time.';
+                    } else {
+                        errorMessage = errorJson.detail || errorJson.error || "Failed to create booking";
+                    }
                 } catch {
-                    // If parsing fails, it's likely HTML or plain text (e.g. 500 error page)
                     console.error("Non-JSON error response from booking API:", errorText.substring(0, 500));
                     errorMessage = `Server Error (${bookingRes.status}). Please try again later.`;
                 }

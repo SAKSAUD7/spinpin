@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.bookings',
     'apps.cms',
-    # 'apps.shop',  # REMOVED: Shop feature retired
+    'apps.shop',  # Kept: Voucher model is FK-referenced by Booking/PartyBooking
     'apps.invitations',
     'apps.payments',  # Payment system with mock and SumUp gateways
     'apps.emails.apps.EmailsConfig',  # Email system - use full path to ensure signals are registered
