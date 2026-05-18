@@ -101,51 +101,119 @@ class BookingViewSet(viewsets.ModelViewSet):
         return [IsStaffUser()]  # Allow employees to access bookings
     
     def create(self, request, *args, **kwargs):
-        """Override create to trigger confirmation email"""
-        from django.conf import settings
+        """
+        Override create to:
+        1. Atomically enforce lane/headcount capacity (prevents race-condition overbooking)
+        2. Trigger confirmation email after successful creation
+        """
+        import math
         import logging
-        
+        from django.conf import settings
+
         logger = logging.getLogger('apps.emails')
         logger.info("=== BookingViewSet.create() called ===")
-        
-        # Call parent create method
+
+        # ── Capacity constants (keep in sync with slot_availability view) ──────
+        BOWLING_TOTAL_LANES = 6
+        BOWLING_MAX_PER_LANE = 5
+        SKATING_MAX_PER_SLOT = 60
+
+        # ── Extract key fields from incoming request ──────────────────────────
+        data = request.data
+        req_date = data.get('date')
+        req_time = str(data.get('time', ''))[:5]   # normalise to "HH:MM"
+        req_activity = str(data.get('activity', '')).lower()
+        req_adults = int(data.get('adults') or 0)
+        req_kids = int(data.get('kids') or 0)
+        req_players = req_adults + req_kids
+
         try:
-            response = super().create(request, *args, **kwargs)
+            with transaction.atomic():
+                # ── Lock all active bookings for this date+time slot ──────────
+                locked_bookings = Booking.objects.select_for_update().filter(
+                    date=req_date,
+                    time__startswith=req_time,
+                ).exclude(booking_status='CANCELLED')
+
+                # ── Count current occupancy ───────────────────────────────────
+                skating_headcount = 0
+                bowling_lanes_used = 0
+
+                for b in locked_bookings:
+                    players = (b.adults or 0) + (b.kids or 0)
+                    if 'bowling' in (b.activity or '').lower():
+                        bowling_lanes_used += math.ceil(players / BOWLING_MAX_PER_LANE) if players > 0 else 0
+                    else:
+                        skating_headcount += players
+
+                # ── Check bowling capacity ────────────────────────────────────
+                if 'bowling' in req_activity:
+                    lanes_needed = math.ceil(req_players / BOWLING_MAX_PER_LANE) if req_players > 0 else 1
+                    if bowling_lanes_used + lanes_needed > BOWLING_TOTAL_LANES:
+                        lanes_free = max(0, BOWLING_TOTAL_LANES - bowling_lanes_used)
+                        return Response(
+                            {
+                                'detail': (
+                                    f'Not enough bowling lanes available for {req_time}. '
+                                    f'{lanes_free} lane(s) free, need {lanes_needed}.'
+                                ),
+                                'code': 'CAPACITY_EXCEEDED',
+                                'lanes_free': lanes_free,
+                                'lanes_needed': lanes_needed,
+                            },
+                            status=status.HTTP_409_CONFLICT
+                        )
+
+                # ── Check skating capacity ────────────────────────────────────
+                if 'bowling' not in req_activity:
+                    if skating_headcount + req_players > SKATING_MAX_PER_SLOT:
+                        spots_free = max(0, SKATING_MAX_PER_SLOT - skating_headcount)
+                        return Response(
+                            {
+                                'detail': (
+                                    f'Not enough skating capacity for {req_time}. '
+                                    f'{spots_free} spot(s) free, need {req_players}.'
+                                ),
+                                'code': 'CAPACITY_EXCEEDED',
+                                'spots_free': spots_free,
+                                'spots_needed': req_players,
+                            },
+                            status=status.HTTP_409_CONFLICT
+                        )
+
+                # ── Capacity OK — proceed with normal DRF create ──────────────
+                try:
+                    response = super().create(request, *args, **kwargs)
+                except Exception as e:
+                    import traceback
+                    error_msg = str(e)
+                    logger.error(f"CRITICAL: Booking creation failed: {error_msg}")
+                    logger.error(traceback.format_exc())
+                    return Response(
+                        {
+                            "detail": f"Server Error: {error_msg}",
+                            "traceback": traceback.format_exc().split('\n')
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
         except Exception as e:
             import traceback
-            error_msg = str(e)
-            logger.error(f"CRITICAL: Booking creation failed: {error_msg}")
-            logger.error(traceback.format_exc())
+            logger.error(f"Transaction failed: {str(e)}")
             return Response(
-                {
-                    "detail": f"Server Error: {error_msg}",
-                    "traceback": traceback.format_exc().split('\n')
-                },
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": f"Booking could not be completed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
-        # Get the created booking from response
+
+        # ── Post-create: log success ──────────────────────────────────────────
         if response.status_code == 201:
             booking_id = response.data.get('id')
-            logger.info(f"Booking {booking_id} created successfully")
-            
-            # NOTE: Email confirmation is now sent AFTER payment verification
-            # See apps/payments/services.py - PaymentService.verify_and_complete_payment()
-            # This ensures customers only receive confirmation after successful payment
-            
-            # Trigger confirmation email if enabled (DISABLED - moved to payment verification)
-            # if getattr(settings, 'EMAIL_BOOKING_ENABLED', False):
-            #     try:
-            #         from apps.emails.tasks import send_booking_confirmation_email
-            #         logger.info(f"EMAIL_BOOKING_ENABLED=True, triggering email for booking {booking_id}")
-            #         send_booking_confirmation_email(booking_id)
-            #         logger.info(f"Email queued for booking {booking_id}")
-            #     except Exception as e:
-            #         logger.error(f"Failed to queue email for booking {booking_id}: {str(e)}", exc_info=True)
-            # else:
-            #     logger.warning(f"EMAIL_BOOKING_ENABLED=False, skipping email")
-        
+            logger.info(f"Booking {booking_id} created successfully (capacity check passed)")
+            # Email confirmation is sent AFTER payment verification
+            # See apps/payments/services.py -> PaymentService.verify_and_complete_payment()
+
         return response
+
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def check_duplicate(self, request):
