@@ -9,6 +9,7 @@ import Link from "next/link";
 
 export default function NewUserPage() {
     const router = useRouter();
+    const formRef = useRef<HTMLFormElement>(null);
     const [loading, setLoading] = useState(false);
     const [roles, setRoles] = useState<any[]>([]);
 

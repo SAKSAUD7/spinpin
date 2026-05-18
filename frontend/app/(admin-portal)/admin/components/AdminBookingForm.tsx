@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useRef } from "react";
+import { useState, useRef } from "react";
 // We'll need to create this action later or use a generic update one
 import { updateBooking } from "@/app/actions/admin";
 import { useRouter } from "next/navigation";
