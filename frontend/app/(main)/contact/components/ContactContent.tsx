@@ -56,7 +56,7 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
         }
     };
 
-    const phone = settings?.contact_phone || defaultConfig?.contact?.phone || "0116 280 0000";
+    const phone = settings?.contact_phone || defaultConfig?.contact?.phone || "07349 110865";
     // ... existing consts ...
     const email = settings?.contact_email || defaultConfig?.contact?.email || "info@spinpin.co.uk";
     const address = settings?.address || defaultConfig?.contact?.address || "Ramdoot House, First Floor - 2/3 Navigation Street, Leicester, LE1 3UR";
