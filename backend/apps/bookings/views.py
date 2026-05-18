@@ -82,16 +82,9 @@ class BookingViewSet(viewsets.ModelViewSet):
         if ordering:
             queryset = queryset.order_by(ordering)
         else:
-            queryset = queryset.order_by('-created_at') # Default to newest first
-        
-        # DEBUG: Print queryset info
-        print(f"[DEBUG] BookingViewSet.get_queryset()")
-        print(f"[DEBUG] Query params: {dict(self.request.query_params)}")
-        print(f"[DEBUG] Queryset count: {queryset.count()}")
-        if queryset.count() > 0:
-            print(f"[DEBUG] First booking: ID={queryset.first().id}, Name={queryset.first().name}")
-            
-        return queryset
+            queryset = queryset.order_by('-created_at')  # Default to newest first
+
+        return queryset.select_related('customer', 'voucher')
     
     def get_permissions(self):
         # Allow public access ONLY for create and ticket retrieval

@@ -34,7 +34,7 @@ def get_env_list(name, default=''):
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-fallback')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # TEMPORARY: Re-enabled to debug 500 error
+DEBUG = get_env_bool('DEBUG', True)  # Set DEBUG=False in production .env
 
 # VPS/Local: set ALLOWED_HOSTS in .env
 ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
@@ -121,9 +121,13 @@ if DB_ENGINE == 'django.db.backends.postgresql':
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('DB_NAME', 'ninjapark_db'),
             'USER': os.getenv('DB_USER', 'postgres'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'admin@786'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),  # Always set via .env — no default
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
+            'CONN_MAX_AGE': 60,  # Persistent connections — reduces overhead
+            'OPTIONS': {
+                'connect_timeout': 5,
+            },
         }
     }
 else:
@@ -190,6 +194,26 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',  # Fallback to header-based
         'rest_framework.authentication.SessionAuthentication',
     ),
+    # ── Rate Limiting (no extra package needed — built into DRF) ──────────
+    # Public endpoints: max 10 requests/minute per IP
+    # Authenticated staff: max 200 requests/minute
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/minute',   # 60 req/min for public (booking form, slot availability)
+        'user': '300/minute',  # 300 req/min for authenticated admin staff
+    },
+    # ── Filtering ─────────────────────────────────────────────────────────
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    # ── Pagination (prevents huge unbounded queries) ───────────────────────
+    'DEFAULT_PAGINATION_CLASS': None,  # Per-viewset opt-in only
+    # PAGE_SIZE intentionally omitted — set per-viewset where needed
 }
 
 SIMPLE_JWT = {
