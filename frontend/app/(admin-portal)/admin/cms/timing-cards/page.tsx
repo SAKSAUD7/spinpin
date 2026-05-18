@@ -4,7 +4,7 @@ import { CollectionList } from '@/components/admin/cms/CollectionList';
 import { schemas } from '@/lib/cms/schema';
 
 export default async function TimingCardsPage() {
-    const items = await getTimingCards();
+    const items = await getTimingCards() as any[];
 
     return (
         <CollectionList

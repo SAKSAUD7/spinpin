@@ -4,7 +4,7 @@ import { CollectionList } from '@/components/admin/cms/CollectionList';
 import { schemas } from '@/lib/cms/schema';
 
 export default async function ValueItemsPage() {
-    const items = await getValueItems();
+    const items = await getValueItems() as any[];
 
     return (
         <CollectionList

@@ -19,7 +19,7 @@ urlpatterns = [
     
     # API V1
     path('api/v1/core/', include('apps.core.urls')),
-    path('api/v1/shop/', include('apps.shop.urls')),
+    # path('api/v1/shop/', include('apps.shop.urls')),  # REMOVED: Shop feature retired
     path('api/v1/cms/', include('apps.cms.urls')),
     path('api/v1/bookings/', include('apps.bookings.urls')),
     path('api/v1/payments/', include('apps.payments.urls')),  # Payment system
