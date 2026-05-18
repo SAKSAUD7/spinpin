@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
@@ -49,7 +49,7 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
 
     const loadTemplates = async () => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const res = await fetch(`${API_URL}/invitations/templates/`);
             if (res.ok) {
                 const data = await res.json();
@@ -99,7 +99,7 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
         setSubmitting(true);
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
             // Backend expects integer ID, not UUID
             const bookingIntegerId = bookingDetails.id;

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -33,7 +33,7 @@ const pricingSchema = z.object({
     spectator_price: z.number().min(0, "Price must be positive"),
     spectator_label: z.string().min(1, "Label is required"),
     spectator_description: z.string().min(1, "Description is required"),
-    gst_rate: z.number().min(0).max(100, "GST must be between 0-100%"),
+    gst_rate: z.number().min(0).max(100, "VAT rate must be between 0-100%"),
     duration_label: z.string().min(1, "Label is required"),
     duration_description: z.string().min(1, "Description is required"),
     // Add-on pricing
@@ -328,7 +328,7 @@ function PricingEditor({ initialData, isSaving, onSave }: { initialData: any, is
                 {/* GST & Duration */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-200">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">GST / Tax Rate (%)</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">VAT Rate (%) — UK prices are VAT-inclusive, set to 0</label>
                         <input
                             type="number"
                             step="0.01"

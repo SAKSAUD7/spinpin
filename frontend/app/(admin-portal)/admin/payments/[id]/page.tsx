@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * Payment Detail Page
@@ -47,7 +47,7 @@ export default function PaymentDetailPage() {
     const fetchPaymentDetails = async () => {
         setLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const response = await fetch(`${API_URL}/admin/payments/${paymentId}/`, {
                 credentials: "include",
                 cache: "no-store",
@@ -72,7 +72,7 @@ export default function PaymentDetailPage() {
         setRefundError("");
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const response = await fetch(`${API_URL}/payments/refund/`, {
                 method: "POST",
                 headers: {

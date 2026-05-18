@@ -138,10 +138,10 @@ export default function FAQContent({ hero, grouped, allFaqs }: FAQContentProps) 
                             Contact Us
                         </a>
                         <a
-                            href="tel:+441162800000"
+                            href="tel:+447349110865"
                             className="inline-block bg-surface-700 border-2 border-white/20 hover:border-primary text-white hover:text-primary font-bold py-4 px-10 rounded-full transition-colors uppercase tracking-wide"
                         >
-                            Call Us
+                            📞 Call Us
                         </a>
                     </div>
                 </motion.div>

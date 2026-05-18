@@ -10,14 +10,20 @@ export default async function BookingPage() {
     return (
         <main className="bg-background min-h-screen pt-24 pb-16 px-4">
             <div className="max-w-5xl mx-auto">
-                <div className="text-center mb-12">
+        <div className="text-center mb-12">
+                    <div className="inline-flex items-center gap-3 mb-4">
+                        <span className="text-3xl">&#x1F6FC;</span>
+                        <span className="text-white/40 text-2xl font-bold">+</span>
+                        <span className="text-3xl">&#x1F3B3;</span>
+                    </div>
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-black mb-4">
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
-                            Book Your Session
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-primary to-blue-400">
+                            Book Your Activity
                         </span>
                     </h1>
                     <p className="text-lg text-white/70">
-                        Experience Skating, Bowling & Arcade Fun at Spin Pin Leicester
+                        Choose <strong className="text-pink-400">Roller Skating</strong> or{" "}
+                        <strong className="text-blue-400">Ten Pin Bowling</strong> at Spin Pin Leicester
                     </p>
                 </div>
 

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
     try {
         // Parse the incoming form data

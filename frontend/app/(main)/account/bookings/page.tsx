@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -44,7 +44,7 @@ export default function AccountBookingsPage() {
 
     useEffect(() => {
         if (!token) return;
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         fetch(`${API}/bookings/customer-auth/my-bookings/`, {
             headers: { Authorization: `Bearer ${token}` }
         })

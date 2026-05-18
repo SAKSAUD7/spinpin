@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 /**
  * Universal CMS Utilities
@@ -7,7 +7,7 @@
  * CMS items across all models. Works with any model that has image fields.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export interface CMSSaveResult {
     success: boolean;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { ScrollReveal } from "@repo/ui";
@@ -6,7 +6,7 @@ import { FileSignature, CheckCircle, User, Mail, Phone, AlertCircle, Plus, Trash
 import { motion, AnimatePresence } from "framer-motion";
 import { HybridDateInput } from "../../../../components/HybridDateInput";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 interface Minor {
     name: string;

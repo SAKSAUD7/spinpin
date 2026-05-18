@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { fetchAPI } from "../lib/server-api";
 import { requirePermission } from "../lib/admin-auth";
@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { transformCmsItem } from "../lib/transformers";
 
 export async function getGroupPackages() {
-    const res = await fetchAPI("/cms/group-packages/", { cache: 'no-store' });
+    const res = await fetchAPI("/cms/group-packages/", { next: { revalidate: 60 } });
     if (!res || !res.ok) return [];
     const data = await res.json();
     return data.map(transformCmsItem);

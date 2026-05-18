@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Customer, Booking, PartyBooking, Waiver, Transaction, BookingBlock, SessionBookingHistory, PartyBookingHistory
+from apps.payments.models import Payment
 
 # Payment inline for Booking admin
 class PaymentInline(admin.TabularInline):
     """Inline display of payments for bookings"""
-    from apps.payments.models import Payment
     model = Payment
     fk_name = 'booking'
     extra = 0
@@ -33,7 +33,6 @@ class PaymentInline(admin.TabularInline):
 # Party Payment inline
 class PartyPaymentInline(admin.TabularInline):
     """Inline display of payments for party bookings"""
-    from apps.payments.models import Payment
     model = Payment
     fk_name = 'party_booking'
     extra = 0

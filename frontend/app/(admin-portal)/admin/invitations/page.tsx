@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -26,7 +26,7 @@ export default function InvitationTemplatesPage() {
 
     const loadTemplates = async () => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const res = await fetch(`${API_URL}/invitations/templates/`);
             if (res.ok) {
                 const data = await res.json();
@@ -46,7 +46,7 @@ export default function InvitationTemplatesPage() {
         if (!confirm("Are you sure you want to delete this template?")) return;
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
             // Get auth token from cookies
             const getCookie = (name: string) => {

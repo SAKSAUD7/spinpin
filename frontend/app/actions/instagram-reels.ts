@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { fetchAPI } from "../lib/server-api";
 import { logActivity } from "../lib/audit-log";
@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { transformCmsItem } from "../lib/transformers";
 
 export async function getInstagramReels() {
-    const res = await fetchAPI("/cms/instagram-reels/", { cache: 'no-store' });
+    const res = await fetchAPI("/cms/instagram-reels/", { next: { revalidate: 60 } });
     if (!res || !res.ok) return [];
     const data = await res.json();
     return data.map(transformCmsItem);

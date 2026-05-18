@@ -123,10 +123,10 @@ export function AnimatedHero({
                         Sign Waiver
                     </Link>
                     <Link
-                        href="/activities"
+                        href="/attractions"
                         className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-transparent border-2 border-white text-white font-bold text-base sm:text-lg rounded-full hover:bg-white/10 transition-all"
                     >
-                        View Activities
+                        View Attractions
                     </Link>
                 </motion.div>
             </div>

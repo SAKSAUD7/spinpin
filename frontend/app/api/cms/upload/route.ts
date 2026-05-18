@@ -1,8 +1,8 @@
-
+﻿
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export async function POST(req: NextRequest) {
     console.log('[Upload Route] Request received');

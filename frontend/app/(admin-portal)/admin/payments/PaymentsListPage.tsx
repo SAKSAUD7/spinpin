@@ -42,7 +42,7 @@ export default function PaymentsListPage() {
     const fetchPayments = async () => {
         setLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             console.log("Fetching payments from:", `${API_URL}/payments/`);
 
             const response = await fetch(`${API_URL}/payments/`, {

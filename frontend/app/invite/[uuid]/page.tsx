@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -33,7 +33,7 @@ export default function PublicInvitationPage() {
 
     const fetchInvitation = async () => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const res = await fetch(`${API_URL}/invitations/invitations/public/${uuid}/`);
             if (!res.ok) {
                 if (res.status === 404) throw new Error("Invitation not found");

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -19,7 +19,7 @@ export default function EditProductPage() {
 
     useEffect(() => {
         if (!id) return;
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         fetch(`${API}/shop/products/${id}/`)
             .then(r => r.ok ? r.json() : null)
             .then(data => {
@@ -40,7 +40,7 @@ export default function EditProductPage() {
         e.preventDefault();
         setSaving(true);
         try {
-            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const res = await fetch(`${API}/shop/products/${id}/`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -59,7 +59,7 @@ export default function EditProductPage() {
 
     const handleDelete = async () => {
         if (!confirm("Delete this product permanently?")) return;
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         const res = await fetch(`${API}/shop/products/${id}/`, { method: "DELETE" });
         if (res.ok) {
             router.push("/admin/shop");

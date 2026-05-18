@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { fetchAPI, postAPI, putAPI, deleteAPI, API_ENDPOINTS } from '@/lib/api';
@@ -7,7 +7,7 @@ const ENDPOINT = API_ENDPOINTS.cms.faqs;
 
 export async function getFaqs(): Promise<any[]> {
     try {
-        const data = await fetchAPI(ENDPOINT, { cache: 'no-store' });
+        const data = await fetchAPI(ENDPOINT, { next: { revalidate: 60 } });
         return Array.isArray(data) ? data : [];
     } catch (error) {
         return [];
@@ -16,7 +16,7 @@ export async function getFaqs(): Promise<any[]> {
 
 export async function getFaq(id: string): Promise<any> {
     try {
-        const data = await fetchAPI(`${ENDPOINT}${id}/`, { cache: 'no-store' });
+        const data = await fetchAPI(`${ENDPOINT}${id}/`, { next: { revalidate: 60 } });
         return data;
     } catch (error) {
         return null;

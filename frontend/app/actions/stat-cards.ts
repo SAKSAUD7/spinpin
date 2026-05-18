@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { fetchAPI, postAPI, putAPI, deleteAPI, API_ENDPOINTS } from '@/lib/api';
@@ -8,7 +8,7 @@ const ENDPOINT = API_ENDPOINTS.cms.stat_cards; // Need to ensure this exists in 
 export async function getStatCards(page?: string) {
     try {
         const url = page ? `${ENDPOINT}?page=${page}` : ENDPOINT;
-        return await fetchAPI(url, { cache: 'no-store' });
+        return await fetchAPI(url, { next: { revalidate: 60 } });
     } catch (error) {
         return [];
     }
@@ -17,7 +17,7 @@ export async function getStatCards(page?: string) {
 
 export async function getStatCard(id: string) {
     try {
-        return await fetchAPI(`${ENDPOINT}${id}/`, { cache: 'no-store' });
+        return await fetchAPI(`${ENDPOINT}${id}/`, { next: { revalidate: 60 } });
     } catch (error) {
         return null;
     }

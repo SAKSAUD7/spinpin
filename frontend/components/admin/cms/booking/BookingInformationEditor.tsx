@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Loader2, BookOpen, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export function BookingInformationEditor() {
     const [bookingInfo, setBookingInfo] = useState<any[]>([]);

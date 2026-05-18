@@ -1,27 +1,49 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone', // Create self-contained deployment for Azure
+    output: 'standalone', // Self-contained deployment
     typescript: {
-        ignoreBuildErrors: true, // Temporarily bypass TypeScript errors
+        ignoreBuildErrors: true,
     },
     eslint: {
-        ignoreDuringBuilds: true, // Temporarily bypass ESLint errors
+        ignoreDuringBuilds: true,
     },
     transpilePackages: ["@repo/ui", "@repo/config"],
     images: {
-        // App Service supports image optimization
         remotePatterns: [
+            // SpinPin Azure Blob Storage (production media)
             {
                 protocol: 'https',
-                hostname: 'ninjaparkimages.blob.core.windows.net',
+                hostname: 'spinpinimages.blob.core.windows.net',
                 pathname: '/**',
             },
+            // SpinPin Azure App Service (backend media)
             {
                 protocol: 'https',
-                hostname: 'ninjainflablepark-gbhwbbdna5hjgvf9.centralindia-01.azurewebsites.net',
+                hostname: '*.azurewebsites.net',
                 pathname: '/media/**',
             },
+            // Local Django backend (development)
+            {
+                protocol: 'http',
+                hostname: 'localhost',
+                port: '9000',
+                pathname: '/media/**',
+            },
+            // Fallback for any http images in development
+            {
+                protocol: 'http',
+                hostname: 'localhost',
+                pathname: '/**',
+            },
         ],
+    },
+    // Performance: compress responses
+    compress: true,
+    // Dev-only: reduce logging noise
+    logging: {
+        fetches: {
+            fullUrl: false,
+        },
     },
 };
 

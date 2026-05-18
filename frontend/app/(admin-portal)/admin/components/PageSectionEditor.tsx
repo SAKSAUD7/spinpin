@@ -108,7 +108,7 @@ export function PageSectionEditor({ page, sectionKey, sectionTitle, initialData,
                         onChange={handleChange}
                         rows={2}
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                        placeholder="e.g., The best inflatable park in town"
+                        placeholder="e.g., Leicester's premier roller skating and bowling venue"
                     />
                 </div>
 

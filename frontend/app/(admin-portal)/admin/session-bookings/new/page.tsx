@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { createBooking } from "@/app/actions/createBooking";
@@ -25,9 +25,10 @@ export default function NewSessionBookingPage() {
                 email: formData.get("email") as string,
                 phone: formData.get("phone") as string,
                 dateOfBirth: formData.get("dateOfBirth") as string,
-                dateOfArrival: formData.get("date") as string, // Use booking date as arrival date
-                waiverAccepted: true, // Admin bookings auto-accept waiver
+                dateOfArrival: formData.get("date") as string,
+                waiverAccepted: true,
                 voucherCode: formData.get("voucherCode") as string || undefined,
+                activity: formData.get("activity") as string || null,
             };
 
             const result = await createBooking(data);
@@ -56,11 +57,46 @@ export default function NewSessionBookingPage() {
                     <ArrowLeft size={16} />
                     Back to Session Bookings
                 </Link>
-                <h1 className="text-3xl font-bold text-slate-900">Manual Session Booking</h1>
-                <p className="text-slate-500 mt-1">Create a session booking for walk-in or phone customers</p>
+                <h1 className="text-3xl font-bold text-slate-900">Manual Booking — Walk-in / Phone</h1>
+                <p className="text-slate-500 mt-1">Create a skating or bowling booking for walk-in or phone customers</p>
             </div>
 
             <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
+            {/* Activity Selection */}
+                <div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span className="text-xl">🎯</span>
+                        Activity
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-pink-400 has-[:checked]:border-pink-500 has-[:checked]:bg-pink-50">
+                            <input
+                                type="radio"
+                                name="activity"
+                                value="roller-skating"
+                                defaultChecked
+                                className="accent-pink-500"
+                            />
+                            <div>
+                                <p className="font-bold text-slate-900">🛼 Roller Skating</p>
+                                <p className="text-sm text-slate-500">Leicester's first roller rink</p>
+                            </div>
+                        </label>
+                        <label className="flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-blue-400 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                            <input
+                                type="radio"
+                                name="activity"
+                                value="ten-pin-bowling"
+                                className="accent-blue-500"
+                            />
+                            <div>
+                                <p className="font-bold text-slate-900">🎳 Ten Pin Bowling</p>
+                                <p className="text-sm text-slate-500">Strike it big in Leicester</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 {/* Customer Details */}
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -151,15 +187,16 @@ export default function NewSessionBookingPage() {
                                     className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-white"
                                 >
                                     <option value="">Select Time</option>
-                                    <option value="10:00">10:00 AM</option>
-                                    <option value="11:00">11:00 AM</option>
-                                    <option value="12:00">12:00 PM</option>
+                                    <option value="12:00">12:00 PM — Midday</option>
                                     <option value="13:00">01:00 PM</option>
                                     <option value="14:00">02:00 PM</option>
                                     <option value="15:00">03:00 PM</option>
                                     <option value="16:00">04:00 PM</option>
                                     <option value="17:00">05:00 PM</option>
                                     <option value="18:00">06:00 PM</option>
+                                    <option value="19:00">07:00 PM</option>
+                                    <option value="20:00">08:00 PM</option>
+                                    <option value="21:00">09:00 PM</option>
                                 </select>
                             </div>
                         </div>
@@ -219,7 +256,7 @@ export default function NewSessionBookingPage() {
                                 defaultValue="0"
                                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
-                            <p className="text-xs text-slate-500 mt-1">Free (non-participants)</p>
+                            <p className="text-xs text-slate-500 mt-1">£2.95 per spectator</p>
                         </div>
                     </div>
                 </div>

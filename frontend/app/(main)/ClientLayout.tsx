@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Navbar } from "../../features/navigation/Navbar";
@@ -12,7 +12,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         async function loadSettings() {
             try {
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
                 const [settingsRes, linksRes] = await Promise.all([
                     fetch(`${API_URL}/core/settings/`, { cache: 'no-store' }),

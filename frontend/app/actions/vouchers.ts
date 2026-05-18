@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { fetchAPI } from "../lib/server-api";
 import { getAdminSession } from "../lib/admin-auth";
@@ -117,7 +117,7 @@ export async function deleteVoucher(id: string) {
 }
 
 export async function validateVoucher(code: string, orderAmount: number) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/shop/vouchers/validate/`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1'}/shop/vouchers/validate/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: code.toUpperCase(), order_amount: orderAmount })

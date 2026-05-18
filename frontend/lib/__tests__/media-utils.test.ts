@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { getMediaUrl } from '../media-utils'
 
 describe('getMediaUrl', () => {
@@ -14,13 +14,13 @@ describe('getMediaUrl', () => {
 
     it('should convert relative media URLs to absolute', () => {
         const result = getMediaUrl('/media/uploads/image.jpg')
-        expect(result).toContain('http://localhost:8000')
+        expect(result).toContain('http://localhost:9000')
         expect(result).toContain('/media/uploads/image.jpg')
     })
 
     it('should handle media URLs without leading slash', () => {
         const result = getMediaUrl('media/uploads/image.jpg')
-        expect(result).toContain('http://localhost:8000')
+        expect(result).toContain('http://localhost:9000')
         expect(result).toContain('/media/uploads/image.jpg')
     })
 

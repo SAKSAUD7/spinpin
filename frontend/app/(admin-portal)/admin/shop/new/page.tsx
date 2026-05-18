@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ export default function NewProductPage() {
         e.preventDefault();
         setSaving(true);
         try {
-            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const res = await fetch(`${API}/shop/products/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

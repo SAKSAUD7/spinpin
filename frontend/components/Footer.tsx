@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart } from "lucide-react";
@@ -19,7 +19,7 @@ export const Footer = ({ settings, socialLinks }: { settings?: any; socialLinks?
         // Fetch dynamic logo on mount
         const fetchLogo = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/core/logos/active/`);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1'}/core/logos/active/`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.image_url) {

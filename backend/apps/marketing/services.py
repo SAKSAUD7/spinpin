@@ -219,7 +219,7 @@ class MarketingService:
             email_type='BIRTHDAY_MARKETING',
             recipient_email=email,
             recipient_name=name,
-            subject=f"🎉 A Birthday Is Coming Up — Celebrate at Ninja Inflatable Park!",
+            subject=f"🎉 A Birthday Is Coming Up — Celebrate at Spin Pin Leicester!",
             template_name='emails/marketing/birthday.html',
             context=context
         )

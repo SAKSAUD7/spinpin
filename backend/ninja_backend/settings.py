@@ -36,10 +36,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-fallback')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # TEMPORARY: Re-enabled to debug 500 error
 
-# Azure App Service will set WEBSITE_HOSTNAME
+# VPS/Local: set ALLOWED_HOSTS in .env
 ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
-if 'WEBSITE_HOSTNAME' in os.environ:
-    ALLOWED_HOSTS.append(os.environ['WEBSITE_HOSTNAME'])
 
 CSRF_TRUSTED_ORIGINS = []
 
@@ -67,7 +65,7 @@ INSTALLED_APPS = [
     'apps.cms',
     'apps.shop',
     'apps.invitations',
-    'apps.payments',  # Payment system with mock and Razorpay gateways
+    'apps.payments',  # Payment system with mock and SumUp gateways
     'apps.emails.apps.EmailsConfig',  # Email system - use full path to ensure signals are registered
     'apps.marketing.apps.MarketingConfig',  # Azure Email Marketing System
 ]
@@ -162,7 +160,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = "Asia/Kolkata"
+TIME_ZONE = "Europe/London"
 
 USE_I18N = True
 
@@ -212,8 +210,10 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5000",
+    "http://localhost:9000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5000",
+    "http://127.0.0.1:9000",
 ]
 CSRF_TRUSTED_ORIGINS = get_env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:5000')
 
@@ -224,51 +224,39 @@ if 'WEBSITE_HOSTNAME' in os.environ:
 CORS_ALLOW_CREDENTIALS = True
 # CORS_ALLOW_ALL_ORIGINS = True  # Disabled to allowing credentials
 
-# Storage Configuration
-# Using local file storage for SpinPin website
-USE_AZURE_STORAGE = False
-
-if USE_AZURE_STORAGE:
-    # Production: Use Azure Blob Storage
-    STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.azure_storage.AzureStorage",
-            "OPTIONS": {
-                "connection_string": os.getenv("AZURE_CONNECTION_STRING"),
-                "azure_container": "media",
-                "overwrite_files": False,
-            },
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-        },
-    }
-    MEDIA_URL = f"https://ninjapark.blob.core.windows.net/media/"
-else:
-    # Local Development: Use Filesystem
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 # ====================================================
-# EMAIL SYSTEM CONFIGURATION (Azure Communication Services)
+# STORAGE CONFIGURATION (Local filesystem / VPS)
+# On VPS: media is served by Nginx from /backend/media/
 # ====================================================
 
-# Feature Flags (ALL DISABLED BY DEFAULT)
-EMAIL_ENABLED = os.getenv('EMAIL_ENABLED', 'False').lower() == 'true'
-EMAIL_BOOKING_ENABLED = os.getenv('EMAIL_BOOKING_ENABLED', 'False').lower() == 'true'
-EMAIL_DEBUG_MODE = os.getenv('EMAIL_DEBUG_MODE', 'True').lower() == 'true'
+# Always use local filesystem storage — no Azure/S3 needed
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Azure Communication Services Credentials
-AZURE_COMMUNICATION_CONNECTION_STRING = os.getenv('AZURE_COMMUNICATION_CONNECTION_STRING', '')
-AZURE_EMAIL_SENDER_ADDRESS = os.getenv('AZURE_EMAIL_SENDER_ADDRESS', '')
-AZURE_EMAIL_SENDER_NAME = os.getenv('AZURE_EMAIL_SENDER_NAME', 'Spin Pin')
+# ====================================================
+# EMAIL CONFIGURATION (SMTP — VPS ready)
+# Configure via .env on your VPS
+# ====================================================
 
-# Email Feature Flags
-EMAIL_ENABLED = get_env_bool('EMAIL_ENABLED', True)
-EMAIL_BOOKING_ENABLED = get_env_bool('EMAIL_BOOKING_ENABLED', True)
-EMAIL_DEBUG_MODE = get_env_bool('EMAIL_DEBUG_MODE', False)
+# Feature flags
+EMAIL_ENABLED = get_env_bool('EMAIL_ENABLED', False)
+EMAIL_BOOKING_ENABLED = get_env_bool('EMAIL_BOOKING_ENABLED', False)
+EMAIL_DEBUG_MODE = get_env_bool('EMAIL_DEBUG_MODE', True)
 
-# Email Retry Configuration
+# Standard Django SMTP backend
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = get_env_bool('EMAIL_USE_TLS', True)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'info@spinpin.co.uk')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Spin Pin sender name
+EMAIL_SENDER_NAME = os.getenv('EMAIL_SENDER_NAME', 'Spin Pin Leicester')
+
+# Email retry
 EMAIL_MAX_RETRIES = int(os.getenv('EMAIL_MAX_RETRIES', '3'))
 EMAIL_RETRY_DELAY_MINUTES = int(os.getenv('EMAIL_RETRY_DELAY_MINUTES', '1'))
 
@@ -293,14 +281,19 @@ LOGGING = {
 # PAYMENT GATEWAY CONFIGURATION
 # ====================================================
 
-# Payment Mode: 'mock' (default, no real money) or 'razorpay' (production)
+# Payment Mode: 'mock' (default, pay at venue) or 'sumup' (live online payments)
 PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'mock')
 
-# Razorpay Credentials (only needed when PAYMENT_MODE='razorpay')
+# SumUp Credentials (only needed when PAYMENT_MODE='sumup')
+SUMUP_API_KEY = os.getenv('SUMUP_API_KEY', '')
+SUMUP_MERCHANT_CODE = os.getenv('SUMUP_MERCHANT_CODE', '')
+SUMUP_RETURN_URL = os.getenv('SUMUP_RETURN_URL', 'http://localhost:5000/book/success')
+
+# Legacy Razorpay (no longer used — kept for migration safety)
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')
 
 # Payment Settings
-ALLOW_PARTIAL_PAYMENTS = False  # Require full payment (no partial payments)
+ALLOW_PARTIAL_PAYMENTS = False  # Require full payment
 MINIMUM_DEPOSIT_PERCENTAGE = 50  # Not used when ALLOW_PARTIAL_PAYMENTS = False
 

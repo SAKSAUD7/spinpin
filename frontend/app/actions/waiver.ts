@@ -1,8 +1,8 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
 export async function submitWaiver(formData: FormData) {
     const name = formData.get("name") as string;
@@ -20,9 +20,7 @@ export async function submitWaiver(formData: FormData) {
 
         // Check if booking exists if ID provided
         if (bookingId) {
-            const bookingRes = await fetch(`${API_URL}/bookings/bookings/${bookingId}/`, {
-                cache: "no-store"
-            });
+            const bookingRes = await fetch(`${API_URL}/bookings/bookings/${bookingId}/`, { next: { revalidate: 60 } });
 
             if (bookingRes.ok) {
                 const booking = await bookingRes.json();

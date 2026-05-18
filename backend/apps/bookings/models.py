@@ -91,7 +91,7 @@ class Booking(models.Model):
     activity = models.CharField(max_length=100, null=True, blank=True, help_text="Activity type: roller-skating, ten-pin-bowling, arcade")
     add_ons = models.JSONField(null=True, blank=True, help_text="Selected add-ons: [{id, label, qty, price_each, subtotal}]")
     qr_code = models.CharField(max_length=255, unique=True, null=True, blank=True)
-    booking_number = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique booking number (NIP-YYYYMMDD-XXXX)")
+    booking_number = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique booking number (SP-YYYYMMDD-XXXX)")
     
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     voucher = models.ForeignKey(Voucher, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
@@ -128,17 +128,16 @@ class Booking(models.Model):
         return self.amount - self.paid_amount
     
     def generate_booking_number(self):
-        """Generate unique booking number: NIP-YYYYMMDD-XXXX"""
+        """Generate unique booking number: SP-YYYYMMDD-XXXX"""
         date = datetime.now()
         year = date.year
         month = str(date.month).zfill(2)
         day = str(date.day).zfill(2)
         
-        # Use booking ID for uniqueness instead of random number
-        # This ensures no collisions
+        # Use booking ID for uniqueness — ensures no collisions
         booking_id = str(self.id).zfill(4)
         
-        return f"NIP-{year}{month}{day}-{booking_id}"
+        return f"SP-{year}{month}{day}-{booking_id}"
     
     def save(self, *args, **kwargs):
         # Generate booking number on first save
@@ -194,7 +193,7 @@ class PartyBooking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='party_bookings')
-    booking_number = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique booking number (NIPARTY-YYYYMMDD-XXXX)")
+    booking_number = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique booking number (SPPARTY-YYYYMMDD-XXXX)")
     
     # Arrival tracking (matching Booking model)
     arrived = models.BooleanField(default=False)
@@ -227,7 +226,7 @@ class PartyBooking(models.Model):
         return self.amount - self.paid_amount
     
     def generate_booking_number(self):
-        """Generate unique booking number: NIPARTY-YYYYMMDD-XXXX"""
+        """Generate unique booking number: SPPARTY-YYYYMMDD-XXXX"""
         date = datetime.now()
         year = date.year
         month = str(date.month).zfill(2)
@@ -236,7 +235,7 @@ class PartyBooking(models.Model):
         # Use booking ID for uniqueness
         booking_id = str(self.id).zfill(4)
         
-        return f"NIPARTY-{year}{month}{day}-{booking_id}"
+        return f"SPPARTY-{year}{month}{day}-{booking_id}"
     
     def save(self, *args, **kwargs):
         # Generate booking number on first save
@@ -300,8 +299,9 @@ class Waiver(models.Model):
 
 class Transaction(models.Model):
     METHOD_CHOICES = [
-        ('STRIPE', 'Stripe'),
+        ('SUMUP', 'SumUp'),
         ('CASH', 'Cash'),
+        ('STRIPE', 'Stripe'),
         ('RAZORPAY', 'Razorpay'),
     ]
     STATUS_CHOICES = [
@@ -313,7 +313,7 @@ class Transaction(models.Model):
 
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='INR')
+    currency = models.CharField(max_length=3, default='GBP')
     transaction_id = models.CharField(max_length=255, unique=True)
     payment_method = models.CharField(max_length=20, choices=METHOD_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')

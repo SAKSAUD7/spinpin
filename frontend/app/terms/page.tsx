@@ -73,7 +73,7 @@ export default function TermsPage() {
                     title: "Health & Safety",
                     content: [
                         "Please ensure no food is discarded on the floor. Any spillages must be cleaned immediately—staff are available to help maintain hygiene.",
-                        "Management must be informed of any toileting accidents or bodily fluids (urine, vomit, etc.) on the inflatables so that cleaning can be arranged.",
+                        "Management must be informed of any toileting accidents or bodily fluids (urine, vomit, etc.) in the activity areas so that cleaning can be arranged.",
                         "Nappy changing facilities are provided and must only be used in designated areas. Soiled nappies must be disposed of in the bins provided.",
                         "Shoes must be worn in all toilet facilities."
                     ]

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Utility functions for handling media URLs from the backend
  */
 
@@ -18,7 +18,7 @@ export const getMediaUrl = (path: string | null | undefined): string => {
     }
 
     // Backend media paths — proxy through backend (Django)
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
     const API_ROOT = API_BASE_URL.replace('/api/v1', '');
 
     if (path.startsWith('/')) {

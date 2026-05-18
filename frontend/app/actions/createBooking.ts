@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { bookingSchema, formatPhoneNumber } from "@repo/types";
 import QRCode from "qrcode";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
-// Generate unique booking number: NIP-YYYYMMDD-XXXX
+// Generate unique booking number: SP-YYYYMMDD-XXXX
 function generateBookingNumber(): string {
     const date = new Date();
     const year = date.getFullYear();
@@ -14,7 +14,7 @@ function generateBookingNumber(): string {
     const day = String(date.getDate()).padStart(2, '0');
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
 
-    return `NIP-${year}${month}${day}-${random}`;
+    return `SP-${year}${month}${day}-${random}`;
 }
 
 // Sanitize string input to prevent XSS
@@ -31,10 +31,12 @@ function isValidEmail(email: string): boolean {
     return emailRegex.test(email);
 }
 
-// Validate phone format server-side
+// Validate phone format server-side (UK & international friendly)
 function isValidPhone(phone: string): boolean {
-    const phoneRegex = /^[6-9]\d{9}$/;
-    return phoneRegex.test(phone);
+    // Accept UK mobile/landline (07xxx, +447xxx) and general international numbers
+    // Strips spaces, dashes, parentheses before checking length
+    const cleaned = phone.replace(/[\s\-().+]/g, '');
+    return cleaned.length >= 7 && cleaned.length <= 15 && /^\d+$/.test(cleaned);
 }
 
 export async function createBooking(formData: any) {
@@ -157,9 +159,7 @@ export async function createBooking(formData: any) {
         // Apply voucher if provided
         if (data.voucherCode) {
             // Re-validate voucher server-side
-            const voucherRes = await fetch(`${API_URL}/shop/vouchers/?code=${data.voucherCode}`, {
-                cache: "no-store"
-            });
+            const voucherRes = await fetch(`${API_URL}/shop/vouchers/?code=${data.voucherCode}`, { next: { revalidate: 60 } });
 
             if (!voucherRes.ok) {
                 return { success: false, error: "Invalid voucher code" };
@@ -219,7 +219,7 @@ export async function createBooking(formData: any) {
         // Check for duplicate bookings using the dedicated public endpoint
         const checkDuplicateRes = await fetch(
             `${API_URL}/bookings/bookings/check_duplicate/?email=${encodeURIComponent(sanitizedEmail)}&date=${data.date}&time=${data.time}`,
-            { cache: "no-store" }
+            { next: { revalidate: 60 } }
         );
 
         if (checkDuplicateRes.ok) {

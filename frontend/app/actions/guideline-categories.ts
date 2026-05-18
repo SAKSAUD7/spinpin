@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { fetchAPI, postAPI, putAPI, deleteAPI, API_ENDPOINTS } from '@/lib/api';
@@ -7,7 +7,7 @@ const ENDPOINT = API_ENDPOINTS.cms.guideline_categories;
 
 export async function getGuidelineCategories() {
     try {
-        return await fetchAPI(ENDPOINT, { cache: 'no-store' });
+        return await fetchAPI(ENDPOINT, { next: { revalidate: 60 } });
     } catch (error) {
         return [];
     }
@@ -15,7 +15,7 @@ export async function getGuidelineCategories() {
 
 export async function getGuidelineCategory(id: string) {
     try {
-        return await fetchAPI(`${ENDPOINT}${id}/`, { cache: 'no-store' });
+        return await fetchAPI(`${ENDPOINT}${id}/`, { next: { revalidate: 60 } });
     } catch (error) {
         return null;
     }

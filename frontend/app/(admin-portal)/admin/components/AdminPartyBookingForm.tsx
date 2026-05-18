@@ -192,11 +192,15 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                                 className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-white text-slate-900"
                             >
                                 <option value="">Select Time</option>
-                                <option value="10:00:00">10:00 AM</option>
                                 <option value="12:00:00">12:00 PM</option>
+                                <option value="13:00:00">01:00 PM</option>
                                 <option value="14:00:00">02:00 PM</option>
+                                <option value="15:00:00">03:00 PM</option>
                                 <option value="16:00:00">04:00 PM</option>
+                                <option value="17:00:00">05:00 PM</option>
                                 <option value="18:00:00">06:00 PM</option>
+                                <option value="19:00:00">07:00 PM</option>
+                                <option value="20:00:00">08:00 PM</option>
                             </select>
                         </div>
                     </div>
@@ -234,7 +238,7 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
                             placeholder="0"
                         />
-                        <p className="text-xs text-slate-500 mt-1">First 10 spectators are free</p>
+                        <p className="text-xs text-slate-500 mt-1">First 2 accompanying adults free, £2.95 each thereafter</p>
                     </div>
                 </div>
             </div>
@@ -253,9 +257,11 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                             defaultValue={initialData?.partyPackage || initialData?.party_package}
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
                         >
-                            <option value="STANDARD">Standard</option>
-                            <option value="PREMIUM">Premium</option>
-                            <option value="ULTIMATE">Ultimate</option>
+                            <option value="STANDARD">Standard Party</option>
+                            <option value="SKATING">Roller Skating Party</option>
+                            <option value="BOWLING">Bowling Party</option>
+                            <option value="PREMIUM">Premium (Skating + Bowling)</option>
+                            <option value="ULTIMATE">Ultimate (All Activities)</option>
                         </select>
                     </div>
                     <div>
@@ -266,11 +272,12 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
                         >
                             <option value="">No Theme</option>
-                            <option value="NINJA">Spin Pin Warrior</option>
+                            <option value="RAINBOW">Rainbow & Sparkle</option>
                             <option value="SPACE">Space Adventure</option>
                             <option value="JUNGLE">Jungle Safari</option>
                             <option value="PRINCESS">Princess Castle</option>
                             <option value="SUPERHERO">Superhero</option>
+                            <option value="SPORTS">Sports Star</option>
                         </select>
                     </div>
                 </div>

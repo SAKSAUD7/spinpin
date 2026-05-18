@@ -56,7 +56,7 @@ export function PaymentOverviewWidget() {
 
     const fetchStats = async () => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const response = await fetch(`${API_URL}/payments/stats/`, {
                 credentials: "include",
                 cache: "no-store",

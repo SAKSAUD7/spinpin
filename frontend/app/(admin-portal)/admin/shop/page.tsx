@@ -6,7 +6,7 @@ import { ProductActions } from "../components/ProductActions";
 
 async function getProducts(): Promise<any[]> {
     try {
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         const res = await fetch(`${API}/shop/products/`, { cache: "no-store" });
         if (!res.ok) return [];
         return await res.json();

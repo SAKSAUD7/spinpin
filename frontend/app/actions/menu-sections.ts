@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { fetchAPI, postAPI, putAPI, deleteAPI, API_ENDPOINTS } from '@/lib/api';
@@ -8,7 +8,7 @@ const ENDPOINT = API_ENDPOINTS.cms.menu_sections;
 
 export async function getMenuSections() {
     try {
-        const data = await fetchAPI(ENDPOINT, { cache: 'no-store' });
+        const data = await fetchAPI(ENDPOINT, { next: { revalidate: 60 } });
         return Array.isArray(data) ? data.map(transformCmsItem) : [];
     } catch (error) {
         console.error("Error fetching menu sections:", error);
@@ -18,7 +18,7 @@ export async function getMenuSections() {
 
 export async function getMenuSection(id: string) {
     try {
-        const data = await fetchAPI(`${ENDPOINT}${id}/`, { cache: 'no-store' });
+        const data = await fetchAPI(`${ENDPOINT}${id}/`, { next: { revalidate: 60 } });
         return transformCmsItem(data);
     } catch (error) {
         console.error(`Error fetching menu section ${id}:`, error);

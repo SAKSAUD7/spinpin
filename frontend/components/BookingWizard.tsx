@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 
 
@@ -339,7 +339,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             try {
 
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
                 const res = await fetch(`${API_URL}/cms/session-booking-config/1/`);
 

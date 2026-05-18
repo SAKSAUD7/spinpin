@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ interface AccountContextType {
 
 const AccountContext = createContext<AccountContextType | null>(null);
 
-const API_BASE = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_BASE = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 const TOKEN_KEY = "spinpin_customer_token";
 
 export function AccountProvider({ children }: { children: ReactNode }) {

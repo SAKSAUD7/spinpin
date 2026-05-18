@@ -212,21 +212,21 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
     };
 
     const calculateTotal = () => {
-        const participantPrice = config?.participant_price || 1500;
-        const extraSpectatorPrice = config?.spectator_price || 100;
-        const freeSpectators = config?.free_spectators || 10;
-        const gstRate = config?.gst_rate || 18;
-        const depositPercentage = config?.deposit_percentage || 50;
+        // Prices are GBP decimals (e.g. 15.00 = £15) — NOT pence
+        const participantPrice = config?.participant_price ?? 15.00;
+        const extraSpectatorPrice = config?.spectator_price ?? 2.95;
+        const freeSpectators = config?.free_spectators ?? 2;
+        const depositPercentage = config?.deposit_percentage ?? 20;
 
         const chargeableSpectators = Math.max(0, formData.spectators - freeSpectators);
 
         const participantCost = formData.participants * participantPrice;
         const spectatorCost = chargeableSpectators * extraSpectatorPrice;
         const subtotal = participantCost + spectatorCost;
-        const gst = subtotal * (gstRate / 100);
-        const total = subtotal + gst;
+        // UK — VAT is already included in prices, no extra tax
+        const total = subtotal;
 
-        return { subtotal, gst, total, deposit: total * (depositPercentage / 100) };
+        return { subtotal, total, deposit: total * (depositPercentage / 100) };
     };
 
     const costs = calculateTotal();
@@ -253,7 +253,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                 <div className="space-y-2 text-white/70">
                                     <p><strong className="text-white">Booking ID:</strong> {bookingDetails.bookingId}</p>
                                     <p><strong className="text-white">Total Amount:</strong> £{costs.total.toFixed(2)}</p>
-                                    <p><strong className="text-white">Deposit Required (50%):</strong> £{costs.deposit.toFixed(2)}</p>
+                                    <p><strong className="text-white">Deposit Required ({config?.deposit_percentage ?? 20}%):</strong> £{costs.deposit.toFixed(2)}</p>
                                     <p><strong className="text-white">Date:</strong> {formData.date}</p>
                                     <p><strong className="text-white">Time:</strong> {formData.time}</p>
                                     <p><strong className="text-white">Participants:</strong> {formData.participants}</p>
@@ -525,7 +525,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                             onChange={(e) => setFormData({ ...formData, spectators: parseInt(e.target.value) || 0 })}
                                             className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white"
                                         />
-                                        <p className="text-xs text-white/50 mt-1">First 10 spectators free</p>
+                                        <p className="text-xs text-white/50 mt-1">First {config?.free_spectators ?? 2} accompanying adults free</p>
                                     </div>
                                 </div>
 
@@ -584,22 +584,17 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
                                     <div className="space-y-3 mb-6">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-white/70">Participants ({formData.participants})</span>
-                                            <span className="text-white font-bold">£{(formData.participants * ((config?.participant_price || 1500) / 100)).toFixed(2)}</span>
+                                            <span className="text-white/70">Guests ({formData.participants} × £{(config?.participant_price ?? 15).toFixed(2)})</span>
+                                            <span className="text-white font-bold">£{(formData.participants * (config?.participant_price ?? 15)).toFixed(2)}</span>
                                         </div>
-                                        {formData.spectators > 10 && (
+                                        {formData.spectators > (config?.free_spectators ?? 2) && (
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-white/70">Extra Spectators ({formData.spectators - 10})</span>
-                                                <span className="text-white font-bold">£{((formData.spectators - 10) * 100).toLocaleString()}</span>
+                                                <span className="text-white/70">Extra Spectators ({formData.spectators - (config?.free_spectators ?? 2)} × £{(config?.spectator_price ?? 2.95).toFixed(2)})</span>
+                                                <span className="text-white font-bold">£{((formData.spectators - (config?.free_spectators ?? 2)) * (config?.spectator_price ?? 2.95)).toFixed(2)}</span>
                                             </div>
                                         )}
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-white/70">Subtotal</span>
-                                            <span className="text-white font-bold">£{costs.subtotal.toLocaleString()}</span>
-                                        </div>
-                                        <div className="text-sm">
-                                            <span className="text-white/70">GST ({config?.gst_rate || 18}%)</span>
-                                            <span className="text-white font-bold">£{costs.gst.toFixed(2)}</span>
+                                        <div className="flex justify-between text-sm text-white/50">
+                                            <span>All prices include VAT</span>
                                         </div>
                                         <div className="border-t border-white/10 pt-3 flex justify-between">
                                             <span className="font-bold text-white">Total</span>
@@ -607,8 +602,9 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                         </div>
                                         <div className="bg-accent/10 border border-accent/30 rounded-lg p-3">
                                             <p className="text-xs text-white/70">
-                                                <strong className="text-accent">Deposit ({config?.deposit_percentage || 50}%):</strong> £{costs.deposit.toFixed(2)}
+                                                <strong className="text-accent">Deposit ({config?.deposit_percentage ?? 20}%):</strong> £{costs.deposit.toFixed(2)} due now
                                             </p>
+                                            <p className="text-xs text-white/50 mt-1">Balance due on the day</p>
                                         </div>
                                     </div>
 

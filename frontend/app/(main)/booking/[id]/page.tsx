@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -36,7 +36,7 @@ export default function BookingConfirmationPage() {
 
     useEffect(() => {
         if (!id) return;
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         fetch(`${API}/bookings/bookings/${id}/`)
             .then(r => {
                 if (!r.ok) throw new Error("Not found");

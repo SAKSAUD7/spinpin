@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -35,7 +35,7 @@ export default function FacilitiesPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         Promise.all([
             fetch(`${API}/cms/facility-categories/`).then(r => r.ok ? r.json() : []),
             fetch(`${API}/cms/facility-items/`).then(r => r.ok ? r.json() : []),

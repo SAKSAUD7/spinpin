@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
@@ -8,7 +8,7 @@ const ENDPOINT = API_ENDPOINTS.cms.pricing_plans;
 
 export async function getPricingPlans() {
     try {
-        return await fetchAPI(ENDPOINT, { cache: 'no-store' });
+        return await fetchAPI(ENDPOINT, { next: { revalidate: 60 } });
     } catch (error) {
         return [];
     }
@@ -16,7 +16,7 @@ export async function getPricingPlans() {
 
 export async function getPricingPlan(id: string) {
     try {
-        return await fetchAPI(`${ENDPOINT}${id}/`, { cache: 'no-store' });
+        return await fetchAPI(`${ENDPOINT}${id}/`, { next: { revalidate: 60 } });
     } catch (error) {
         return null;
     }

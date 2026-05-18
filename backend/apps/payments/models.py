@@ -22,6 +22,7 @@ class Payment(models.Model):
     """
     
     PROVIDER_CHOICES = [
+        ('SUMUP', 'SumUp'),
         ('MOCK', 'Mock Gateway'),
         ('RAZORPAY', 'Razorpay'),
     ]
@@ -77,7 +78,7 @@ class Payment(models.Model):
     )
     currency = models.CharField(
         max_length=3,
-        default='INR',
+        default='GBP',
         help_text="Currency code"
     )
     status = models.CharField(

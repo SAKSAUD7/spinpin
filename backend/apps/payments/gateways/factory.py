@@ -1,12 +1,15 @@
 """
 Payment Gateway Factory.
 
-Razorpay has been removed. SumUp will be integrated here in a future release.
-The only active gateway is the Mock gateway, which auto-confirms bookings
-so the booking can be saved to the database — payment is collected at the venue.
+Reads PAYMENT_MODE from settings:
+  - 'sumup'  → SumUpGateway  (live online payments)
+  - anything else → MockPaymentGateway  (pay at venue, auto-confirms)
+
+Set PAYMENT_MODE=sumup in .env when SumUp API keys are configured.
 """
 
 import logging
+from django.conf import settings
 from .base import BasePaymentGateway
 from .mock import MockPaymentGateway
 
@@ -15,15 +18,19 @@ logger = logging.getLogger(__name__)
 
 def get_payment_gateway() -> BasePaymentGateway:
     """
-    Get the configured payment gateway instance.
-
-    Currently only MockPaymentGateway is active.
-    SumUp will replace this when online payments go live.
+    Get the configured payment gateway based on PAYMENT_MODE setting.
 
     Returns:
-        MockPaymentGateway instance
+        SumUpGateway if PAYMENT_MODE=sumup, else MockPaymentGateway
     """
-    logger.info("Payment gateway: Mock (pay at venue — SumUp coming soon)")
+    mode = getattr(settings, "PAYMENT_MODE", "mock").lower()
+
+    if mode == "sumup":
+        from .sumup import SumUpGateway
+        logger.info("Payment gateway: SumUp (live online payments)")
+        return SumUpGateway()
+
+    logger.info("Payment gateway: Mock (pay at venue)")
     return MockPaymentGateway()
 
 
@@ -42,3 +49,10 @@ def get_gateway_instance() -> BasePaymentGateway:
     if _gateway_instance is None:
         _gateway_instance = get_payment_gateway()
     return _gateway_instance
+
+
+def reset_gateway_instance():
+    """Reset singleton — useful when switching gateways in tests."""
+    global _gateway_instance
+    _gateway_instance = None
+

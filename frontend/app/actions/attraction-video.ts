@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { fetchAPI, postAPI } from '@/app/lib/server-api';
@@ -7,7 +7,7 @@ const ENDPOINT = '/cms/attraction-video/';
 
 export async function getAttractionVideo() {
     try {
-        const res = await fetchAPI(ENDPOINT, { cache: 'no-store' });
+        const res = await fetchAPI(ENDPOINT, { next: { revalidate: 60 } });
         // The API returns 200 with null if no video, or 200 with object
         // If res is not ok, standard error handling
         if (!res || !res.ok) return null;

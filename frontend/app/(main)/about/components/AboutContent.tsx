@@ -25,8 +25,8 @@ interface AboutContentProps {
 }
 
 export default function AboutContent({ values, stats, timeline, faqs, reels, hero, story }: AboutContentProps) {
-    const heroTitle = hero?.title || "India's Biggest Inflatable Adventure Park";
-    const heroSubtitle = hero?.subtitle || "Experience the thrill of jumping, sliding, and bouncing in a safe and fun environment.";
+    const heroTitle = hero?.title || "Leicester's Premier Entertainment Venue";
+    const heroSubtitle = hero?.subtitle || "Roller skating, ten-pin bowling, and arcade games — all under one roof. Fun for all ages at Spin Pin Leicester.";
 
     return (
         <main className="min-h-screen bg-background text-white">
@@ -79,8 +79,8 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                             // Fallback Stats
                             [
                                 { value: "20,000+", label: "Sq Ft of Fun" },
-                                { value: "50,000+", label: "Happy Spin Pins" },
-                                { value: "11+", label: "Unique Zones" },
+                                { value: "50,000+", label: "Happy Visitors" },
+                                { value: "3", label: "Epic Attractions" },
                                 { value: "100%", label: "Safety Record" },
                             ].map((stat, index) => (
                                 <ScrollReveal key={index} animation="scale" delay={index * 0.1}>
@@ -120,7 +120,7 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                                     ) : (
                                         <>
                                             <p>Spin Pin Leicester was born from a simple idea: create a space where people of all ages can enjoy roller skating, bowling, and arcade games together. We're passionate about fun, family, and creating unforgettable experiences.</p>
-                                            <p>Spanning over 20,000 square feet, we've created India's largest inflatable adventure park with 11+ unique zones designed to thrill, challenge, and entertain.</p>
+                                            <p>Spanning over 20,000 square feet in the heart of Leicester City Centre, we've created the ultimate entertainment venue with roller skating, ten-pin bowling, arcade games, and more.</p>
                                             <p>Whether you're looking for a fun family outing, an adrenaline-pumping workout, or the perfect venue for your next celebration, Spin Pin is your destination for unforgettable memories.</p>
                                         </>
                                     )}
@@ -176,10 +176,10 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                             )) : (
                                 // Fallback Timeline
                                 [
-                                    { year: "2020", title: "The Dream Begins", desc: "Conceptualized India's biggest inflatable adventure park" },
-                                    { year: "2021", title: "Construction Starts", desc: "Began building our 20,000 sq ft facility with state-of-the-art equipment" },
-                                    { year: "2022", title: "Grand Opening", desc: "Opened doors to thousands of excited Spin Pins!" },
-                                    { year: "2024", title: "Expansion & Growth", desc: "Added new zones and became India's #1 inflatable park" },
+                                    { year: "2023", title: "The Vision", desc: "Conceptualised Leicester's premier entertainment venue — skating, bowling, arcade all under one roof" },
+                                    { year: "2024", title: "Building Begins", desc: "Fitted out our Navigation Street venue with state-of-the-art skating rink and bowling lanes" },
+                                    { year: "2024", title: "Grand Opening", desc: "Opened doors to thousands of excited visitors — Spin Pin Leicester was born!" },
+                                    { year: "2025", title: "Growing Strong", desc: "Expanded arcade zone, launched party packages, and became Leicester's favourite family venue" },
                                 ].map((item, index) => (
                                     <ScrollReveal key={index} animation={index % 2 === 0 ? "slideLeft" : "slideRight"}>
                                         <div className={`flex flex-col md:flex-row items-center ${index % 2 === 0 ? "md:flex-row-reverse" : ""}`}>
@@ -328,7 +328,7 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                             </span>
                         </h2>
                         <p className="text-xl text-white/70 mb-10">
-                            Experience the thrill of India's biggest inflatable park today!
+                            Come and experience Spin Pin Leicester — the ultimate entertainment destination for the whole family!
                         </p>
                         <div className="flex flex-col md:flex-row gap-4 justify-center">
                             <Link href="/book">

@@ -26,6 +26,7 @@ export function AdminSessionBookingForm() {
                 name: formData.get("name"),
                 email: formData.get("email"),
                 phone: formData.get("phone"),
+                activity: formData.get("activity") || "roller-skating",
             };
 
             const result = await createBooking(data);
@@ -129,9 +130,7 @@ export function AdminSessionBookingForm() {
                                 className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-white text-slate-900"
                             >
                                 <option value="">Select Time</option>
-                                <option value="10:00">10:00 AM</option>
-                                <option value="11:00">11:00 AM</option>
-                                <option value="12:00">12:00 PM</option>
+                                <option value="12:00">12:00 PM (Noon)</option>
                                 <option value="13:00">01:00 PM</option>
                                 <option value="14:00">02:00 PM</option>
                                 <option value="15:00">03:00 PM</option>
@@ -139,6 +138,7 @@ export function AdminSessionBookingForm() {
                                 <option value="17:00">05:00 PM</option>
                                 <option value="18:00">06:00 PM</option>
                                 <option value="19:00">07:00 PM</option>
+                                <option value="20:00">08:00 PM (Fri/Sat only)</option>
                             </select>
                         </div>
                     </div>
@@ -152,6 +152,19 @@ export function AdminSessionBookingForm() {
                             <option value="60">60 Minutes</option>
                             <option value="90">90 Minutes</option>
                             <option value="120">120 Minutes</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Activity Type</label>
+                        <select
+                            name="activity"
+                            required
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-slate-900"
+                        >
+                            <option value="roller-skating">🛼 Roller Skating</option>
+                            <option value="ten-pin-bowling">🎳 Ten Pin Bowling</option>
+                            <option value="combined">🎯 Skating + Bowling</option>
                         </select>
                     </div>
                 </div>

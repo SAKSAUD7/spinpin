@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { revalidatePath } from 'next/cache';
 import { fetchAPI, postAPI, putAPI, deleteAPI } from '@/app/lib/server-api';
@@ -7,7 +7,7 @@ const ENDPOINT = '/cms/activities/';
 
 export async function getActivities() {
     try {
-        const res = await fetchAPI(ENDPOINT, { cache: 'no-store' });
+        const res = await fetchAPI(ENDPOINT, { next: { revalidate: 60 } });
         if (!res || !res.ok) return [];
         return await res.json();
     } catch (error) {
@@ -18,7 +18,7 @@ export async function getActivities() {
 
 export async function getActivity(id: string) {
     try {
-        const res = await fetchAPI(`${ENDPOINT}${id}/`, { cache: 'no-store' });
+        const res = await fetchAPI(`${ENDPOINT}${id}/`, { next: { revalidate: 60 } });
         if (!res || !res.ok) return null;
         return await res.json();
     } catch (error) {

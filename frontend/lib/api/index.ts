@@ -1,7 +1,7 @@
-import { Stat, GalleryItem } from "./types";
+﻿import { Stat, GalleryItem } from "./types";
 import { unstable_noStore as noStore } from "next/cache";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 async function fetchFromAPI(endpoint: string) {
     try {

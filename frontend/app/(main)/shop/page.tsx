@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -26,7 +26,7 @@ export default function ShopPage() {
     const [cart, setCart] = useState<Record<number, number>>({});
 
     useEffect(() => {
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         fetch(`${API}/shop/products/`)
             .then(r => r.ok ? r.json() : [])
             .then(data => setProducts(Array.isArray(data) ? data.filter((p: Product) => p.active) : []))

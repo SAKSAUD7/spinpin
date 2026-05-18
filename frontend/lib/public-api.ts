@@ -1,11 +1,13 @@
 // Public API functions - fetch from Django backend
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+
+// Cache CMS content for 60 seconds (ISR) — dramatically improves page load speed.
+// Set to 0 for always-fresh data, increase for production (e.g. 300 = 5 mins).
+const FETCH_OPTS: RequestInit = { next: { revalidate: 60 } } as any;
 
 async function fetchFromAPI(endpoint: string) {
     try {
-        const response = await fetch(`${API_URL}${endpoint}`, {
-            cache: 'no-store', // Disable caching for SSR
-        });
+        const response = await fetch(`${API_URL}${endpoint}`, FETCH_OPTS);
 
         if (!response.ok) {
             console.error(`API Error: ${response.status} ${response.statusText}`);

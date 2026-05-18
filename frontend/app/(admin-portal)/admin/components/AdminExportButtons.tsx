@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Download } from "lucide-react";
@@ -42,7 +42,7 @@ export function AdminExcelExport({ endpoint, filename, label = "Export CSV" }: E
     const handleExport = async () => {
         setLoading(true);
         try {
-            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
             const res = await fetch(`${API}/${endpoint}`);
             if (!res.ok) throw new Error("Failed to fetch data");
             const data = await res.json();

@@ -159,11 +159,11 @@ export default function AdminBookings() {
     return (
         <div className="p-8 space-y-6">
             <PageHeader
-                title="Session Bookings"
-                description="View and manage all session bookings"
+                title="Skating & Bowling Bookings"
+                description="View and manage all roller skating and ten pin bowling bookings"
                 breadcrumbs={[
                     { label: "Dashboard", href: "/admin" },
-                    { label: "Session Bookings" },
+                    { label: "Bookings" },
                 ]}
                 actions={
                     <Button
@@ -171,7 +171,7 @@ export default function AdminBookings() {
                         icon={<Plus size={16} />}
                         onClick={() => router.push("/admin/session-bookings/new")}
                     >
-                        Create New Booking
+                        Add Booking
                     </Button>
                 }
             />
@@ -197,7 +197,7 @@ export default function AdminBookings() {
 
                     <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-slate-700">Activity</label>
-                        <select
+                            <select
                             value={activityFilter}
                             onChange={(e) => setActivityFilter(e.target.value)}
                             className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -205,7 +205,6 @@ export default function AdminBookings() {
                             <option value="all">All Activities</option>
                             <option value="skating">🛼 Roller Skating</option>
                             <option value="bowling">🎳 Ten Pin Bowling</option>
-                            <option value="arcade">🕹️ Arcade Games</option>
                         </select>
                     </div>
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * Global Search Component for Admin Portal
@@ -79,7 +79,7 @@ export function GlobalSearch() {
         setIsSearching(true);
         const timer = setTimeout(async () => {
             try {
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
                 const searchUrl = `${API_URL}/core/admin/search/?q=${encodeURIComponent(query)}`;
 
                 console.log('[GlobalSearch] Searching for:', query);

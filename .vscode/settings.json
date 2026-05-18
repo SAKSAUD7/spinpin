@@ -9,5 +9,9 @@
             "cx\\(([^)]*)\\)",
             "(?:'|\"|`)([^']*)(?:'|\"|`)"
         ]
-    ]
+    ],
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/backend"
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

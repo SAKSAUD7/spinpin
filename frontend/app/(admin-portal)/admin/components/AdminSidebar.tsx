@@ -69,6 +69,8 @@ const navigation: NavGroup[] = [
             { name: "All Bookings", href: "/admin/all-bookings", icon: Calendar, permission: { entity: 'bookings', action: 'read' } },
             { name: "Calendar", href: "/admin/calendar", icon: CalendarDays, permission: { entity: 'bookings', action: 'read' } },
             { name: "Session Bookings", href: "/admin/bookings", icon: Users, permission: { entity: 'bookings', action: 'read' } },
+            { name: "🛼 Skating Bookings", href: "/admin/skating-bookings", icon: Users, permission: { entity: 'bookings', action: 'read' } },
+            { name: "🎳 Bowling Bookings", href: "/admin/bowling-bookings", icon: Users, permission: { entity: 'bookings', action: 'read' } },
             { name: "Manual Session Booking", href: "/admin/bookings/new", icon: Users, permission: { entity: 'bookings', action: 'write' } },
             { name: "Session Booking History", href: "/admin/bookings/history", icon: Clock, permission: { entity: 'bookings', action: 'read' } },
             { name: "Party Bookings", href: "/admin/party-bookings", icon: PartyPopper, permission: { entity: 'parties', action: 'read' } },

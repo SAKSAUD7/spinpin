@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 // We'll need to create this action later or use a generic update one
@@ -75,7 +75,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
             {/* Customer Details */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5 text-neon-blue" />
+                    <User className="w-5 h-5 text-blue-600" />
                     Customer Details
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -88,7 +88,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 type="text"
                                 required
                                 defaultValue={initialData?.name}
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                                 placeholder="John Doe"
                             />
                         </div>
@@ -102,7 +102,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 type="email"
                                 required
                                 defaultValue={initialData?.email}
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                                 placeholder="john@example.com"
                             />
                         </div>
@@ -116,7 +116,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 type="tel"
                                 required
                                 defaultValue={initialData?.phone}
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                                 placeholder="+44 7700 900000"
                             />
                         </div>
@@ -127,7 +127,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
             {/* Booking Details */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-neon-blue" />
+                    <Calendar className="w-5 h-5 text-blue-600" />
                     Booking Schedule
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -140,7 +140,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 type="date"
                                 required
                                 defaultValue={initialData?.date}
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                             />
                         </div>
                     </div>
@@ -153,7 +153,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 type="time"
                                 required
                                 defaultValue={initialData?.time}
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900 bg-white"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900 bg-white"
                             />
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                                 name="duration"
                                 required
                                 defaultValue={initialData?.duration || 60}
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent appearance-none bg-white text-slate-900"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-slate-900"
                             >
                                 <option value="60">60 Minutes</option>
                                 <option value="90">90 Minutes</option>
@@ -179,7 +179,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
             {/* Guests */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-neon-blue" />
+                    <Users className="w-5 h-5 text-blue-600" />
                     Guest Count
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -191,7 +191,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                             required
                             min="0"
                             defaultValue={initialData?.adults || 0}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                         />
                     </div>
                     <div>
@@ -202,7 +202,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                             required
                             min="0"
                             defaultValue={initialData?.kids || 0}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                         />
                     </div>
                     <div>
@@ -213,7 +213,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                             required
                             min="0"
                             defaultValue={initialData?.spectators || 0}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                         />
                     </div>
                 </div>
@@ -222,7 +222,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
             {/* Payment & Status */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-neon-blue" />
+                    <CreditCard className="w-5 h-5 text-blue-600" />
                     Payment & Status
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -234,7 +234,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                             step="0.01"
                             required
                             defaultValue={initialData?.amount}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                         />
                         <p className="text-xs text-slate-500 mt-1">Manually overriding amount does not process refunds/charges.</p>
                     </div>
@@ -243,7 +243,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                         <select
                             name="bookingStatus"
                             defaultValue={initialData?.booking_status}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                         >
                             <option value="PENDING">Pending</option>
                             <option value="CONFIRMED">Confirmed</option>
@@ -257,7 +257,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
             {/* Additional Info */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Info className="w-5 h-5 text-neon-blue" />
+                    <Info className="w-5 h-5 text-blue-600" />
                     Additional Information
                 </h3>
                 <div>
@@ -266,7 +266,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                         name="notes"
                         rows={3}
                         defaultValue={initialData?.notes}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-neon-blue focus:border-transparent text-slate-900"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-900"
                         placeholder="Internal notes..."
                     ></textarea>
                 </div>
@@ -277,7 +277,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
                 <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2 bg-neon-blue text-slate-900 font-bold rounded-lg hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update Booking" : "Create Booking")}
                 </button>

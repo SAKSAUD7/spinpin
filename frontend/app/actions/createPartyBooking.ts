@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
 export async function createPartyBooking(formData: any) {
     try {
@@ -27,100 +27,87 @@ export async function createPartyBooking(formData: any) {
             dietaryRestrictions,
         } = formData;
 
-        // Party pricing calculation
-        const participantPrice = 1500;
-        const extraSpectatorPrice = 100;
+        // SpinPin UK Party Pricing (GBP decimals — NOT pence)
+        // These are fallback values; real values come from PartyBookingConfig in the DB
+        const participantPrice = 15.00;   // £15.00 per guest
+        const extraSpectatorPrice = 2.95; // £2.95 per extra spectator
+        const freeSpectators = 2;         // First 2 spectators free (from DB config)
+        const gstRate = 0;                // UK: VAT is inclusive, no separate GST
 
-        // First 10 spectators are free, charge for additional
-        const freeSpectators = 10;
-        const chargeableSpectators = Math.max(0, spectators - freeSpectators);
+        const chargeableSpectators = Math.max(0, (spectators || 0) - freeSpectators);
 
-        const participantCost = participants * participantPrice;
+        const participantCost = (participants || 0) * participantPrice;
         const spectatorCost = chargeableSpectators * extraSpectatorPrice;
         const subtotal = participantCost + spectatorCost;
-        const gst = subtotal * 0.18;
+        // No GST for UK — price is VAT-inclusive
+        const gst = subtotal * (gstRate / 100);
         let totalAmount = subtotal + gst;
         let discountAmount = 0;
         let voucherCode = null;
 
         // Apply voucher if provided
         if (formData.voucherCode) {
-            // Validate voucher server-side
-            const voucherRes = await fetch(`${API_URL}/shop/vouchers/validate/`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    code: formData.voucherCode.toUpperCase(),
-                    order_amount: subtotal
-                }),
-                cache: "no-store"
-            });
+            try {
+                const voucherRes = await fetch(`${API_URL}/shop/vouchers/validate/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        code: formData.voucherCode.toUpperCase(),
+                        order_amount: subtotal
+                    }),
+                    cache: "no-store"
+                });
 
-            if (voucherRes.ok) {
-                const voucherData = await voucherRes.json();
-                if (voucherData.valid) {
-                    discountAmount = voucherData.discount_amount;
-                    totalAmount = voucherData.final_amount;
-                    voucherCode = formData.voucherCode.toUpperCase();
-
-                    // Increment usage count
-                    const vouchersRes = await fetch(`${API_URL}/shop/vouchers/?code=${voucherCode}`, {
-                        cache: "no-store"
-                    });
-                    if (vouchersRes.ok) {
-                        const voucherList = await vouchersRes.json();
-                        const voucher = voucherList[0];
-                        if (voucher) {
-                            await fetch(`${API_URL}/shop/vouchers/${voucher.id}/`, {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ used_count: voucher.used_count + 1 })
-                            });
-                        }
+                if (voucherRes.ok) {
+                    const voucherData = await voucherRes.json();
+                    if (voucherData.valid) {
+                        discountAmount = voucherData.discount_amount;
+                        totalAmount = voucherData.final_amount;
+                        voucherCode = formData.voucherCode.toUpperCase();
                     }
                 }
+            } catch {
+                // Voucher validation failed silently — continue without discount
             }
         }
 
-        // Convert time to 24-hour format for backend (e.g., "4:00 PM" -> "16:00:00")
-        // Convert time to 24-hour format for backend (e.g., "4:00 PM" -> "16:00:00" or "14:00" -> "14:00:00")
+        // Convert time to 24-hour HH:MM:SS format for backend
         const convertTo24Hour = (timeStr: string) => {
-            if (!timeStr) return "00:00:00";
+            if (!timeStr) return "12:00:00";
 
-            // If already in HH:MM or HH:MM:SS format (24-hour)
+            // Already HH:MM or HH:MM:SS (24-hour)
             if (!timeStr.includes('AM') && !timeStr.includes('PM')) {
                 const parts = timeStr.split(':');
                 if (parts.length === 2) return `${timeStr}:00`;
                 if (parts.length === 3) return timeStr;
-                return timeStr;
+                return `${timeStr}:00`;
             }
 
-            const [time, modifier] = timeStr.split(' ');
-            let [hours, minutes] = time.split(':');
+            const [timePart, modifier] = timeStr.split(' ');
+            let [hours, minutes] = timePart.split(':');
             if (hours === '12') {
                 hours = modifier === 'PM' ? '12' : '00';
             } else if (modifier === 'PM') {
-                hours = (parseInt(hours, 10) + 12).toString();
+                hours = (parseInt(hours, 10) + 12).toString().padStart(2, '0');
             }
             return `${hours}:${minutes}:00`;
         };
 
         const formattedTime = convertTo24Hour(time);
 
-        // Create party booking via Django API using dedicated party-bookings endpoint
         const partyBookingPayload = {
             name,
             email,
             phone,
             date,
             time: formattedTime,
-            duration: 120, // Party is 2 hours
-            adults: 0,
-            kids: participants,
-            spectators,
-            birthday_child_name: childName,
-            birthday_child_age: childAge,
-            party_package: partyPackage || null,
+            duration: 120, // 2-hour party
+            adults: spectators || 0,
+            kids: participants || 0,
+            spectators: spectators || 0,
+            birthday_child_name: childName || null,
+            birthday_child_age: childAge || null,
+            party_package: partyPackage || "STANDARD",
             theme: theme || null,
             decorations: decorations || false,
             catering: catering || false,
@@ -131,7 +118,7 @@ export async function createPartyBooking(formData: any) {
             dietary_restrictions: dietaryRestrictions || null,
             subtotal,
             amount: totalAmount,
-            discount_amount: 0,
+            discount_amount: discountAmount,
             booking_status: "PENDING",
             payment_status: "PENDING",
             waiver_status: "PENDING",
@@ -144,30 +131,25 @@ export async function createPartyBooking(formData: any) {
         });
 
         if (!bookingRes.ok) {
-            const error = await bookingRes.json();
+            const error = await bookingRes.json().catch(() => ({}));
             return { success: false, error: error.detail || "Failed to create party booking" };
         }
 
         const booking = await bookingRes.json();
 
-        console.log("Party booking created:", booking);
-
-        // TODO: Send confirmation email with party details and payment link
-        // TODO: Generate online party invitations
-
         revalidatePath("/admin");
         revalidatePath("/admin/bookings");
+        revalidatePath("/admin/party-bookings");
 
         return {
             success: true,
-            bookingId: booking.uuid || booking.id,
-            booking: booking, // Include full booking object with id, uuid, etc.
+            bookingId: booking.uuid || String(booking.id),
+            booking,
             amount: totalAmount,
-            depositAmount: totalAmount * 0.5 // 50% deposit
+            depositAmount: totalAmount * 0.2 // 20% deposit (from DB config)
         };
     } catch (error) {
         console.error("Failed to create party booking:", error);
-        return { success: false, error: "Failed to create party booking" };
+        return { success: false, error: "Failed to create party booking. Please try again." };
     }
 }
-
