@@ -1,4 +1,4 @@
-import { getSocialLinks } from "@/app/actions/cms";
+import { getSocialLinks } from "@/app/actions/social-links";
 import { getAdminSession } from "../../../lib/admin-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";

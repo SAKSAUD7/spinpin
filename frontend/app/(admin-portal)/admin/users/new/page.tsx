@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createAdminUser, getRoles } from "@/app/actions/users";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -25,7 +25,9 @@ export default function NewUserPage() {
         }
     }
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const formData = new FormData(formRef.current!);
         setLoading(true);
         try {
             const data = {
@@ -69,7 +71,7 @@ export default function NewUserPage() {
                 <p className="text-slate-500 mt-1">Add a new admin user to the system</p>
             </div>
 
-            <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
                 {/* Name */}
                 <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">

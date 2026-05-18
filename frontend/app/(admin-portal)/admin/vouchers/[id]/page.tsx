@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { getVoucher, updateVoucher } from "@/app/actions/vouchers";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
@@ -27,7 +27,9 @@ export default function EditVoucherPage() {
         }
     }
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const formData = new FormData(formRef.current!);
         setLoading(true);
         try {
             const data: any = {
@@ -74,7 +76,7 @@ export default function EditVoucherPage() {
                 <p className="text-slate-500 mt-1">Update voucher details and settings</p>
             </div>
 
-            <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
                 {/* Code */}
                 <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">

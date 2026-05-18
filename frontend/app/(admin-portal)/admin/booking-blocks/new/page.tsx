@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useRef } from "react";
 import { createBookingBlock } from "@/app/actions/admin";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,8 +10,11 @@ export default function NewBookingBlockPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const formRef = useRef<HTMLFormElement>(null);
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const formData = new FormData(formRef.current!);
         setLoading(true);
         setError("");
 
@@ -58,7 +61,7 @@ export default function NewBookingBlockPage() {
                 </div>
             </div>
 
-            <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
                 {error && (
                     <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />

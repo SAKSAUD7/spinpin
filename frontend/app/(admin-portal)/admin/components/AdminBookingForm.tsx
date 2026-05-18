@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useRef } from "react";
 // We'll need to create this action later or use a generic update one
 import { updateBooking } from "@/app/actions/admin";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,11 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const formRef = useRef<HTMLFormElement>(null);
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const formData = new FormData(formRef.current!);
         setLoading(true);
         setError("");
 
@@ -65,7 +68,7 @@ export function AdminBookingForm({ initialData, isEditing = false }: AdminBookin
     }
 
     return (
-        <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
+        <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
             {error && (
                 <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm">
                     {error}

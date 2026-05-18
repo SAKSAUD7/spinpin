@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useRef } from "react";
 import { createBooking } from "@/app/actions/createBooking";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,7 +11,9 @@ export default function NewSessionBookingPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const formData = new FormData(formRef.current!);
         setLoading(true);
         try {
             const data = {
@@ -61,7 +63,7 @@ export default function NewSessionBookingPage() {
                 <p className="text-slate-500 mt-1">Create a skating or bowling booking for walk-in or phone customers</p>
             </div>
 
-            <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
             {/* Activity Selection */}
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createBooking } from "@/app/actions/createBooking";
 import { useRouter } from "next/navigation";
 import { Calendar, Clock, Users, User, Mail, Phone, Info } from "lucide-react";
@@ -9,10 +9,14 @@ export function AdminSessionBookingForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const formRef = useRef<HTMLFormElement>(null);
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
         setLoading(true);
         setError("");
+
+        const formData = new FormData(formRef.current!);
 
         try {
             // Convert FormData to object for the action
@@ -45,7 +49,7 @@ export function AdminSessionBookingForm() {
     }
 
     return (
-        <form action={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
+        <form ref={formRef} onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-8">
             {error && (
                 <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm">
                     {error}
