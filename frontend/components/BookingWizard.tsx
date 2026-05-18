@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 
 
 import { useState, useEffect } from "react";
@@ -1900,25 +1902,29 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                 return (
 
-                                                    <div key={id} className="flex justify-between text-sm text-yellow-300/90">
+                                                    <React.Fragment key={id}>
 
-                                                        <span>{gao.emoji} {gao.label} × {qty} {gao.unit}{qty > 1 ? "s" : ""}</span>
+                                                        <div className="flex justify-between text-sm text-yellow-300/90">
 
-                                                        <span className="font-bold">£{(gao.price * qty).toFixed(2)}</span>
+                                                            <span>{gao.emoji} {gao.label} &times; {qty} {gao.unit}{qty > 1 ? "s" : ""}</span>
 
-                                                    </div>
+                                                            <span className="font-bold">£{(gao.price * qty).toFixed(2)}</span>
 
-                                                    {/* Show plates for parking */}
-                                                    {id === 'parking' && parkingPlates.filter(Boolean).length > 0 && (
-                                                        <div className="mt-1 ml-5 space-y-0.5">
-                                                            {parkingPlates.filter(Boolean).map((plate, i) => (
-                                                                <div key={i} className="text-xs text-yellow-200/70 flex items-center gap-1.5">
-                                                                    <span className="bg-yellow-400 text-black text-[9px] font-black px-1 rounded">{i+1}</span>
-                                                                    <span className="font-mono">{plate}</span>
-                                                                </div>
-                                                            ))}
                                                         </div>
-                                                    )}
+
+                                                        {/* Show plates for parking */}
+                                                        {id === 'parking' && parkingPlates.filter(Boolean).length > 0 && (
+                                                            <div className="mt-1 ml-5 space-y-0.5">
+                                                                {parkingPlates.filter(Boolean).map((plate, i) => (
+                                                                    <div key={i} className="text-xs text-yellow-200/70 flex items-center gap-1.5">
+                                                                        <span className="bg-yellow-400 text-black text-[9px] font-black px-1 rounded">{i+1}</span>
+                                                                        <span className="font-mono">{plate}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+
+                                                    </React.Fragment>
 
                                                 );
 
