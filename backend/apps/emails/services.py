@@ -238,7 +238,7 @@ class EmailService:
             email_type='BOOKING_CONFIRMATION',
             recipient_email=booking.email,
             recipient_name=booking.name,
-            subject=f'Booking Confirmation - Ninja Inflatable Park',
+            subject=f'Your Spin Pin Booking Confirmation',
             template_name='emails/booking/session_confirmation.html',
             context=context,
             booking=booking
@@ -279,7 +279,7 @@ class EmailService:
             email_type='PARTY_BOOKING_CONFIRMATION',
             recipient_email=party_booking.email,
             recipient_name=party_booking.name,
-            subject=f'Party Booking Confirmation - Ninja Inflatable Park',
+            subject=f'Your Spin Pin Party Booking Confirmation',
             template_name='emails/booking/party_confirmation.html',
             context=context,
             party_booking=party_booking

@@ -96,7 +96,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         # Allow public access ONLY for create and ticket retrieval
         # List and retrieve require staff authentication to protect customer data
-        if self.action in ['create', 'ticket']:
+        if self.action in ['create', 'ticket', 'check_duplicate', 'slot_availability']:
             return [permissions.AllowAny()]
         return [IsStaffUser()]  # Allow employees to access bookings
     
@@ -174,6 +174,90 @@ class BookingViewSet(viewsets.ModelViewSet):
         ).exists()
         
         return Response({'exists': exists})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def slot_availability(self, request):
+        """
+        Public endpoint returning per-slot occupancy for a given date.
+
+        Query params:
+          ?date=2026-05-20  (required)
+          ?activity=ten-pin-bowling | roller-skating (optional filter)
+
+        Response per slot:
+          {
+            "14:00": {
+              "skating_headcount": 12,
+              "bowling_lanes_used": 2,
+              "bowling_players": 8,
+              "total_bookings": 3
+            },
+            ...
+          }
+        Capacity constants (matches frontend BOWLING_CONFIG):
+          BOWLING: 6 lanes, 5 players/lane => 30 max players
+          SKATING: 60 max skaters per slot (configurable)
+        """
+        import math
+        date = request.query_params.get('date')
+        if not date:
+            return Response({'error': 'date parameter required'}, status=400)
+
+        BOWLING_TOTAL_LANES = 6
+        BOWLING_MAX_PER_LANE = 5
+        SKATING_MAX_PER_SLOT = 60
+
+        # Only count active bookings (exclude cancelled)
+        bookings = Booking.objects.filter(
+            date=date
+        ).exclude(
+            booking_status='CANCELLED'
+        ).values('time', 'activity', 'adults', 'kids', 'spectators')
+
+        # Build slot map
+        slot_map = {}
+        for b in bookings:
+            slot = str(b['time'])[:5]  # "14:00"
+            if slot not in slot_map:
+                slot_map[slot] = {
+                    'skating_headcount': 0,
+                    'bowling_players': 0,
+                    'bowling_lanes_used': 0,
+                    'total_bookings': 0,
+                }
+            players = (b['adults'] or 0) + (b['kids'] or 0)
+            slot_map[slot]['total_bookings'] += 1
+
+            activity = b.get('activity') or ''
+            if 'bowling' in activity:
+                slot_map[slot]['bowling_players'] += players
+                lanes = math.ceil(players / BOWLING_MAX_PER_LANE) if players > 0 else 0
+                slot_map[slot]['bowling_lanes_used'] = min(
+                    slot_map[slot]['bowling_lanes_used'] + lanes,
+                    BOWLING_TOTAL_LANES
+                )
+            else:
+                # roller-skating, arcade, or unspecified — count as skaters
+                slot_map[slot]['skating_headcount'] += players
+
+        # Annotate with status flags
+        result = {}
+        for slot, data in slot_map.items():
+            skating_pct = data['skating_headcount'] / SKATING_MAX_PER_SLOT
+            bowling_pct = data['bowling_lanes_used'] / BOWLING_TOTAL_LANES
+
+            skating_status = 'full' if skating_pct >= 1 else ('busy' if skating_pct >= 0.7 else 'available')
+            bowling_status = 'full' if bowling_pct >= 1 else ('busy' if bowling_pct >= 0.7 else 'available')
+
+            result[slot] = {
+                **data,
+                'skating_max': SKATING_MAX_PER_SLOT,
+                'bowling_max_lanes': BOWLING_TOTAL_LANES,
+                'skating_status': skating_status,
+                'bowling_status': bowling_status,
+            }
+
+        return Response(result)
 
     @action(detail=False, methods=['get'], url_path='ticket/(?P<uuid>[^/.]+)')
     def ticket(self, request, uuid=None):

@@ -265,6 +265,10 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
     const [bookingBlocks, setBookingBlocks] = useState<BookingBlock[]>([]);
 
+    // Slot availability: { "14:00": { skating_status, bowling_status, ... } }
+    const [slotAvailability, setSlotAvailability] = useState<Record<string, any>>({});
+    const [availabilityLoading, setAvailabilityLoading] = useState(false);
+
 
 
     const methods = useForm<BookingFormData>({
@@ -384,6 +388,34 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
         }
 
     }, [formData.date, bookingBlocks]);
+
+    // Fetch real-time slot occupancy whenever date changes
+    useEffect(() => {
+        if (!formData.date) { setSlotAvailability({}); return; }
+        setAvailabilityLoading(true);
+        fetch(`/api/bookings/slot-availability?date=${formData.date}`, { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : {})
+            .then(data => setSlotAvailability(data || {}))
+            .catch(() => setSlotAvailability({}))
+            .finally(() => setAvailabilityLoading(false));
+    }, [formData.date]);
+
+    // Helper: get slot status for the currently selected activity
+    const getSlotStatus = (slot: string): 'available' | 'busy' | 'full' => {
+        const data = slotAvailability[slot];
+        if (!data) return 'available';
+        if (selectedActivity === 'ten-pin-bowling') return data.bowling_status || 'available';
+        return data.skating_status || 'available';
+    };
+
+    // Helper: next available slot after a given time
+    const getNextAvailableSlot = (afterSlot: string): string | null => {
+        const idx = availableSlots.indexOf(afterSlot);
+        for (let i = idx + 1; i < availableSlots.length; i++) {
+            if (getSlotStatus(availableSlots[i]) !== 'full') return availableSlots[i];
+        }
+        return null;
+    };
 
 
 
@@ -1161,37 +1193,68 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                 </label>
 
-                                                {/* AM slots */}
+                                                {/* Availability loading indicator */}
+                                                {availabilityLoading && (
+                                                    <p className="text-white/30 text-xs mb-2 animate-pulse">⏳ Checking availability...</p>
+                                                )}
+
+                                                {/* AM / PM slot groups */}
                                                 {(() => {
                                                     const amSlots = availableSlots.filter(s => parseInt(s.split(':')[0]) < 17);
                                                     const pmSlots = availableSlots.filter(s => parseInt(s.split(':')[0]) >= 17);
+
+                                                    const renderSlot = (slot: string, accentClass: 'primary' | 'secondary') => {
+                                                        const [h, m] = slot.split(':').map(Number);
+                                                        const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                                                        const label = `${h12}:${String(m).padStart(2, '0')}`;
+                                                        const period = h >= 12 ? 'PM' : 'AM';
+                                                        const isSelected = formData.time === slot;
+                                                        const slotStatus = getSlotStatus(slot);
+                                                        const isFull = slotStatus === 'full';
+                                                        const isBusy = slotStatus === 'busy';
+
+                                                        const statusDot = isFull
+                                                            ? <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" title="Full" />
+                                                            : isBusy
+                                                                ? <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-yellow-400" title="Almost full" />
+                                                                : <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-green-400" title="Available" />;
+
+                                                        const selectedBorder = accentClass === 'primary'
+                                                            ? 'border-primary bg-primary/20 shadow-[0_0_20px_rgba(200,255,0,0.3)] scale-105'
+                                                            : 'border-secondary bg-secondary/20 shadow-[0_0_20px_rgba(128,0,255,0.3)] scale-105';
+
+                                                        const defaultBorder = isFull
+                                                            ? 'border-red-500/30 bg-red-900/10 opacity-50 cursor-not-allowed'
+                                                            : accentClass === 'primary'
+                                                                ? 'border-white/10 bg-white/5 hover:border-primary/50 hover:bg-primary/10 hover:scale-102'
+                                                                : 'border-white/10 bg-white/5 hover:border-secondary/50 hover:bg-secondary/10 hover:scale-102';
+
+                                                        return (
+                                                            <button
+                                                                type="button"
+                                                                key={slot}
+                                                                disabled={isFull}
+                                                                onClick={() => setValue('time', slot, { shouldValidate: true })}
+                                                                className={`relative group flex flex-col items-center justify-center py-3 px-2 rounded-2xl border-2 transition-all duration-200 font-bold ${isSelected ? selectedBorder : defaultBorder}`}
+                                                            >
+                                                                {statusDot}
+                                                                {isSelected && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-black" /></span>}
+                                                                <Clock className={`w-3.5 h-3.5 mb-1 ${isSelected ? `text-${accentClass}` : 'text-white/40'}`} />
+                                                                <span className={`text-base leading-none ${isFull ? 'line-through text-white/30' : isSelected ? `text-${accentClass}` : 'text-white'}`}>{label}</span>
+                                                                <span className={`text-[10px] font-normal mt-0.5 ${isSelected ? `text-${accentClass}/80` : isFull ? 'text-red-400' : 'text-white/30'}`}>
+                                                                    {isFull ? 'Full' : period}
+                                                                </span>
+                                                            </button>
+                                                        );
+                                                    };
+
                                                     return (
                                                         <div className="space-y-4">
                                                             {amSlots.length > 0 && (
                                                                 <div>
                                                                     <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2 pl-1">Afternoon</p>
                                                                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                                                        {amSlots.map(slot => {
-                                                                            const [h, m] = slot.split(':').map(Number);
-                                                                            const isPM = h >= 12;
-                                                                            const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-                                                                            const label = `${h12}:${String(m).padStart(2,'0')}`;const period = isPM ? 'PM' : 'AM';
-                                                                            const isSelected = formData.time === slot;
-                                                                            return (
-                                                                                <button type="button" key={slot}
-                                                                                    onClick={() => setValue('time', slot, { shouldValidate: true })}
-                                                                                    className={`relative group flex flex-col items-center justify-center py-3 px-2 rounded-2xl border-2 transition-all duration-200 font-bold ${
-                                                                                        isSelected
-                                                                                            ? 'border-primary bg-primary/20 shadow-[0_0_20px_rgba(200,255,0,0.3)] scale-105'
-                                                                                            : 'border-white/10 bg-white/5 hover:border-primary/50 hover:bg-primary/10 hover:scale-102'
-                                                                                    }`}>
-                                                                                    {isSelected && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-black" /></span>}
-                                                                                    <Clock className={`w-3.5 h-3.5 mb-1 ${isSelected ? 'text-primary' : 'text-white/40'}`} />
-                                                                                    <span className={`text-base leading-none ${isSelected ? 'text-primary' : 'text-white'}`}>{label}</span>
-                                                                                    <span className={`text-[10px] font-normal mt-0.5 ${isSelected ? 'text-primary/80' : 'text-white/30'}`}>{period}</span>
-                                                                                </button>
-                                                                            );
-                                                                        })}
+                                                                        {amSlots.map(slot => renderSlot(slot, 'primary'))}
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -1199,29 +1262,30 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                                                 <div>
                                                                     <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2 pl-1">Evening</p>
                                                                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                                                        {pmSlots.map(slot => {
-                                                                            const [h, m] = slot.split(':').map(Number);
-                                                                            const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-                                                                            const label = `${h12}:${String(m).padStart(2,'0')}`;const period = 'PM';
-                                                                            const isSelected = formData.time === slot;
-                                                                            return (
-                                                                                <button type="button" key={slot}
-                                                                                    onClick={() => setValue('time', slot, { shouldValidate: true })}
-                                                                                    className={`relative group flex flex-col items-center justify-center py-3 px-2 rounded-2xl border-2 transition-all duration-200 font-bold ${
-                                                                                        isSelected
-                                                                                            ? 'border-secondary bg-secondary/20 shadow-[0_0_20px_rgba(128,0,255,0.3)] scale-105'
-                                                                                            : 'border-white/10 bg-white/5 hover:border-secondary/50 hover:bg-secondary/10 hover:scale-102'
-                                                                                    }`}>
-                                                                                    {isSelected && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-secondary rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></span>}
-                                                                                    <Clock className={`w-3.5 h-3.5 mb-1 ${isSelected ? 'text-secondary' : 'text-white/40'}`} />
-                                                                                    <span className={`text-base leading-none ${isSelected ? 'text-secondary' : 'text-white'}`}>{label}</span>
-                                                                                    <span className={`text-[10px] font-normal mt-0.5 ${isSelected ? 'text-secondary/80' : 'text-white/30'}`}>{period}</span>
-                                                                                </button>
-                                                                            );
-                                                                        })}
+                                                                        {pmSlots.map(slot => renderSlot(slot, 'secondary'))}
                                                                     </div>
                                                                 </div>
                                                             )}
+                                                            {/* Auto-suggest when selected slot is full */}
+                                                            {formData.time && getSlotStatus(formData.time) === 'full' && (() => {
+                                                                const next = getNextAvailableSlot(formData.time);
+                                                                return next ? (
+                                                                    <div className="mt-2 p-3 bg-yellow-400/10 border border-yellow-400/30 rounded-xl flex items-center justify-between gap-3">
+                                                                        <span className="text-yellow-300 text-sm">⚠️ That slot is full — next available: <strong>{next}</strong></span>
+                                                                        <button type="button" onClick={() => setValue('time', next, { shouldValidate: true })} className="text-xs bg-yellow-400 text-black font-black px-3 py-1 rounded-full hover:bg-yellow-300 transition-colors">
+                                                                            Select {next}
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-red-400 text-sm mt-2">❌ All slots on this day are full. Please choose a different date.</p>
+                                                                );
+                                                            })()}
+                                                            {/* Legend */}
+                                                            <div className="flex items-center gap-4 pt-1">
+                                                                <span className="flex items-center gap-1 text-xs text-white/30"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" /> Available</span>
+                                                                <span className="flex items-center gap-1 text-xs text-white/30"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> Almost Full</span>
+                                                                <span className="flex items-center gap-1 text-xs text-white/30"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Full</span>
+                                                            </div>
                                                         </div>
                                                     );
                                                 })()}
