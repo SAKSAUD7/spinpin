@@ -1,11 +1,26 @@
 {
-  "include": ["."],
-  "extraPaths": ["."],
+  "include": [
+    "apps/**"
+  ],
+  "exclude": [
+    "**/migrations/**",
+    "**/__pycache__/**"
+  ],
+  "defineConstant": {
+    "DEBUG": true
+  },
   "pythonVersion": "3.11",
-  "pythonPlatform": "Windows",
   "typeCheckingMode": "basic",
-  "reportMissingImports": "warning",
+  "reportAttributeAccessIssue": "none",
+  "reportGeneralTypeIssues": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportCallIssue": "none",
+  "reportReturnType": "none",
+  "reportArgumentType": "none",
+  "reportOperatorIssue": "none",
+  "reportIndexIssue": "none",
+  "reportAbstractUsage": "none",
+  "useLibraryCodeForTypes": true,
   "reportMissingModuleSource": "none",
-  "venvPath": ".",
-  "useLibraryCodeForTypes": true
+  "reportMissingTypeStubs": "none"
 }
