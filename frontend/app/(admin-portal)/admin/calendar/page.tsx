@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
@@ -61,6 +61,9 @@ export default function CalendarPage() {
         totalRevenue: 0,
         totalParticipants: 0
     });
+    const [selectedDate, setSelectedDate] = useState<string>(''); // for capacity grid
+    const [slotCapacity, setSlotCapacity] = useState<Record<string, any>>({});
+    const [capacityLoading, setCapacityLoading] = useState(false);
 
     const fetchBookings = useCallback(async (date: Date) => {
         setLoading(true);
@@ -100,6 +103,17 @@ export default function CalendarPage() {
     useEffect(() => {
         fetchBookings(currentDate);
     }, [currentDate, fetchBookings]);
+
+    // Fetch slot capacity when a day is selected
+    useEffect(() => {
+        if (!selectedDate) return;
+        setCapacityLoading(true);
+        fetch(`/api/bookings/slot-availability?date=${selectedDate}`, { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : {})
+            .then(data => setSlotCapacity(data || {}))
+            .catch(() => setSlotCapacity({}))
+            .finally(() => setCapacityLoading(false));
+    }, [selectedDate]);
 
     const filteredEvents = useMemo(() => {
         let filtered = events;
@@ -142,6 +156,12 @@ export default function CalendarPage() {
     const handleSelectEvent = (event: CalendarEvent) => {
         setSelectedEvent(event);
         setShowModal(true);
+    };
+
+    // When user clicks a day on the calendar, load that day's capacity grid
+    const handleSelectSlot = ({ start }: { start: Date }) => {
+        const dateStr = format(start, 'yyyy-MM-dd');
+        setSelectedDate(dateStr);
     };
 
     const eventStyleGetter = (event: CalendarEvent) => {
@@ -205,6 +225,87 @@ export default function CalendarPage() {
                         <p className="text-2xl font-bold text-orange-900">{summary.totalParticipants}</p>
                     </div>
                 </div>
+
+                {/* Day Capacity Grid — appears when a calendar day is clicked */}
+                {selectedDate && (
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                                📊 Slot Capacity —&nbsp;
+                                <span className="text-blue-600">{selectedDate}</span>
+                            </h2>
+                            <button onClick={() => setSelectedDate('')} className="text-xs text-slate-400 hover:text-slate-600 border border-slate-200 rounded px-2 py-1">✕ Close</button>
+                        </div>
+                        {capacityLoading ? (
+                            <p className="text-slate-400 text-sm animate-pulse">Loading capacity data…</p>
+                        ) : Object.keys(slotCapacity).length === 0 ? (
+                            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <span className="text-2xl">✅</span>
+                                <p className="text-green-800 text-sm font-medium">No bookings on this day yet — all slots are fully open.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 text-left">
+                                            <th className="py-2 pr-6 text-slate-500 font-semibold w-16">Slot</th>
+                                            <th className="py-2 pr-8 text-pink-600 font-semibold">🛼 Skating</th>
+                                            <th className="py-2 text-blue-600 font-semibold">🎳 Bowling Lanes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {['12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00'].map(slot => {
+                                            const d = slotCapacity[slot];
+                                            const skaters = d?.skating_headcount ?? 0;
+                                            const skMax = d?.skating_max ?? 60;
+                                            const lanes = d?.bowling_lanes_used ?? 0;
+                                            const lMax = d?.bowling_max_lanes ?? 6;
+                                            const skPct = Math.min(skaters / skMax, 1);
+                                            const bPct = Math.min(lanes / lMax, 1);
+                                            const skSt = d?.skating_status ?? 'available';
+                                            const bSt = d?.bowling_status ?? 'available';
+                                            const skColor = skSt === 'full' ? 'bg-red-500' : skSt === 'busy' ? 'bg-yellow-400' : 'bg-emerald-400';
+                                            const bColor = bSt === 'full' ? 'bg-red-500' : bSt === 'busy' ? 'bg-yellow-400' : 'bg-blue-400';
+                                            const skLabel = skSt === 'full' ? 'text-red-600' : skSt === 'busy' ? 'text-yellow-600' : 'text-slate-400';
+                                            const bLabel = bSt === 'full' ? 'text-red-600' : bSt === 'busy' ? 'text-yellow-600' : 'text-slate-400';
+                                            const hasActivity = skaters > 0 || lanes > 0;
+                                            return (
+                                                <tr key={slot} className={`hover:bg-slate-50 ${!hasActivity ? 'opacity-40' : ''}`}>
+                                                    <td className="py-2.5 pr-6 font-mono font-bold text-slate-700 text-sm">{slot}</td>
+                                                    <td className="py-2.5 pr-8">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-28 bg-slate-100 rounded-full h-2 flex-shrink-0">
+                                                                <div className={`h-2 rounded-full transition-all ${skColor}`} style={{ width: `${skPct * 100}%` }} />
+                                                            </div>
+                                                            <span className={`text-xs font-semibold ${skLabel}`}>{skaters}/{skMax}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex gap-0.5">
+                                                                {Array.from({ length: lMax }).map((_, i) => (
+                                                                    <div key={i} title={`Lane ${i + 1}${i < lanes ? ' — booked' : ' — free'}`}
+                                                                        className={`w-4 h-5 rounded-sm transition-colors ${i < lanes ? bColor : 'bg-slate-100'}`} />
+                                                                ))}
+                                                            </div>
+                                                            <span className={`text-xs font-semibold ${bLabel}`}>{lanes}/{lMax} lanes</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                                <p className="text-xs text-slate-400 mt-3 flex items-center gap-3">
+                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-400 rounded-sm inline-block" /> Available</span>
+                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-yellow-400 rounded-sm inline-block" /> Almost Full (≥70%)</span>
+                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-red-500 rounded-sm inline-block" /> Full</span>
+                                    <span className="ml-2 italic">Click any day on the calendar to load its capacity grid</span>
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Toolbar */}
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center gap-4">
@@ -328,6 +429,8 @@ export default function CalendarPage() {
                         date={currentDate}
                         onNavigate={handleNavigate}
                         onSelectEvent={handleSelectEvent}
+                        onSelectSlot={handleSelectSlot}
+                        selectable
                         eventPropGetter={eventStyleGetter}
                         components={{
                             event: BookingEvent,
