@@ -147,7 +147,7 @@ const GLOBAL_ADD_ONS_BASE: GlobalAddOn[] = [
 
         label: "Parking",
 
-        description: "Secure car park, close to entrance. Pay at reception.",
+        description: "Secure car park, close to entrance. Book your space now.",
 
         emoji: "\u{1F697}",
 
@@ -157,27 +157,7 @@ const GLOBAL_ADD_ONS_BASE: GlobalAddOn[] = [
 
         maxQty: 5,
 
-        info: "Register at reception on arrival",
-
-    },
-
-    {
-
-        id: "locker",
-
-        label: "Locker Hire",
-
-        description: "Secure your belongings. Various sizes available.",
-
-        emoji: "\u{1F512}",
-
-        price: 2.00,
-
-        unit: "locker",
-
-        maxQty: 10,
-
-        info: "Available at the venue",
+        info: "Include car registration plate below",
 
     },
 
@@ -278,6 +258,8 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
     const [selectedAddOns, setSelectedAddOns] = useState<Record<string, number>>({});
 
     const [selectedGlobalAddOns, setSelectedGlobalAddOns] = useState<Record<string, number>>({});
+
+    const [parkingPlates, setParkingPlates] = useState<string[]>([]);
 
     const [bookingBlocks, setBookingBlocks] = useState<BookingBlock[]>([]);
 
@@ -643,7 +625,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             }
 
-            const result = await onSubmit({ ...data, activity: selectedActivity, addOns: selectedAddOns, globalAddOns: selectedGlobalAddOns });
+            const result = await onSubmit({ ...data, activity: selectedActivity, addOns: selectedAddOns, globalAddOns: selectedGlobalAddOns, parkingPlates });
 
             if (result.success && result.bookingId) {
 
@@ -1177,29 +1159,70 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                 </label>
 
-                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-
-                                                    {availableSlots.map(slot => (
-
-                                                        <button type="button" key={slot}
-
-                                                            onClick={() => setValue("time", slot, { shouldValidate: true })}
-
-                                                            className={`py-3 rounded-xl text-sm font-bold transition-all ${formData.time === slot
-
-                                                                ? "bg-primary text-black shadow-lg scale-105"
-
-                                                                : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:border-white/30"
-
-                                                                }`}>
-
-                                                            {slot}
-
-                                                        </button>
-
-                                                    ))}
-
-                                                </div>
+                                                {/* AM slots */}
+                                                {(() => {
+                                                    const amSlots = availableSlots.filter(s => parseInt(s.split(':')[0]) < 17);
+                                                    const pmSlots = availableSlots.filter(s => parseInt(s.split(':')[0]) >= 17);
+                                                    return (
+                                                        <div className="space-y-4">
+                                                            {amSlots.length > 0 && (
+                                                                <div>
+                                                                    <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2 pl-1">Afternoon</p>
+                                                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                                                        {amSlots.map(slot => {
+                                                                            const [h, m] = slot.split(':').map(Number);
+                                                                            const isPM = h >= 12;
+                                                                            const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                                                                            const label = `${h12}:${String(m).padStart(2,'0')}`;const period = isPM ? 'PM' : 'AM';
+                                                                            const isSelected = formData.time === slot;
+                                                                            return (
+                                                                                <button type="button" key={slot}
+                                                                                    onClick={() => setValue('time', slot, { shouldValidate: true })}
+                                                                                    className={`relative group flex flex-col items-center justify-center py-3 px-2 rounded-2xl border-2 transition-all duration-200 font-bold ${
+                                                                                        isSelected
+                                                                                            ? 'border-primary bg-primary/20 shadow-[0_0_20px_rgba(200,255,0,0.3)] scale-105'
+                                                                                            : 'border-white/10 bg-white/5 hover:border-primary/50 hover:bg-primary/10 hover:scale-102'
+                                                                                    }`}>
+                                                                                    {isSelected && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-black" /></span>}
+                                                                                    <Clock className={`w-3.5 h-3.5 mb-1 ${isSelected ? 'text-primary' : 'text-white/40'}`} />
+                                                                                    <span className={`text-base leading-none ${isSelected ? 'text-primary' : 'text-white'}`}>{label}</span>
+                                                                                    <span className={`text-[10px] font-normal mt-0.5 ${isSelected ? 'text-primary/80' : 'text-white/30'}`}>{period}</span>
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {pmSlots.length > 0 && (
+                                                                <div>
+                                                                    <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2 pl-1">Evening</p>
+                                                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                                                        {pmSlots.map(slot => {
+                                                                            const [h, m] = slot.split(':').map(Number);
+                                                                            const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                                                                            const label = `${h12}:${String(m).padStart(2,'0')}`;const period = 'PM';
+                                                                            const isSelected = formData.time === slot;
+                                                                            return (
+                                                                                <button type="button" key={slot}
+                                                                                    onClick={() => setValue('time', slot, { shouldValidate: true })}
+                                                                                    className={`relative group flex flex-col items-center justify-center py-3 px-2 rounded-2xl border-2 transition-all duration-200 font-bold ${
+                                                                                        isSelected
+                                                                                            ? 'border-secondary bg-secondary/20 shadow-[0_0_20px_rgba(128,0,255,0.3)] scale-105'
+                                                                                            : 'border-white/10 bg-white/5 hover:border-secondary/50 hover:bg-secondary/10 hover:scale-102'
+                                                                                    }`}>
+                                                                                    {isSelected && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-secondary rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></span>}
+                                                                                    <Clock className={`w-3.5 h-3.5 mb-1 ${isSelected ? 'text-secondary' : 'text-white/40'}`} />
+                                                                                    <span className={`text-base leading-none ${isSelected ? 'text-secondary' : 'text-white'}`}>{label}</span>
+                                                                                    <span className={`text-[10px] font-normal mt-0.5 ${isSelected ? 'text-secondary/80' : 'text-white/30'}`}>{period}</span>
+                                                                                </button>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
 
                                                 <ErrorMessage message={errors.time?.message} />
 
@@ -1468,100 +1491,77 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
 
-                                        {/* -- Global Add-ons (Parking + Locker) --------- */}
-
+                                        {/* -- Parking Section (inline booking with plates) -- */}
                                         <div className="mt-6">
-
                                             <h3 className="text-white font-bold uppercase text-sm tracking-wider mb-3 flex items-center gap-2">
-
-                                                <Star className="w-4 h-4 text-yellow-400" /> Venue Extras
-
+                                                <span className="text-lg">🅿️</span> Parking
                                             </h3>
-
-                                            <div className="space-y-3">
-
-                                                {GLOBAL_ADD_ONS.map(gao => {
-
-                                                    const qty = selectedGlobalAddOns[gao.id] || 0;
-
-                                                    return (
-
-                                                        <div key={gao.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
-
-                                                            <div className="flex items-center justify-between">
-
-                                                                <div className="flex items-center gap-3">
-
-                                                                    <span className="text-2xl">{gao.emoji}</span>
-
-                                                                    <div>
-
-                                                                        <div className="text-white font-semibold">{gao.label}</div>
-
-                                                                        <div className="text-white/50 text-xs">{gao.description}</div>
-
-                                                                        <div className="text-primary text-xs font-bold mt-0.5">{gao.price.toFixed(2)} / {gao.unit}</div>
-
-                                                                    </div>
-
-                                                                </div>
-
-                                                                {/* Quantity selector */}
-
-                                                                <div className="flex items-center gap-2">
-
-                                                                    <button type="button"
-
-                                                                        onClick={() => setSelectedGlobalAddOns(prev => ({ ...prev, [gao.id]: Math.max(0, (prev[gao.id] || 0) - 1) }))}
-
-                                                                        disabled={qty === 0}
-
-                                                                        className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center disabled:opacity-30 transition-all">
-
-                                                                        <Minus className="w-3 h-3" />
-
-                                                                    </button>
-
-                                                                    <span className="text-white font-black text-lg w-6 text-center">{qty}</span>
-
-                                                                    <button type="button"
-
-                                                                        onClick={() => setSelectedGlobalAddOns(prev => ({ ...prev, [gao.id]: Math.min(gao.maxQty, (prev[gao.id] || 0) + 1) }))}
-
-                                                                        disabled={qty >= gao.maxQty}
-
-                                                                        className="w-8 h-8 rounded-full bg-yellow-500/70 hover:bg-yellow-400 text-black flex items-center justify-center disabled:opacity-30 transition-all">
-
-                                                                        <Plus className="w-3 h-3" />
-
-                                                                    </button>
-
-                                                                </div>
-
-                                                            </div>
-
-                                                            {qty > 0 && (
-
-                                                                <div className="mt-2 flex items-center justify-between text-xs bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
-
-                                                                    <span className="text-yellow-300">?? {gao.info}</span>
-
-                                                                    <span className="font-bold text-yellow-300">{(gao.price * qty).toFixed(2)}</span>
-
-                                                                </div>
-
-                                                            )}
-
+                                            <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-2xl">🚗</span>
+                                                        <div>
+                                                            <div className="text-white font-semibold">Car Parking</div>
+                                                            <div className="text-white/50 text-xs">Secure car park, close to entrance</div>
+                                                            <div className="text-primary text-xs font-bold mt-0.5">£{prices.parking.toFixed(2)} / car</div>
                                                         </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button type="button"
+                                                            onClick={() => {
+                                                                const next = Math.max(0, (selectedGlobalAddOns['parking'] || 0) - 1);
+                                                                setSelectedGlobalAddOns(prev => ({ ...prev, parking: next }));
+                                                                setParkingPlates(prev => prev.slice(0, next));
+                                                            }}
+                                                            disabled={(selectedGlobalAddOns['parking'] || 0) === 0}
+                                                            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center disabled:opacity-30 transition-all">
+                                                            <Minus className="w-4 h-4" />
+                                                        </button>
+                                                        <span className="text-white font-black text-xl w-6 text-center">{selectedGlobalAddOns['parking'] || 0}</span>
+                                                        <button type="button"
+                                                            onClick={() => {
+                                                                const next = Math.min(5, (selectedGlobalAddOns['parking'] || 0) + 1);
+                                                                setSelectedGlobalAddOns(prev => ({ ...prev, parking: next }));
+                                                                setParkingPlates(prev => [...prev, '']);
+                                                            }}
+                                                            disabled={(selectedGlobalAddOns['parking'] || 0) >= 5}
+                                                            className="w-9 h-9 rounded-full bg-primary/80 hover:bg-primary text-black flex items-center justify-center disabled:opacity-30 transition-all">
+                                                            <Plus className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-                                                    );
-
-                                                })}
-
+                                                {/* Per-car number plate inputs */}
+                                                {(selectedGlobalAddOns['parking'] || 0) > 0 && (
+                                                    <div className="space-y-2 mt-4 pt-4 border-t border-white/10">
+                                                        <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2">🔖 Car Registration Plates</p>
+                                                        {Array.from({ length: selectedGlobalAddOns['parking'] || 0 }).map((_, i) => (
+                                                            <div key={i} className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-lg bg-yellow-400 flex items-center justify-center flex-shrink-0">
+                                                                    <span className="text-black font-black text-xs">{i + 1}</span>
+                                                                </div>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder={`Car ${i + 1} plate — e.g. LE21 ABC`}
+                                                                    value={parkingPlates[i] || ''}
+                                                                    onChange={e => {
+                                                                        const updated = [...parkingPlates];
+                                                                        updated[i] = e.target.value.toUpperCase();
+                                                                        setParkingPlates(updated);
+                                                                    }}
+                                                                    maxLength={10}
+                                                                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm font-mono uppercase focus:outline-none focus:border-primary/60 focus:bg-white/15 transition-all"
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                        <div className="flex justify-between items-center mt-3 bg-primary/10 border border-primary/20 rounded-xl px-4 py-2">
+                                                            <span className="text-primary/80 text-xs font-semibold">{selectedGlobalAddOns['parking']} car{(selectedGlobalAddOns['parking'] || 0) > 1 ? 's' : ''} booked</span>
+                                                            <span className="text-primary font-black">£{(prices.parking * (selectedGlobalAddOns['parking'] || 0)).toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-
                                         </div>
-
 
 
                                         {/* Running total */}
@@ -1902,11 +1902,23 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                     <div key={id} className="flex justify-between text-sm text-yellow-300/90">
 
-                                                        <span>{gao.emoji} {gao.label}  {qty} {gao.unit}{qty > 1 ? "s" : ""}</span>
+                                                        <span>{gao.emoji} {gao.label} × {qty} {gao.unit}{qty > 1 ? "s" : ""}</span>
 
-                                                        <span className="font-bold">{(gao.price * qty).toFixed(2)}</span>
+                                                        <span className="font-bold">£{(gao.price * qty).toFixed(2)}</span>
 
                                                     </div>
+
+                                                    {/* Show plates for parking */}
+                                                    {id === 'parking' && parkingPlates.filter(Boolean).length > 0 && (
+                                                        <div className="mt-1 ml-5 space-y-0.5">
+                                                            {parkingPlates.filter(Boolean).map((plate, i) => (
+                                                                <div key={i} className="text-xs text-yellow-200/70 flex items-center gap-1.5">
+                                                                    <span className="bg-yellow-400 text-black text-[9px] font-black px-1 rounded">{i+1}</span>
+                                                                    <span className="font-mono">{plate}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
 
                                                 );
 

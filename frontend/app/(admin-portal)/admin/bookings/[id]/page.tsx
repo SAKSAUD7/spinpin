@@ -162,7 +162,6 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                         </div>
                     </div>
 
-                    {/* Add-ons breakdown (parking, locker, skate hire etc.) */}
                     {booking.add_ons && booking.add_ons.length > 0 && (
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                             <h2 className="text-lg font-bold text-slate-900 mb-4">➕ Add-ons &amp; Extras</h2>
@@ -186,6 +185,30 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                                     </span>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Parking plates */}
+                    {booking.parking_plates && booking.parking_plates.length > 0 && (
+                        <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-6">
+                            <h2 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+                                🚗 Pre-booked Parking
+                            </h2>
+                            <p className="text-sm text-slate-500 mb-4">
+                                {booking.parking_plates.length} car{booking.parking_plates.length > 1 ? 's' : ''} registered at booking time
+                            </p>
+                            <div className="space-y-2">
+                                {booking.parking_plates.map((plate: string, i: number) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                        <div className="w-7 h-7 rounded bg-yellow-400 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-black font-black text-xs">{i + 1}</span>
+                                        </div>
+                                        <span className="font-mono font-bold text-slate-900 text-lg tracking-widest uppercase">{plate}</span>
+                                        <span className="ml-auto text-xs text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">Pre-booked</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="text-xs text-slate-400 mt-3">ℹ️ Allow these vehicles entry to the secure car park on arrival.</p>
                         </div>
                     )}
 
