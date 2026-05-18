@@ -1,12 +1,13 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Ticket } from "lucide-react";
+import { Menu, X, Ticket, User, LogOut, ChevronDown } from "lucide-react";
 import { useUI } from "../../state/ui/uiContext";
 import { BouncyButton } from "../../components/BouncyButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useAccount } from "../../state/account/AccountContext";
 
 const navLinks = [
     { href: "/", label: "Home" },
@@ -23,45 +24,50 @@ export function Navbar({ settings }: { settings?: any }) {
     const { isMobileMenuOpen } = state;
     const phone = settings?.contactPhone || "07349110865";
     const [logoUrl, setLogoUrl] = useState("/spinpin-logo.png");
+    const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+    const accountMenuRef = useRef<HTMLDivElement>(null);
+    const { customer, logout, loading: authLoading } = useAccount();
 
     useEffect(() => {
-        // Fetch dynamic logo on mount
         const fetchLogo = async () => {
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1'}/core/logos/active/`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.image_url) {
-                        setLogoUrl(data.image_url);
-                    }
+                    if (data.image_url) setLogoUrl(data.image_url);
                 }
-            } catch (error) {
-                console.error("Failed to fetch logo:", error);
-            }
+            } catch { }
         };
         fetchLogo();
+    }, []);
+
+    // Close account dropdown on outside click
+    useEffect(() => {
+        function handleClick(e: MouseEvent) {
+            if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+                setAccountMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClick);
+        return () => document.removeEventListener("mousedown", handleClick);
     }, []);
 
     useEffect(() => {
         if (isMobileMenuOpen) {
             document.body.style.overflow = 'hidden';
             window.history.pushState({ menuOpen: true }, "", window.location.href);
-
-            const handlePopState = () => {
-                dispatch({ type: "CLOSE_MOBILE_MENU" });
-            };
-
+            const handlePopState = () => dispatch({ type: "CLOSE_MOBILE_MENU" });
             window.addEventListener("popstate", handlePopState);
-
             return () => {
                 document.body.style.overflow = 'auto';
                 window.removeEventListener("popstate", handlePopState);
             };
         } else {
-            // Always ensure overflow is reset when menu closes
             document.body.style.overflow = 'auto';
         }
     }, [isMobileMenuOpen, dispatch]);
+
+    const firstName = customer?.name?.split(" ")[0] || "Account";
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0118] border-b border-white/10">
@@ -75,8 +81,8 @@ export function Navbar({ settings }: { settings?: any }) {
                     />
                 </Link>
 
-
-                <nav className="hidden md:flex items-center gap-8">
+                {/* Desktop Nav */}
+                <nav className="hidden md:flex items-center gap-6">
                     {navLinks.map((link) => (
                         <Link
                             key={link.href}
@@ -86,11 +92,62 @@ export function Navbar({ settings }: { settings?: any }) {
                             {link.label}
                         </Link>
                     ))}
+
                     <Link href="/book">
                         <BouncyButton size="sm" variant="accent" as="div">
                             Book Now <Ticket className="w-4 h-4 ml-2" />
                         </BouncyButton>
                     </Link>
+
+                    {/* My Account — desktop */}
+                    {!authLoading && (
+                        customer ? (
+                            // Logged-in: dropdown with name
+                            <div ref={accountMenuRef} className="relative">
+                                <button
+                                    onClick={() => setAccountMenuOpen(v => !v)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-bold transition-all border border-white/10"
+                                >
+                                    <User className="w-4 h-4 text-primary" />
+                                    {firstName}
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${accountMenuOpen ? "rotate-180" : ""}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {accountMenuOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                                            transition={{ duration: 0.15 }}
+                                            className="absolute right-0 mt-2 w-48 bg-[#1a0a35] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[80]"
+                                        >
+                                            <Link href="/account/bookings" onClick={() => setAccountMenuOpen(false)}
+                                                className="flex items-center gap-2 px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white text-sm font-semibold transition-colors">
+                                                <Ticket className="w-4 h-4 text-primary" /> My Bookings
+                                            </Link>
+                                            <Link href="/account/profile" onClick={() => setAccountMenuOpen(false)}
+                                                className="flex items-center gap-2 px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white text-sm font-semibold transition-colors">
+                                                <User className="w-4 h-4 text-primary" /> My Profile
+                                            </Link>
+                                            <div className="border-t border-white/10" />
+                                            <button onClick={() => { logout(); setAccountMenuOpen(false); }}
+                                                className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 text-sm font-semibold transition-colors">
+                                                <LogOut className="w-4 h-4" /> Sign Out
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            // Logged-out: My Account button
+                            <Link href="/account/login">
+                                <BouncyButton size="sm" variant="outline" className="text-white border-white/30" as="div">
+                                    <User className="w-4 h-4 mr-1.5" /> My Account
+                                </BouncyButton>
+                            </Link>
+                        )
+                    )}
+
                     <Link href="/admin">
                         <BouncyButton size="sm" variant="outline" className="text-white border-white" as="div">
                             Admin
@@ -98,6 +155,7 @@ export function Navbar({ settings }: { settings?: any }) {
                     </Link>
                 </nav>
 
+                {/* Mobile right side */}
                 <div className="md:hidden flex items-center gap-2 relative z-50">
                     <Link href="/book">
                         <BouncyButton size="sm" variant="accent" className="text-xs px-3 py-1.5" as="div">
@@ -109,25 +167,19 @@ export function Navbar({ settings }: { settings?: any }) {
                     </button>
                 </div>
 
+                {/* Mobile Menu Panel */}
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <>
-                            {/* Backdrop - tap to close */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
                                 className="fixed inset-0 z-[60] md:hidden"
-                                style={{
-                                    backdropFilter: 'blur(20px)',
-                                    WebkitBackdropFilter: 'blur(20px)',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.7)'
-                                }}
+                                style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
                                 onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}
                             />
-
-                            {/* Menu Panel */}
                             <motion.div
                                 initial={{ x: '100%' }}
                                 animate={{ x: 0 }}
@@ -137,19 +189,29 @@ export function Navbar({ settings }: { settings?: any }) {
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="h-full flex flex-col p-5">
-                                    {/* Close Button */}
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/20">
                                         <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Menu</span>
                                         <button
                                             onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}
                                             className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                                            aria-label="Close menu"
                                         >
                                             <X className="w-5 h-5 text-white" />
                                         </button>
                                     </div>
 
-                                    {/* Navigation Links */}
+                                    {/* Logged-in user strip */}
+                                    {customer && (
+                                        <div className="mb-4 px-3 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2">
+                                            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+                                                <User className="w-4 h-4 text-primary" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-white text-xs font-bold truncate">{customer.name}</div>
+                                                <div className="text-white/40 text-[10px] truncate">{customer.email}</div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <nav className="flex-1 space-y-2">
                                         {navLinks.map((link) => {
                                             const isActive = pathname === link.href;
@@ -160,21 +222,42 @@ export function Navbar({ settings }: { settings?: any }) {
                                                     onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}
                                                     className={`block px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${isActive
                                                         ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
-                                                        : "text-white/90 hover:bg-white/10"
-                                                        }`}
+                                                        : "text-white/90 hover:bg-white/10"}`}
                                                 >
                                                     {link.label}
                                                 </Link>
                                             );
                                         })}
 
-                                        {/* Action Buttons - Inline with navigation */}
                                         <div className="pt-2 space-y-2">
                                             <Link href="/book" onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}>
                                                 <div className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold text-sm transition-all text-center shadow-md">
                                                     Book Session
                                                 </div>
                                             </Link>
+
+                                            {/* My Account — mobile */}
+                                            {customer ? (
+                                                <>
+                                                    <Link href="/account/bookings" onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}>
+                                                        <div className="w-full py-3 px-4 rounded-lg bg-white/10 hover:bg-white/15 text-white font-semibold text-sm transition-colors text-center flex items-center justify-center gap-2">
+                                                            <Ticket className="w-4 h-4 text-primary" /> My Bookings
+                                                        </div>
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => { logout(); dispatch({ type: "CLOSE_MOBILE_MENU" }); }}
+                                                        className="w-full py-3 px-4 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold text-sm transition-colors text-center flex items-center justify-center gap-2"
+                                                    >
+                                                        <LogOut className="w-4 h-4" /> Sign Out
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <Link href="/account/login" onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}>
+                                                    <div className="w-full py-3 px-4 rounded-lg bg-white/10 hover:bg-white/15 text-white font-semibold text-sm transition-colors text-center flex items-center justify-center gap-2">
+                                                        <User className="w-4 h-4" /> My Account
+                                                    </div>
+                                                </Link>
+                                            )}
 
                                             <Link href="/admin" onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}>
                                                 <div className="w-full py-3 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm transition-colors text-center">

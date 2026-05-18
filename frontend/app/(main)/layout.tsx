@@ -5,16 +5,14 @@ import { ToastProvider } from "../../components/ToastProvider";
 import { MobileBottomNav } from "../../components/MobileBottomNav";
 import { getSettings } from "@/app/actions/settings";
 import { getPublicSocialLinks } from "@/lib/public-api";
+import { AccountProvider } from "@/state/account/AccountContext";
 
-// Server Layout
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-    // Fetch data in parallel
     const [settingsData, socialLinksData] = await Promise.all([
         getSettings(),
         getPublicSocialLinks()
     ]) as [any[], any[]];
 
-    // Extract first settings object if available
     const settings = settingsData && settingsData.length > 0 ? {
         parkName: settingsData[0].park_name,
         contactPhone: settingsData[0].contact_phone,
@@ -27,15 +25,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     const socialLinks = socialLinksData ? socialLinksData.filter((l: any) => l.active) : [];
 
     return (
-        <ToastProvider>
-            <div suppressHydrationWarning className="flex flex-col min-h-screen overflow-x-hidden">
-                <Navbar settings={settings} />
-                <main className="flex-grow pb-16 md:pb-0">
-                    {children}
-                </main>
-                <Footer settings={settings} socialLinks={socialLinks} />
-                <MobileBottomNav />
-            </div>
-        </ToastProvider>
+        <AccountProvider>
+            <ToastProvider>
+                <div suppressHydrationWarning className="flex flex-col min-h-screen overflow-x-hidden">
+                    <Navbar settings={settings} />
+                    <main className="flex-grow pb-16 md:pb-0">
+                        {children}
+                    </main>
+                    <Footer settings={settings} socialLinks={socialLinks} />
+                    <MobileBottomNav />
+                </div>
+            </ToastProvider>
+        </AccountProvider>
     );
 }
