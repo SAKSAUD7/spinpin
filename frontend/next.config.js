@@ -29,10 +29,22 @@ const nextConfig = {
                 port: '9000',
                 pathname: '/media/**',
             },
+            // 127.0.0.1 — Next.js treats this as a different host from localhost
+            {
+                protocol: 'http',
+                hostname: '127.0.0.1',
+                port: '9000',
+                pathname: '/media/**',
+            },
             // Fallback for any http images in development
             {
                 protocol: 'http',
                 hostname: 'localhost',
+                pathname: '/**',
+            },
+            {
+                protocol: 'http',
+                hostname: '127.0.0.1',
                 pathname: '/**',
             },
         ],
