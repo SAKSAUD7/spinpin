@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteSocialLink, updateSocialLink } from "@/app/actions/cms";
+import { deleteSocialLink, updateSocialLink } from "@/app/actions/social-links";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
