@@ -102,6 +102,8 @@ export default function AdminBookings() {
                 booking.customerEmail?.toLowerCase().includes(search) ||
                 booking.name?.toLowerCase().includes(search) ||
                 booking.email?.toLowerCase().includes(search) ||
+                booking.phone?.toLowerCase().includes(search) ||
+                booking.booking_number?.toLowerCase().includes(search) ||
                 booking.id?.toString().includes(search)
             );
         }
@@ -308,7 +310,12 @@ export default function AdminBookings() {
                                 filteredBookings.slice(0, displayCount).map((booking: any) => (
                                     <tr key={booking.id} className="hover:bg-blue-50/30 transition-all duration-200">
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-slate-900">#{booking.id}</span>
+                                            <Link href={`/admin/bookings/${booking.id}`} className="block hover:text-blue-600">
+                                                <span className="text-xs font-bold text-primary font-mono">
+                                                    {booking.booking_number || `SP-${booking.id}`}
+                                                </span>
+                                                <span className="text-xs text-slate-400 block">ID: {booking.id}</span>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4">
                                             <ActivityBadge activity={booking.activity || booking.activity_type || ""} />

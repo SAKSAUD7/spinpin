@@ -103,6 +103,9 @@ export default function PartyBookingsPage() {
                 booking.customerEmail?.toLowerCase().includes(search) ||
                 booking.name?.toLowerCase().includes(search) ||
                 booking.email?.toLowerCase().includes(search) ||
+                booking.phone?.toLowerCase().includes(search) ||
+                booking.booking_number?.toLowerCase().includes(search) ||
+                booking.birthday_child_name?.toLowerCase().includes(search) ||
                 booking.id?.toString().includes(search)
             );
         }
@@ -286,7 +289,12 @@ export default function PartyBookingsPage() {
                                 filteredBookings.slice(0, displayCount).map((booking: any) => (
                                     <tr key={booking.id} className="hover:bg-purple-50/30 transition-all duration-200">
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-slate-900">#{booking.id}</span>
+                                            <Link href={`/admin/party-bookings/${booking.id}`} className="block hover:text-purple-600">
+                                                <span className="text-xs font-bold text-purple-600 font-mono">
+                                                    {booking.booking_number || `SPPARTY-${booking.id}`}
+                                                </span>
+                                                <span className="text-xs text-slate-400 block">ID: {booking.id}</span>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
