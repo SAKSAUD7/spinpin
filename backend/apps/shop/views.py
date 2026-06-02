@@ -71,7 +71,7 @@ class VoucherViewSet(viewsets.ModelViewSet):
         if voucher.min_order_amount and order_amount < voucher.min_order_amount:
             return Response({
                 'valid': False,
-                'error': f'Minimum order amount of ₹{voucher.min_order_amount} required'
+                'error': f'Minimum order amount of £{voucher.min_order_amount:.2f} required'
             })
         
         # Check minimum hours before booking slot
