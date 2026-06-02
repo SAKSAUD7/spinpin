@@ -74,13 +74,13 @@ class BookingAdmin(admin.ModelAdmin):
     inlines = [PaymentInline]
     
     def amount_display(self, obj):
-        return format_html('₹{}', obj.amount)
-    amount_display.short_description = 'Total Amount'
+        return format_html('£{}', obj.amount)
+    amount_display.short_description = 'Total (GBP)'
     amount_display.admin_order_field = 'amount'
     
     def paid_amount_display(self, obj):
-        return format_html('₹{}', obj.paid_amount)
-    paid_amount_display.short_description = 'Paid'
+        return format_html('£{}', obj.paid_amount)
+    paid_amount_display.short_description = 'Paid (GBP)'
     paid_amount_display.admin_order_field = 'paid_amount'
     
     def remaining_display(self, obj):
@@ -117,43 +117,52 @@ class BookingAdmin(admin.ModelAdmin):
 
 @admin.register(PartyBooking)
 class PartyBookingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'uuid', 'name', 'email', 'date', 'time', 'package_name', 'kids', 'adults', 'amount_display', 'paid_amount_display', 'remaining_display', 'status', 'payment_status', 'waiver_signed', 'created_at']
-    list_filter = ['status', 'payment_status', 'waiver_signed', 'date', 'created_at']
-    search_fields = ['name', 'email', 'phone', 'uuid', 'package_name', 'birthday_child_name']
-    readonly_fields = ['uuid', 'created_at', 'updated_at', 'remaining_balance_display']
+    list_display = ['id', 'booking_number', 'name', 'email', 'phone', 'date', 'time', 'package_name', 'kids', 'adults', 'amount_display', 'paid_amount_display', 'remaining_display', 'status', 'payment_status', 'waiver_signed', 'created_at']
+    list_filter = ['status', 'payment_status', 'waiver_signed', 'date', 'package_name', 'created_at']
+    search_fields = ['name', 'email', 'phone', 'uuid', 'package_name', 'birthday_child_name', 'booking_number']
+    readonly_fields = ['uuid', 'booking_number', 'created_at', 'updated_at', 'remaining_balance_display']
     ordering = ['-created_at']
     inlines = [PartyPaymentInline]
     
     def amount_display(self, obj):
-        return format_html('₹{}', obj.amount)
-    amount_display.short_description = 'Total Amount'
+        return format_html('£{}', obj.amount)
+    amount_display.short_description = 'Total (GBP)'
     amount_display.admin_order_field = 'amount'
     
     def paid_amount_display(self, obj):
-        return format_html('₹{}', obj.paid_amount)
-    paid_amount_display.short_description = 'Paid'
+        return format_html('£{}', obj.paid_amount)
+    paid_amount_display.short_description = 'Paid (GBP)'
     paid_amount_display.admin_order_field = 'paid_amount'
     
     def remaining_display(self, obj):
         remaining = obj.remaining_balance
         if remaining > 0:
-            return format_html('<span style="color: orange;">₹{}</span>', remaining)
-        return format_html('<span style="color: green;">₹0</span>')
-    remaining_display.short_description = 'Remaining'
+            return format_html('<span style="color: orange;">£{}</span>', remaining)
+        return format_html('<span style="color: green;">£0</span>')
+    remaining_display.short_description = 'Balance Due'
     
     def remaining_balance_display(self, obj):
-        return format_html('₹{}', obj.remaining_balance)
-    remaining_balance_display.short_description = 'Remaining Balance'
+        return format_html('£{}', obj.remaining_balance)
+    remaining_balance_display.short_description = 'Remaining Balance (GBP)'
     
     fieldsets = (
-        ('Basic Information', {
-            'fields': ('uuid', 'name', 'email', 'phone', 'customer')
+        ('Booking Reference', {
+            'fields': ('uuid', 'booking_number')
+        }),
+        ('Customer Information', {
+            'fields': ('name', 'email', 'phone', 'customer')
         }),
         ('Party Details', {
-            'fields': ('date', 'time', 'package_name', 'kids', 'adults', 'amount', 'paid_amount', 'remaining_balance_display')
+            'fields': ('date', 'time', 'package_name', 'kids', 'adults', 'spectators')
         }),
         ('Birthday Child', {
             'fields': ('birthday_child_name', 'birthday_child_age')
+        }),
+        ('Special Requests', {
+            'fields': ('special_requests', 'dietary_restrictions')
+        }),
+        ('Pricing', {
+            'fields': ('amount', 'paid_amount', 'remaining_balance_display')
         }),
         ('Participants & Waiver', {
             'fields': ('participants', 'waiver_signed', 'waiver_signed_at', 'waiver_ip_address')

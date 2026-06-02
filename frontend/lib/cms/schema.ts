@@ -128,11 +128,15 @@ export const schemas: SchemaMap = {
                     { label: "Participant Waiver", value: "WAIVER" },
                     { label: "Privacy Policy", value: "PRIVACY" },
                     { label: "Waiver Terms", value: "WAIVER_TERMS" },
+                    { label: "Disclaimer", value: "DISCLAIMER" },
+                    { label: "Cookies Policy", value: "COOKIES" },
+                    { label: "Your Rights", value: "YOUR_RIGHTS" },
+                    { label: "Security", value: "SECURITY" },
                 ]
             },
             { name: "title", label: "Title", type: "text", required: true },
-            { name: "intro", label: "Document Content", type: "textarea", helpText: "Full text of the document" },
-            { name: "sections", label: "Sections (JSON)", type: "json_list" }, // TODO: Better JSON editor
+            { name: "intro", label: "Introduction Text", type: "textarea", helpText: "Optional intro paragraph shown above sections" },
+            { name: "sections", label: "Sections (JSON)", type: "json_list", helpText: "List of {title, content} objects" },
             { name: "active", label: "Active", type: "boolean", defaultValue: true },
         ],
     },

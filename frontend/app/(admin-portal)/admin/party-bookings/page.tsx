@@ -287,7 +287,7 @@ export default function PartyBookingsPage() {
                                 </tr>
                             ) : (
                                 filteredBookings.slice(0, displayCount).map((booking: any) => (
-                                    <tr key={booking.id} className="hover:bg-purple-50/30 transition-all duration-200">
+                                    <tr key={booking.uuid || `party-${booking.id}`} className="hover:bg-purple-50/30 transition-all duration-200">
                                         <td className="px-6 py-4">
                                             <Link href={`/admin/party-bookings/${booking.id}`} className="block hover:text-purple-600">
                                                 <span className="text-xs font-bold text-purple-600 font-mono">

@@ -802,26 +802,19 @@ class PublicSiteAlertViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     
     def get_queryset(self):
-        from datetime import datetime, time
-        
-        # Calculate today's range in the server's timezone
-        now = timezone.now()
-        today_start = datetime.combine(now.date(), time.min)
-        today_end = datetime.combine(now.date(), time.max)
-        
-        if timezone.is_aware(now):
-            today_start = timezone.make_aware(today_start)
-            today_end = timezone.make_aware(today_end)
+        # Use simple date-only comparison to avoid PostgreSQL type mismatch
+        # (DateField cannot be compared to timezone-aware datetime)
+        today = timezone.now().date()
 
         alert_types = ['CLOSED_TODAY', 'OPEN_TODAY']
-        
-        # Filter blocks that are active, match alert types, and overlap with today
-        # Overlap logic: (BlockStart <= TodayEnd) AND (BlockEnd >= TodayStart)
+
+        # Overlap logic: block starts on or before today, and ends on or after today
         return BookingBlock.objects.filter(
             type__in=alert_types,
-            start_date__lte=today_end,
-            end_date__gte=today_start
+            start_date__lte=today,
+            end_date__gte=today
         ).order_by('-start_date')
+
 
 # Custom function-based view for party booking creation (bypasses serializer bug)
 @api_view(['POST', 'GET'])
@@ -966,34 +959,32 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
         return [IsStaffUser()]  # Allow employees to access party bookings
     
     def create(self, request, *args, **kwargs):
-        """Override create to trigger confirmation email"""
-        from django.conf import settings
+        """Override create to trigger confirmation email after party booking is saved."""
         import logging
-        
-        logger = logging.getLogger('apps.emails')
+        logger = logging.getLogger('apps.bookings')
         logger.info("=== PartyBookingViewSet.create() called ===")
-        
-        # Call parent create method
+
+        # Call parent create (handles validation, customer linking, DB save)
         response = super().create(request, *args, **kwargs)
-        
-        # Get the created party booking from response
+
         if response.status_code == 201:
             party_booking_id = response.data.get('id')
             logger.info(f"Party booking {party_booking_id} created successfully")
-            
-            # Trigger confirmation email if enabled
-            if getattr(settings, 'EMAIL_BOOKING_ENABLED', False):
-                try:
-                    from apps.emails.tasks import send_party_booking_confirmation_email
-                    logger.info(f"EMAIL_BOOKING_ENABLED=True, triggering email for party booking {party_booking_id}")
-                    send_party_booking_confirmation_email(party_booking_id)
-                    logger.info(f"Email queued for party booking {party_booking_id}")
-                except Exception as e:
-                    logger.error(f"Failed to queue email for party booking {party_booking_id}: {str(e)}", exc_info=True)
-            else:
-                logger.warning(f"EMAIL_BOOKING_ENABLED=False, skipping email")
-        
+
+            # Send confirmation email (non-blocking — failure never blocks booking)
+            try:
+                party_booking = PartyBooking.objects.get(id=party_booking_id)
+                from services.email_service import send_party_confirmation
+                email_ok = send_party_confirmation(party_booking)
+                if email_ok:
+                    logger.info(f"Confirmation email sent for party booking {party_booking_id}")
+                else:
+                    logger.warning(f"Email failed for party booking {party_booking_id} — booking still created")
+            except Exception as e:
+                logger.error(f"Email error for party booking {party_booking_id}: {e}", exc_info=True)
+
         return response
+
 
     @action(detail=False, methods=['get'], url_path='ticket/(?P<uuid>[^/.]+)')
     def ticket(self, request, uuid=None):

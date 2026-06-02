@@ -173,12 +173,17 @@ class PartyBooking(models.Model):
     package_name = models.CharField(max_length=255)
     kids = models.IntegerField(default=0)
     adults = models.IntegerField(default=0)
+    spectators = models.IntegerField(default=0, help_text="Non-participating spectators")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Total amount paid so far")
-    
+
     birthday_child_name = models.CharField(max_length=255, null=True, blank=True)
     birthday_child_age = models.IntegerField(null=True, blank=True)
-    
+
+    # Special requests & dietary info from booking form
+    special_requests = models.TextField(null=True, blank=True, help_text="Customer special requests entered during booking")
+    dietary_restrictions = models.TextField(null=True, blank=True, help_text="Dietary restrictions submitted by customer")
+
     # Participant Details
     participants = models.JSONField(null=True, blank=True)
     # Structure: {

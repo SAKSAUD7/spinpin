@@ -179,21 +179,18 @@ class PartyBookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PartyBooking
-        fields = ['id', 'uuid', 'booking_number', 'name', 'email', 'phone', 'date', 'time', 'package_name', 
-                  'kids', 'adults', 'amount', 'birthday_child_name', 'birthday_child_age',
+        fields = ['id', 'uuid', 'booking_number', 'name', 'email', 'phone', 'date', 'time', 'package_name',
+                  'kids', 'adults', 'spectators', 'amount', 'paid_amount',
+                  'birthday_child_name', 'birthday_child_age',
+                  'special_requests', 'dietary_restrictions',
                   'participants', 'waiver_signed', 'waiver_signed_at', 'waiver_ip_address',
                   'status', 'customer', 'arrived', 'arrived_at', 'created_at', 'updated_at',
-                  'duration', 'spectators', 'qr_code', 'payment_status', 'waiver_status', 'booking_status']
+                  'duration', 'qr_code', 'payment_status', 'waiver_status', 'booking_status']
 
     def get_duration(self, obj):
         return 120  # Party bookings are standard 2 hours
 
-    def get_spectators(self, obj):
-        return 0  # Spectators not currently tracked in PartyBooking model
-
     def get_qr_code(self, obj):
-        # Generate a QR code URL or value similar to regular bookings
-        # For now, return the UUID which can be used to generate client-side or mocked
         return f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={obj.uuid}"
 
     def get_payment_status(self, obj):

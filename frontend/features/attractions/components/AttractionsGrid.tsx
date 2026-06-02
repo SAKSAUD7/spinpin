@@ -11,7 +11,9 @@ interface Activity {
     id: string;
     name: string;
     description: string;
+    long_description?: string;
     imageUrl: string;
+    image_url?: string;
     gallery?: string[];
     active: boolean;
     order: number;
@@ -19,6 +21,17 @@ interface Activity {
     what_to_expect?: string;
     location_info?: string;
     activity_faqs?: Array<{ question: string; answer: string }>;
+}
+
+// Returns true only if there is real expandable content
+function hasExpandedContent(activity: Activity): boolean {
+    return !!(activity.why_choose_us?.trim()
+        || activity.what_to_expect?.trim()
+        || activity.location_info?.trim()
+        || (activity.activity_faqs && activity.activity_faqs.length > 0)
+        || activity.long_description?.trim()
+        // fall back: description long enough that truncation hides useful info
+        || (activity.description && activity.description.length > 250));
 }
 
 interface AttractionsGridProps {
@@ -296,7 +309,7 @@ export const AttractionsGrid = ({ activities }: AttractionsGridProps) => {
                                         </p>
 
                                         {/* Expand Button */}
-                                        {(activity.why_choose_us || activity.what_to_expect || activity.location_info || activity.activity_faqs) && (
+                                        {hasExpandedContent(activity) && (
                                             <button
                                                 onClick={() => toggleActivity(activity.id)}
                                                 className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-semibold rounded-xl transition-colors text-sm border border-white/10 mb-3"
@@ -306,13 +319,15 @@ export const AttractionsGrid = ({ activities }: AttractionsGridProps) => {
                                             </button>
                                         )}
 
-                                        {/* Book Now Button */}
-                                        <Link
-                                            href={meta.slug ? `/book?activity=${meta.slug}` : "/book"}
-                                            className={`mt-auto block w-full py-3.5 px-4 bg-gradient-to-r ${meta.gradient} text-white font-bold text-center rounded-xl hover:shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2`}
-                                        >
-                                            Book {activity.name} <ArrowRight className="w-4 h-4" />
-                                        </Link>
+                                        {/* Book Now Button — hidden for arcade (pay-per-token, not bookable) */}
+                                        {meta.slug !== "arcade" && (
+                                            <Link
+                                                href={meta.slug ? `/book?activity=${meta.slug}` : "/book"}
+                                                className={`mt-auto block w-full py-3.5 px-4 bg-gradient-to-r ${meta.gradient} text-white font-bold text-center rounded-xl hover:shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2`}
+                                            >
+                                                Book {activity.name} <ArrowRight className="w-4 h-4" />
+                                            </Link>
+                                        )}
                                     </div>
 
                                     {/* Expanded Content */}
@@ -325,30 +340,44 @@ export const AttractionsGrid = ({ activities }: AttractionsGridProps) => {
                                                 transition={{ duration: 0.3 }}
                                                 className="overflow-hidden px-6 pb-6 space-y-4 border-t border-white/10 pt-4"
                                             >
-                                                {activity.why_choose_us && (
+                                                {/* Why Choose Us */}
+                                                {activity.why_choose_us?.trim() && (
                                                     <div>
                                                         <h4 className="text-base font-bold text-primary mb-2">Why Choose Us?</h4>
-                                                        <div className="text-sm text-white/70 whitespace-pre-line">
+                                                        <div className="text-sm text-white/70 whitespace-pre-line leading-relaxed">
                                                             {activity.why_choose_us}
                                                         </div>
                                                     </div>
                                                 )}
-                                                {activity.what_to_expect && (
+
+                                                {/* What to Expect */}
+                                                {activity.what_to_expect?.trim() && (
                                                     <div>
                                                         <h4 className="text-base font-bold text-secondary mb-2">What to Expect</h4>
-                                                        <div className="text-sm text-white/70 whitespace-pre-line">
+                                                        <div className="text-sm text-white/70 whitespace-pre-line leading-relaxed">
                                                             {activity.what_to_expect}
                                                         </div>
                                                     </div>
                                                 )}
-                                                {activity.location_info && (
+
+                                                {/* Location Info */}
+                                                {activity.location_info?.trim() && (
                                                     <div className="flex items-start gap-2">
                                                         <MapPin className="w-4 h-4 text-accent flex-shrink-0 mt-1" />
-                                                        <div className="text-sm text-white/70">
+                                                        <div className="text-sm text-white/70 leading-relaxed">
                                                             {activity.location_info}
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {/* Long description fallback — shown when specific fields are not yet seeded */}
+                                                {!activity.why_choose_us?.trim() && !activity.what_to_expect?.trim() && !activity.location_info?.trim() && (
+                                                    <div className="text-sm text-white/75 whitespace-pre-line leading-relaxed">
+                                                        {activity.long_description?.trim() || activity.description}
+                                                    </div>
+                                                )}
+
+                                                {/* FAQs */}
                                                 {activity.activity_faqs && activity.activity_faqs.length > 0 && (
                                                     <div>
                                                         <h4 className="text-base font-bold text-accent mb-2 flex items-center gap-2">

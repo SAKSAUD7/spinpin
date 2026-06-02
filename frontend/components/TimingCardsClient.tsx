@@ -45,8 +45,7 @@ export function TimingCardsClient() {
     const [cards, setCards] = useState<any[]>([]);
 
     useEffect(() => {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-        fetch(`${API_URL}/cms/timing-cards/`)
+        fetch('/api/timing-cards')
             .then((r) => r.json())
             .then((data) => {
                 if (Array.isArray(data)) {

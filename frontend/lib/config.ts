@@ -6,7 +6,7 @@ export const siteConfig = {
     links: {
         twitter: "https://www.instagram.com/spinpinleicester",
         instagram: "https://www.instagram.com/spinpinleicester",
-        facebook: "https://www.facebook.com/profile.php?id=61572375597421",
+        facebook: "https://www.facebook.com/people/Spin-Pin/61572375597421/",
     },
     contact: {
         phone: "07349110865",

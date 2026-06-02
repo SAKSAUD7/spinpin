@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
 
 def get_env_bool(name, default=False):
-    return str(os.getenv(name, str(default))).lower().strip() in ['true', '1', 'yes']
+    return (os.getenv(name, str(default)) or '').lower().strip() in ['true', '1', 'yes']
 
 def get_env_list(name, default=''):
     val = os.getenv(name, default)
@@ -246,7 +246,11 @@ if 'WEBSITE_HOSTNAME' in os.environ:
     CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ['WEBSITE_HOSTNAME']}")
 
 CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_ALL_ORIGINS = True  # Disabled to allowing credentials
+
+# In development: allow all origins so 500 errors don't appear as CORS errors in devtools.
+# In production: only CORS_ALLOWED_ORIGINS are permitted (CORS_ALLOW_ALL_ORIGINS=False).
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # True in dev, False in prod
+
 
 # ====================================================
 # STORAGE CONFIGURATION (Local filesystem / VPS)

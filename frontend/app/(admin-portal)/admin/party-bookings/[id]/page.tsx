@@ -3,15 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Cake } from "lucide-react";
+import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Cake, Share2, CheckCheck } from "lucide-react";
+import { PartyBookingPDF } from "../../../../../components/PartyBookingPDF";
 
-// Removed - using API routes instead
+// Uses Next.js API routes for all backend calls
 
 export default function PartyBookingDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
     const [booking, setBooking] = useState<any>(null);
     const [waivers, setWaivers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [copied, setCopied] = useState(false);
+    const [resending, setResending] = useState(false);
 
     useEffect(() => {
         async function loadBookingData() {
@@ -48,8 +51,26 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
         loadBookingData();
     }, [params.id]);
 
-    const handlePrint = () => {
-        window.print();
+    const handlePrint = () => window.print();
+
+    const handleShare = async () => {
+        const url = `${window.location.origin}/admin/party-bookings/${params.id}`;
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+        } catch {
+            prompt('Copy this booking link:', url);
+        }
+    };
+
+    const handleResendEmail = async () => {
+        setResending(true);
+        try {
+            const res = await fetch(`/api/bookings/${params.id}/resend-email`, { method: 'POST', credentials: 'include' });
+            alert(res.ok ? 'Confirmation email resent!' : 'Email resend failed — check SMTP settings in backend/.env');
+        } catch { alert('Email resend failed.'); }
+        finally { setResending(false); }
     };
 
     const handleUpdateStatus = async (status: string) => {
@@ -82,13 +103,10 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
         return age;
     };
 
-    if (loading) {
-        return <div className="p-8">Loading...</div>;
-    }
+    if (loading) return <div className="p-8 text-slate-500">Loading booking...</div>;
+    if (!booking) return <div className="p-8 text-red-500">Party booking not found</div>;
 
-    if (!booking) {
-        return <div className="p-8">Party booking not found</div>;
-    }
+    const fmt = (v: any) => `£${Number(v || 0).toFixed(2)}`;
 
     return (
         <div className="p-8 max-w-5xl mx-auto">
@@ -96,20 +114,26 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                 <ArrowLeft size={18} className="mr-2" /> Back to Party Bookings
             </Link>
 
-            <div className="flex justify-between items-start mb-8">
+            <div className="flex flex-wrap justify-between items-start mb-8 gap-3">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Party #{String(booking.id).padStart(6, '0')}</h1>
-                    <p className="text-slate-500 mt-1">Created on {new Date(booking.created_at).toLocaleDateString()}</p>
+                    <p className="text-slate-500 mt-1">
+                        Ref: <span className="font-mono font-bold text-purple-600">{booking.booking_number || `SPPARTY-${booking.id}`}</span>
+                        {' · '}Created {new Date(booking.created_at).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'})}
+                    </p>
                 </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                    >
-                        <Printer size={18} /> Print
+                <div className="flex flex-wrap gap-2">
+                    <PartyBookingPDF booking={booking} className="text-sm" />
+                    <button type="button" onClick={handleShare}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm">
+                        {copied ? <><CheckCheck size={16} className="text-green-600" />Copied!</> : <><Share2 size={16} />Share Link</>}
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
-                        <Mail size={18} /> Resend Email
+                    <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm">
+                        <Printer size={16} /> Print
+                    </button>
+                    <button onClick={handleResendEmail} disabled={resending}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm disabled:opacity-50">
+                        <Mail size={16} /> {resending ? 'Sending...' : 'Resend Email'}
                     </button>
                 </div>
             </div>
@@ -154,7 +178,7 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-semibold">Total Amount</label>
-                                <p className="text-xl font-bold text-green-600">£{booking.amount}</p>
+                                <p className="text-xl font-bold text-green-600">{fmt(booking.amount)}</p>
                             </div>
                         </div>
                     </div>
