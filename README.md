@@ -1,4 +1,4 @@
-# Ninja Inflatable Park - Management System
+#  spinpin- Management System
 
 A comprehensive web-based management system for Ninja Inflatable Park, featuring session bookings, party bookings, waiver management, and a full CMS.
 
