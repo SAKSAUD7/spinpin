@@ -41,7 +41,6 @@ export const footerLinks = [
         items: [
             { title: "Book Tickets", href: "/book" },
             { title: "Birthday Parties", href: "/parties" },
-            { title: "Group Bookings", href: "/groups" },
         ],
     },
     {

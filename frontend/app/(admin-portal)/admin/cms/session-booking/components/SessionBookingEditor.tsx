@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, Save, Layout, DollarSign } from 'lucide-react';
+import { Loader2, Save, Layout, DollarSign, BookOpen, Plus, X, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPageSections, updatePageSection, createPageSection } from '@/app/actions/page-sections';
 import { PageSection } from '@/lib/cms/types';
+
 import { cmsGet, cmsPatch } from '@/lib/cms-api';
 
 // Define the steps we want to make editable
@@ -60,10 +61,13 @@ export default function SessionBookingEditor() {
     const [saving, setSaving] = useState<string | null>(null);
     const [pricingConfig, setPricingConfig] = useState<any>(null);
     const [savingPricing, setSavingPricing] = useState(false);
+    const [sessionInfo, setSessionInfo] = useState<any>(null);
+    const [savingSessionInfo, setSavingSessionInfo] = useState(false);
 
     useEffect(() => {
         loadSections();
         loadPricingConfig();
+        loadSessionInfo();
     }, []);
 
     const loadSections = async () => {
@@ -84,7 +88,29 @@ export default function SessionBookingEditor() {
             setPricingConfig(data);
         } catch (error) {
             console.error('Failed to load pricing config', error);
-            toast.error('Failed to load pricing configuration');
+        }
+    };
+
+    const loadSessionInfo = async () => {
+        try {
+            const data = await cmsGet('/cms/booking-information/?booking_type=SESSION');
+            if (Array.isArray(data) && data.length > 0) setSessionInfo(data[0]);
+        } catch (error) {
+            console.error('Failed to load session info', error);
+        }
+    };
+
+    const handleSessionInfoSave = async (updated: any) => {
+        if (!sessionInfo?.id) return;
+        setSavingSessionInfo(true);
+        try {
+            await cmsPatch(`/cms/booking-information/${sessionInfo.id}/`, updated);
+            await loadSessionInfo();
+            toast.success('Book page content updated!');
+        } catch {
+            toast.error('Failed to save book page content');
+        } finally {
+            setSavingSessionInfo(false);
         }
     };
 
@@ -149,6 +175,15 @@ export default function SessionBookingEditor() {
 
     return (
         <div className="space-y-8 max-w-4xl">
+            {/* /book Page Content Editor */}
+            {sessionInfo && (
+                <SessionInfoEditor
+                    data={sessionInfo}
+                    isSaving={savingSessionInfo}
+                    onSave={handleSessionInfoSave}
+                />
+            )}
+
             {/* Pricing Configuration Section */}
             <PricingEditor
                 initialData={pricingConfig}
@@ -488,34 +523,158 @@ function StepEditor({ step, initialData, isSaving, onSave }: { step: any, initia
                     <Layout className="w-3.5 h-3.5 text-slate-400" />
                     {step.label}
                 </h4>
-                <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-all text-xs font-medium disabled:opacity-50"
-                >
-                    {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                    Save
+                <button type="submit" disabled={isSaving}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-all text-xs font-medium disabled:opacity-50">
+                    {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
                 </button>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Title</label>
-                    <input
-                        {...register('title')}
+                    <input {...register('title')}
                         className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                        placeholder="e.g. Select Session"
-                    />
+                        placeholder="e.g. Select Session" />
                     {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
                 <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Subtitle</label>
-                    <input
-                        {...register('subtitle')}
+                    <input {...register('subtitle')}
                         className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                        placeholder="e.g. Choose your preferred date..."
-                    />
+                        placeholder="e.g. Choose your preferred date..." />
                 </div>
             </div>
         </form>
+    );
+}
+
+// ── SessionInfoEditor ─────────────────────────────────────────────────────────
+function SessionInfoEditor({ data, isSaving, onSave }: { data: any; isSaving: boolean; onSave: (v: any) => void }) {
+    const [title, setTitle] = useState(data?.title || '');
+    const [subtitle, setSubtitle] = useState(data?.subtitle || '');
+    const [content, setContent] = useState(data?.content || '');
+    const [rulesContent, setRulesContent] = useState(data?.rules_content || '');
+    const [sessions, setSessions] = useState<any[]>(data?.sessions_info || []);
+
+    const addSession = () => setSessions([...sessions, { name: '', description: '', schedule: [''] }]);
+    const removeSession = (i: number) => setSessions(sessions.filter((_, idx) => idx !== i));
+    const updateSession = (i: number, field: string, value: any) =>
+        setSessions(sessions.map((s, idx) => idx === i ? { ...s, [field]: value } : s));
+    const addScheduleLine = (i: number) =>
+        setSessions(sessions.map((s, idx) => idx === i ? { ...s, schedule: [...(s.schedule || []), ''] } : s));
+    const updateScheduleLine = (si: number, li: number, value: string) =>
+        setSessions(sessions.map((s, idx) => idx === si ? { ...s, schedule: s.schedule.map((t: string, tidx: number) => tidx === li ? value : t) } : s));
+    const removeScheduleLine = (si: number, li: number) =>
+        setSessions(sessions.map((s, idx) => idx === si ? { ...s, schedule: s.schedule.filter((_: any, tidx: number) => tidx !== li) } : s));
+
+    const handleSave = () => onSave({ title, subtitle, content, rules_content: rulesContent, sessions_info: sessions });
+
+    return (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-pink-50 flex justify-between items-center">
+                <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-violet-600" />
+                    Book Page Content (/book)
+                </h3>
+                <button onClick={handleSave} disabled={isSaving}
+                    className="flex items-center gap-2 px-5 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-sm font-medium disabled:opacity-50">
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Save Book Page
+                </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+                {/* Header */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Page Title</label>
+                        <input value={title} onChange={e => setTitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-400 outline-none text-sm"
+                            placeholder="Spin Pin Session Booking" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1">Subtitle <span className="text-violet-500">(highlighted)</span></label>
+                        <input value={subtitle} onChange={e => setSubtitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-400 outline-none text-sm"
+                            placeholder="Booking Available from Thursday's to Sunday's" />
+                    </div>
+                </div>
+
+                {/* Opening Hours Content */}
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Opening Hours / Info Text</label>
+                    <p className="text-xs text-slate-400 mb-2">Displayed below the subtitle on /book. Use new lines freely.</p>
+                    <textarea value={content} onChange={e => setContent(e.target.value)} rows={4}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-400 outline-none text-sm font-mono resize-y"
+                        placeholder={`Half Term - Peak School & Bank holidays.\n\nMonday - Closed\nTuesday to Sunday 12 pm to 10:00 pm`} />
+                </div>
+
+                {/* Special Sessions */}
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="text-sm font-semibold text-slate-700">Special Session Cards</label>
+                        <button type="button" onClick={addSession}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 border border-violet-200 text-violet-700 rounded-lg text-xs font-semibold hover:bg-violet-100">
+                            <Plus className="w-3.5 h-3.5" /> Add Session
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        {sessions.map((session, si) => (
+                            <div key={si} className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <GripVertical className="w-4 h-4 text-slate-300" />
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Session {si + 1}</span>
+                                    <button type="button" onClick={() => removeSession(si)} className="ml-auto p-1 text-red-400 hover:bg-red-50 rounded">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-600 mb-1">Session Name</label>
+                                        <input value={session.name} onChange={e => updateSession(si, 'name', e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
+                                            placeholder="e.g. Rolly Polly" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+                                        <input value={session.description} onChange={e => updateSession(si, 'description', e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
+                                            placeholder="e.g. A general skate session for all ages" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-xs font-medium text-slate-600">Schedule Lines</label>
+                                        <button type="button" onClick={() => addScheduleLine(si)}
+                                            className="text-xs text-violet-600 hover:text-violet-800 flex items-center gap-1">
+                                            <Plus className="w-3 h-3" /> Add time
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {(session.schedule || []).map((time: string, li: number) => (
+                                            <div key={li} className="flex gap-2">
+                                                <input value={time} onChange={e => updateScheduleLine(si, li, e.target.value)}
+                                                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
+                                                    placeholder="e.g. Thursday 3 pm to 8 pm" />
+                                                <button type="button" onClick={() => removeScheduleLine(si, li)} className="p-1.5 text-red-400 hover:bg-red-50 rounded">
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Rules */}
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Session Rules &amp; Guidelines</label>
+                    <p className="text-xs text-slate-400 mb-2">Shown in the collapsible "Session Rules & Guidelines" section on /book.</p>
+                    <textarea value={rulesContent} onChange={e => setRulesContent(e.target.value)} rows={8}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-400 outline-none text-sm font-mono resize-y" />
+                </div>
+            </div>
+        </div>
     );
 }

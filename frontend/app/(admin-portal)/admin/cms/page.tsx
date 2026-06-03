@@ -18,7 +18,7 @@ export default async function CmsDashboard() {
     }
 
     const pages = (await getPages()).filter((page: any) =>
-        !['facilities', 'privacy', 'waiver-terms'].includes(page.slug)
+        !['facilities', 'privacy', 'waiver-terms', 'groups'].includes(page.slug)
     );
 
     const collections = [
@@ -31,7 +31,6 @@ export default async function CmsDashboard() {
         { name: 'Stat Cards', href: '/admin/cms/stat-cards', icon: Award, description: 'Homepage statistics' },
         { name: 'Instagram Reels', href: '/admin/cms/instagram-reels', icon: Instagram, description: 'Social feed items' },
         { name: 'Menu Sections', href: '/admin/cms/menu-sections', icon: Utensils, description: 'Food and drink menu' },
-        { name: 'Group Packages', href: '/admin/cms/group-packages', icon: Users, description: 'School and corporate groups' },
         { name: 'Party Packages', href: '/admin/cms/party-packages', icon: Calendar, description: 'Birthday party options' },
         { name: 'Pricing Plans', href: '/admin/cms/pricing-plans', icon: FileText, description: 'Session and party pricing' },
         { name: 'Guidelines', href: '/admin/cms/guideline-categories', icon: Shield, description: 'Safety rules' },
@@ -41,8 +40,8 @@ export default async function CmsDashboard() {
         { name: 'Values', href: '/admin/cms/value-items', icon: Award, description: 'Company core values' },
         { name: 'Facilities', href: '/admin/cms/facility-items', icon: Layout, description: 'Park amenities' },
 
-        // Wizards
-        { name: 'Session Booking', href: '/admin/cms/session-booking', icon: FileText, description: 'Session wizard steps' },
+        // Booking Wizards
+        { name: 'Book Page Content', href: '/admin/cms/session-booking', icon: FileText, description: 'Edit /book page info, sessions, rules' },
         { name: 'Party Booking', href: '/admin/cms/party-booking', icon: Calendar, description: 'Party wizard steps' },
 
         // Moved from Pages

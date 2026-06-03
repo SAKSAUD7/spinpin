@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ScrollReveal, BouncyButton, SectionDivider } from "@repo/ui";
 import { motion } from "framer-motion";
-import { Check, Clock, AlertCircle, Users, Mail } from "lucide-react";
+import { Check, Clock, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@repo/utils";
 import { getMediaUrl } from "@/lib/media-utils";
 import PricingCarousel from "./PricingCarousel";
@@ -320,76 +320,6 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                             </motion.div>
                         </ScrollReveal>
                     </div>
-                </div>
-            </section>
-
-            {/* Group Booking - Compact Card */}
-            <section className="relative px-4 pb-32 md:pb-40">
-                <div className="max-w-4xl mx-auto">
-                    <ScrollReveal animation="scale">
-                        <motion.div
-                            whileHover={{ y: -3 }}
-                            className="relative p-6 rounded-2xl border-2 border-accent bg-gradient-to-br from-surface-800/80 to-surface-900/80 backdrop-blur-sm"
-                        >
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-black font-black py-1 px-6 rounded-full text-sm shadow-lg">
-                                GROUP BOOKING
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-                                {/* Price */}
-                                <div className="text-center md:text-left">
-                                    <div className="mb-2">
-                                        <span className="text-4xl font-black text-white">Custom</span>
-                                        <span className="text-white/60 text-sm ml-1">Pricing</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start text-xs">
-                                        <span className="px-3 py-1 bg-white/10 rounded-full">Groups 10+</span>
-                                    </div>
-                                </div>
-
-                                {/* Key Features */}
-                                <div className="md:col-span-2">
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                        <div className="flex items-center gap-2 text-white/80">
-                                            <Check className="w-4 h-4 text-accent shrink-0" />
-                                            <span>Discounted pricing</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-white/80">
-                                            <Check className="w-4 h-4 text-accent shrink-0" />
-                                            <span>Flexible timings</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-white/80">
-                                            <Check className="w-4 h-4 text-accent shrink-0" />
-                                            <span>Dedicated support</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-white/80">
-                                            <Check className="w-4 h-4 text-accent shrink-0" />
-                                            <span>Schools & corporates</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row gap-3">
-                                <Link href="/groups" className="flex-1">
-                                    <div className="w-full">
-                                        <BouncyButton size="md" variant="accent" className="w-full">
-                                            <Users className="w-4 h-4 mr-2" />
-                                            Book Now
-                                        </BouncyButton>
-                                    </div>
-                                </Link>
-                                <Link href="/contact#contactForm" className="flex-1">
-                                    <div className="w-full">
-                                        <BouncyButton size="md" variant="outline" className="w-full text-white border-white">
-                                            <Mail className="w-4 h-4 mr-2" />
-                                            Enroll Now
-                                        </BouncyButton>
-                                    </div>
-                                </Link>
-                            </div>
-                        </motion.div>
-                    </ScrollReveal>
                 </div>
             </section>
 
