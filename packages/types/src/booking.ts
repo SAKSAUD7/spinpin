@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { isAfter, isBefore, startOfDay, addHours } from "date-fns";
 
-// Phone number validation for India (+91 format)
-const phoneRegex = /^(\+91|91)?[6-9]\d{9}$/;
+// Phone number validation - accepts UK and international formats
+const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
 
 // Email validation (comprehensive)
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -68,7 +68,7 @@ export const bookingSchema = z.object({
 
     phone: z.string()
         .min(1, "Phone number is required")
-        .regex(phoneRegex, "Please enter a valid 10-digit Indian mobile number")
+        .regex(phoneRegex, "Please enter a valid phone number")
         .transform((phone) => formatPhoneNumber(phone)),
 
     // Waiver Details
@@ -109,14 +109,7 @@ export type BookingFormData = z.infer<typeof bookingSchema>;
 
 // Helper function to format phone number
 export function formatPhoneNumber(phone: string): string {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.startsWith('91') && cleaned.length === 12) {
-        return cleaned.substring(2);
-    }
-    if (cleaned.length === 10) {
-        return cleaned;
-    }
-    return cleaned;
+    return phone.trim();
 }
 
 // Helper function to check if selected time is in the past

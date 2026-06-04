@@ -17,15 +17,22 @@ interface PartyBookingPDFProps {
     kids?: number;
     adults?: number;
     spectators?: number;
+    duration?: number;
     birthday_child_name?: string;
     birthday_child_age?: number;
     amount: number | string;
     paid_amount?: number | string;
+    discount_amount?: number | string;
     special_requests?: string;
     dietary_restrictions?: string;
     status?: string;
     payment_status?: string;
     created_at?: string;
+    // Guest list for the right-side index
+    participants?: {
+      adults?: Array<{ name: string; email?: string; phone?: string; dob?: string }>;
+      minors?: Array<{ name: string; dob?: string; guardian?: string }>;
+    };
   };
   className?: string;
 }
@@ -37,206 +44,281 @@ export function PartyBookingPDF({ booking, className = "" }: PartyBookingPDFProp
     setIsGenerating(true);
     try {
       const { jsPDF } = await import("jspdf");
+
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
       const PAGE_W = 210;
-      const MARGIN = 16;
-      const CONTENT_W = PAGE_W - MARGIN * 2;
-      let y = 0;
+      const PAGE_H = 297;
+      const MARGIN = 10;
 
-      // ── HELPER FUNCTIONS ─────────────────────────────────────────────────
+      // ─── Colour palette (matches reference PDF) ──────────────────────────
+      const ORANGE: [number, number, number] = [204, 102, 0];
+      const BLUE: [number, number, number] = [0, 102, 204];
+      const DARK: [number, number, number] = [20, 20, 20];
+      const LABEL_COL: [number, number, number] = [30, 30, 30];
+      const ROW_EVEN: [number, number, number] = [255, 255, 255];
+      const ROW_ODD: [number, number, number] = [240, 240, 240];
+      const HEADER_BG: [number, number, number] = [220, 220, 220];
+      const BORDER: [number, number, number] = [180, 180, 180];
+
+      // ─── Layout geometry ──────────────────────────────────────────────────
+      const LEFT_COL_W = 118;   // Info/Data table width
+      const RIGHT_COL_X = MARGIN + LEFT_COL_W + 4; // Right column start x
+      const RIGHT_COL_W = PAGE_W - RIGHT_COL_X - MARGIN; // Width of right column
+
+      const ROW_H = 9;           // Row height in mm
+      const LEFT_LABEL_W = 55;   // Width of "Info" cell within left table
+      const TOP_Y = 12;          // Start Y after top margin
+
+      // ─── Helper: safeNum & currency ──────────────────────────────────────
       const safeNum = (v: any) => Number(v || 0);
       const fmt = (v: any) => `£${safeNum(v).toFixed(2)}`;
-      const addLine = (label: string, value: string, yPos: number, labelColor = [120, 120, 120] as [number,number,number], valueColor = [30, 30, 30] as [number,number,number]) => {
-        doc.setFontSize(9).setTextColor(...labelColor);
-        doc.text(label, MARGIN, yPos);
-        doc.setFontSize(9).setTextColor(...valueColor);
-        doc.text(value, MARGIN + 55, yPos);
-        return yPos + 6;
+
+      // ─── Helper: format date ──────────────────────────────────────────────
+      const formatDate = (dateStr: string | undefined): string => {
+        if (!dateStr) return "N/a";
+        try {
+          const d = new Date(dateStr + (dateStr.includes("T") ? "" : "T12:00:00"));
+          return d.toLocaleDateString("en-GB", {
+            weekday: "long", day: "numeric", month: "short", year: "numeric",
+          }).replace(",", "");
+        } catch { return dateStr; }
       };
 
-      // ── HEADER BAR ────────────────────────────────────────────────────────
-      doc.setFillColor(255, 215, 0); // Gold
-      doc.rect(0, 0, PAGE_W, 30, "F");
-      doc.setFillColor(0, 0, 0);
-      doc.rect(0, 28, PAGE_W, 3, "F");
-
-      doc.setFontSize(22).setTextColor(0, 0, 0).setFont("helvetica", "bold");
-      doc.text("SPIN PIN LEICESTER", MARGIN, 13);
-      doc.setFontSize(9).setTextColor(40, 40, 40).setFont("helvetica", "normal");
-      doc.text("Merlin Works, 8 Exploration Dr, Leicester LE4 5FX", MARGIN, 20);
-      doc.text("Tel: 07349 110865  |  info@spinpin.co.uk  |  spinpin.co.uk", MARGIN, 26);
-
-      // ── BOOKING CONFIRMATION TITLE ────────────────────────────────────────
-      y = 38;
-      doc.setFontSize(18).setTextColor(0, 0, 0).setFont("helvetica", "bold");
-      doc.text("PARTY BOOKING CONFIRMATION", PAGE_W / 2, y, { align: "center" });
-
-      // Ref + Date strip
-      y += 7;
-      doc.setFillColor(245, 245, 245);
-      doc.roundedRect(MARGIN, y, CONTENT_W, 12, 3, 3, "F");
-      doc.setFontSize(9).setTextColor(80, 80, 80).setFont("helvetica", "normal");
-      const refNum = booking.booking_number || booking.uuid?.slice(0, 8).toUpperCase() || String(booking.id || "N/A");
-      doc.text(`Booking Ref: ${refNum}`, MARGIN + 4, y + 7.5);
-      const issuedDate = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-      doc.text(`Issued: ${issuedDate}`, PAGE_W - MARGIN - 4, y + 7.5, { align: "right" });
-
-      // ── CUSTOMER DETAILS ──────────────────────────────────────────────────
-      y += 18;
-      doc.setFillColor(0, 0, 0);
-      doc.setFontSize(11).setTextColor(255, 215, 0).setFont("helvetica", "bold");
-      doc.text("CUSTOMER DETAILS", MARGIN, y);
-      doc.setDrawColor(255, 215, 0);
-      doc.setLineWidth(0.5);
-      doc.line(MARGIN, y + 2, MARGIN + CONTENT_W, y + 2);
-
-      y += 8;
-      doc.setFont("helvetica", "normal").setTextColor(30, 30, 30);
-      y = addLine("Full Name:", booking.name, y);
-      y = addLine("Email:", booking.email, y);
-      y = addLine("Phone:", booking.phone, y);
-      if (booking.birthday_child_name) {
-        y = addLine("Birthday Child:", `${booking.birthday_child_name}${booking.birthday_child_age ? ` (Age ${booking.birthday_child_age})` : ""}`, y);
-      }
-
-      // ── PARTY DETAILS ────────────────────────────────────────────────────
-      y += 4;
-      doc.setFontSize(11).setTextColor(255, 215, 0).setFont("helvetica", "bold");
-      doc.text("PARTY DETAILS", MARGIN, y);
-      doc.setDrawColor(255, 215, 0);
-      doc.line(MARGIN, y + 2, MARGIN + CONTENT_W, y + 2);
-
-      y += 8;
-      doc.setFont("helvetica", "normal").setTextColor(30, 30, 30);
-      const partyDate = booking.date
-        ? new Date(booking.date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-        : "TBC";
-      y = addLine("Party Date:", partyDate, y);
-      y = addLine("Preferred Time:", booking.time || "TBC", y);
-      y = addLine("Package:", booking.package_name || "Standard Package", y);
-      y = addLine("Participants:", `${safeNum(booking.kids)} guests`, y);
-      if (safeNum(booking.spectators) > 0) {
-        y = addLine("Spectators:", `${booking.spectators} (first 2 free)`, y);
-      }
-
-      if (booking.special_requests) {
-        y += 2;
-        doc.setFontSize(9).setTextColor(80, 80, 80).setFont("helvetica", "bold");
-        doc.text("Special Requests:", MARGIN, y);
-        y += 5;
-        doc.setFont("helvetica", "normal").setTextColor(50, 50, 50).setFontSize(8);
-        const reqLines = doc.splitTextToSize(booking.special_requests, CONTENT_W);
-        doc.text(reqLines, MARGIN, y);
-        y += reqLines.length * 5;
-      }
-      if (booking.dietary_restrictions) {
-        y += 2;
-        doc.setFontSize(9).setTextColor(80, 80, 80).setFont("helvetica", "bold");
-        doc.text("Dietary Requirements:", MARGIN, y);
-        y += 5;
-        doc.setFont("helvetica", "normal").setTextColor(50, 50, 50).setFontSize(8);
-        const dietLines = doc.splitTextToSize(booking.dietary_restrictions, CONTENT_W);
-        doc.text(dietLines, MARGIN, y);
-        y += dietLines.length * 5;
-      }
-
-      // ── PRICING BREAKDOWN ────────────────────────────────────────────────
-      y += 4;
-      doc.setFontSize(11).setTextColor(255, 215, 0).setFont("helvetica", "bold");
-      doc.text("PRICING BREAKDOWN", MARGIN, y);
-      doc.setDrawColor(255, 215, 0);
-      doc.line(MARGIN, y + 2, MARGIN + CONTENT_W, y + 2);
-
-      y += 8;
-      doc.setFont("helvetica", "normal").setTextColor(30, 30, 30).setFontSize(9);
-
-      const total = safeNum(booking.amount);
-      const paidAmt = safeNum(booking.paid_amount);
-      const deposit = total * 0.5;
-      const balance = Math.max(0, total - paidAmt);
-
-      // Pricing table
-      doc.setFillColor(248, 248, 248);
-      doc.roundedRect(MARGIN, y - 3, CONTENT_W, 36, 2, 2, "F");
-
-      y = addLine(`Party Package (${safeNum(booking.kids)} guests):`, fmt(total), y);
-      y = addLine("VAT:", "Included in price", y);
-      doc.setDrawColor(200, 200, 200);
-      doc.setLineWidth(0.3);
-      doc.line(MARGIN + 2, y, MARGIN + CONTENT_W - 2, y);
-      y += 3;
-
-      doc.setFontSize(11).setFont("helvetica", "bold").setTextColor(0, 0, 0);
-      doc.text("TOTAL:", MARGIN + 2, y);
-      doc.setTextColor(180, 140, 0);
-      doc.text(fmt(total), MARGIN + CONTENT_W - 2, y, { align: "right" });
-      y += 7;
-
-      doc.setFontSize(9).setFont("helvetica", "normal");
-      doc.setTextColor(200, 80, 0);
-      doc.text(`50% Deposit Required: ${fmt(deposit)}`, MARGIN + 2, y);
-      y += 5;
-      doc.setTextColor(paidAmt > 0 ? 20 : 80, paidAmt > 0 ? 140 : 80, 20);
-      doc.text(`Amount Paid: ${fmt(paidAmt)}`, MARGIN + 2, y);
-      y += 5;
-      if (balance > 0) {
-        doc.setTextColor(200, 80, 0);
-        doc.text(`Balance Due on Day: ${fmt(balance)}`, MARGIN + 2, y);
-        y += 5;
-      }
-
-      // ── STATUS BADGE ─────────────────────────────────────────────────────
-      y += 4;
-      const status = (booking.status || "PENDING").toUpperCase();
-      const statusColors: Record<string, [number, number, number]> = {
-        CONFIRMED: [39, 174, 96],
-        PENDING: [230, 126, 34],
-        CANCELLED: [192, 57, 43],
-        COMPLETED: [41, 128, 185],
+      // ─── Helper: format time range ────────────────────────────────────────
+      const formatTimeRange = (timeStr: string, durationMin = 120): string => {
+        if (!timeStr) return "N/a";
+        const [h, m] = timeStr.split(":").map(Number);
+        const startMins = h * 60 + (m || 0);
+        const endMins = startMins + durationMin;
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const fmt12 = (mins: number) => {
+          const hh = Math.floor(mins / 60) % 24;
+          const mm = mins % 60;
+          const ampm = hh >= 12 ? "pm" : "am";
+          const hh12 = hh % 12 || 12;
+          return `${pad(hh12)}:${pad(mm)} ${ampm}`;
+        };
+        return `${fmt12(startMins)} - ${fmt12(endMins)}`;
       };
-      const [sr, sg, sb] = statusColors[status] || statusColors.PENDING;
-      doc.setFillColor(sr, sg, sb);
-      doc.roundedRect(MARGIN, y - 1, 40, 9, 2, 2, "F");
-      doc.setFontSize(9).setTextColor(255, 255, 255).setFont("helvetica", "bold");
-      doc.text(`Status: ${status}`, MARGIN + 20, y + 5, { align: "center" });
 
-      // ── TERMS & CONDITIONS ────────────────────────────────────────────────
-      y += 16;
-      doc.setFontSize(10).setTextColor(255, 215, 0).setFont("helvetica", "bold");
-      doc.text("TERMS & CONDITIONS", MARGIN, y);
-      doc.setDrawColor(255, 215, 0);
-      doc.line(MARGIN, y + 2, MARGIN + CONTENT_W, y + 2);
+      // ─── Helper: format created_at ────────────────────────────────────────
+      const formatCreatedAt = (isoStr: string | undefined): string => {
+        if (!isoStr) return "N/a";
+        try {
+          const d = new Date(isoStr);
+          const weekday = d.toLocaleDateString("en-GB", { weekday: "long" });
+          const day = d.getDate();
+          const month = d.toLocaleDateString("en-GB", { month: "short" });
+          const year = d.getFullYear();
+          const hh = d.getHours();
+          const mm = String(d.getMinutes()).padStart(2, "0");
+          const ampm = hh >= 12 ? "pm" : "am";
+          const hh12 = hh % 12 || 12;
+          return `${weekday} ${day} ${month}, ${year} ${String(hh12).padStart(2, "0")}:${mm} ${ampm}`;
+        } catch { return isoStr; }
+      };
 
-      const terms = [
-        "• 50% non-refundable deposit required to confirm booking.",
-        "• Minimum 10 participants required.",
-        "• Full balance must be paid before the party begins.",
-        "• Free rescheduling available with 2+ weeks notice.",
-        "• Rescheduling with less than 2 weeks notice: £50 fee applies.",
-        "• Extra time available at £5 per 15 minutes (subject to availability).",
-        "• All guests must sign the Spin Pin waiver before participating.",
-        "• No sparkler candles, glitter, or loose confetti allowed on premises.",
-        "• Spin Pin reserves the right to refuse entry if T&Cs are not followed.",
+      // ─── Prepare data for left table ──────────────────────────────────────
+      const bookingRef = booking.booking_number || `#${booking.id || "N/A"}`;
+      const totalAmount = safeNum(booking.amount);
+      const paidAmount = safeNum(booking.paid_amount);
+      const discountAmount = safeNum(booking.discount_amount);
+      const balance = Math.max(0, totalAmount - paidAmount);
+      const childAge = booking.birthday_child_age ?? 0;
+      const kidsCount = safeNum(booking.kids);
+      const adultsCount = safeNum(booking.adults);
+      const kidTicketPrice = kidsCount > 0 ? totalAmount : 0;
+      const adultTicketPrice = 0; // spectators free or included
+      const durationMin = booking.duration ?? 120;
+
+      // Left table rows: [label, value, valueIsBlue]
+      const rows: Array<[string, string, boolean]> = [
+        ["Booking ID", bookingRef, true],
+        ["Booking Created At", formatCreatedAt(booking.created_at), false],
+        ["Booker Name", booking.name, true],
+        ["Booker Email", booking.email, true],
+        ["Booker Phone", booking.phone, false],
+        ["Child Name", booking.birthday_child_name || "N/a", true],
+        ["Child Date Of Birth", booking.birthday_child_name ? formatDate(booking.date) : "N/a", false],
+        ["Child Age", booking.birthday_child_age !== undefined ? `${childAge} years old` : "N/a", false],
+        ["Party Date", formatDate(booking.date), false],
+        ["Party Time", formatTimeRange(booking.time, durationMin), false],
+        ["Children Invited", String(kidsCount), kidsCount > 0],
+        ["Adults Invited", String(adultsCount), adultsCount > 0],
+        ["Total Children Tickets Price", fmt(kidTicketPrice), false],
+        ["Total Adult Tickets Price", fmt(adultTicketPrice), false],
+        ["Paid Full Amount?", paidAmount >= totalAmount && totalAmount > 0 ? "Yes" : "No", false],
+        ["Discount Applied?", discountAmount > 0 ? "Yes" : "No", false],
+        ["Bringing Own Food?", "£0", false],
+        ["Pay For Locker?", "£0", false],
+        ["Pay For Parking?", "£0", false],
+        ["Comment", booking.special_requests || "N/a", false],
+        ["Overall Total Amount", fmt(totalAmount), false],
+        ["Amount Paid", fmt(paidAmount), false],
+        ["Total Balance", fmt(balance), false],
+        ["Checked Candles?", "Yes / No", false],
       ];
-      y += 7;
-      doc.setFontSize(8).setTextColor(60, 60, 60).setFont("helvetica", "normal");
-      terms.forEach((term) => {
-        doc.text(term, MARGIN, y);
-        y += 5;
+
+      // ─── Prepare right-column guest list ──────────────────────────────────
+      // Build guest rows: #1-#25 with child name / adult name
+      const MAX_GUEST_ROWS = 25;
+      type GuestRow = { childName: string; adultName: string };
+      const guestRows: GuestRow[] = Array.from({ length: MAX_GUEST_ROWS }, () => ({
+        childName: "",
+        adultName: "",
+      }));
+
+      const minors = booking.participants?.minors || [];
+      const adultGuests = booking.participants?.adults || [];
+
+      // Fill minors into child name column
+      minors.forEach((m, i) => {
+        if (i < MAX_GUEST_ROWS) guestRows[i].childName = m.name;
       });
 
-      // ── FOOTER ───────────────────────────────────────────────────────────
-      const footerY = 285;
-      doc.setFillColor(0, 0, 0);
-      doc.rect(0, footerY - 4, PAGE_W, 16, "F");
-      doc.setFontSize(8).setTextColor(255, 215, 0).setFont("helvetica", "bold");
-      doc.text("SPIN PIN LEICESTER", PAGE_W / 2, footerY + 1, { align: "center" });
-      doc.setTextColor(180, 180, 180).setFont("helvetica", "normal");
-      doc.text("Merlin Works, 8 Exploration Dr, Leicester LE4 5FX  |  07349 110865  |  info@spinpin.co.uk", PAGE_W / 2, footerY + 6, { align: "center" });
+      // Fill adults into adult name column
+      adultGuests.forEach((a, i) => {
+        if (i < MAX_GUEST_ROWS) guestRows[i].adultName = a.name;
+      });
 
-      // ── SAVE ─────────────────────────────────────────────────────────────
-      const fileName = `SpinPin-Party-${refNum}-${booking.name.replace(/\s+/g, "-")}.pdf`;
+      // If birthday child name is provided and no minors, put child name in row 1
+      if (booking.birthday_child_name && minors.length === 0) {
+        guestRows[0].childName = booking.birthday_child_name;
+      }
+
+      // ─── Draw LEFT table header ───────────────────────────────────────────
+      let y = TOP_Y;
+
+      // Header row for left table
+      doc.setFillColor(...HEADER_BG);
+      doc.rect(MARGIN, y, LEFT_COL_W, ROW_H, "F");
+      doc.setDrawColor(...BORDER);
+      doc.setLineWidth(0.3);
+      doc.rect(MARGIN, y, LEFT_COL_W, ROW_H, "S");
+
+      doc.setFontSize(9).setFont("helvetica", "bold").setTextColor(...ORANGE);
+      doc.text("Info", MARGIN + 2, y + 6);
+      doc.text("Data", MARGIN + LEFT_LABEL_W + 2, y + 6);
+
+      // Vertical divider inside left table header
+      doc.setDrawColor(...BORDER);
+      doc.line(MARGIN + LEFT_LABEL_W, y, MARGIN + LEFT_LABEL_W, y + ROW_H);
+
+      // ─── Draw RIGHT table header ──────────────────────────────────────────
+      // Three columns: # | Child Name | Adult Name
+      const RIGHT_NUM_W = 14;
+      const RIGHT_CHILD_W = (RIGHT_COL_W - RIGHT_NUM_W) / 2;
+      const RIGHT_ADULT_W = RIGHT_COL_W - RIGHT_NUM_W - RIGHT_CHILD_W;
+
+      doc.setFillColor(...HEADER_BG);
+      doc.rect(RIGHT_COL_X, y, RIGHT_COL_W, ROW_H, "F");
+      doc.setDrawColor(...BORDER);
+      doc.rect(RIGHT_COL_X, y, RIGHT_COL_W, ROW_H, "S");
+
+      doc.setFontSize(9).setFont("helvetica", "bold").setTextColor(...ORANGE);
+      doc.text("#", RIGHT_COL_X + 2, y + 6);
+      doc.text("Child Name", RIGHT_COL_X + RIGHT_NUM_W + 2, y + 6);
+      doc.text("Adult Name", RIGHT_COL_X + RIGHT_NUM_W + RIGHT_CHILD_W + 2, y + 6);
+
+      // Vertical dividers inside right header
+      doc.setDrawColor(...BORDER);
+      doc.line(RIGHT_COL_X + RIGHT_NUM_W, y, RIGHT_COL_X + RIGHT_NUM_W, y + ROW_H);
+      doc.line(RIGHT_COL_X + RIGHT_NUM_W + RIGHT_CHILD_W, y, RIGHT_COL_X + RIGHT_NUM_W + RIGHT_CHILD_W, y + ROW_H);
+
+      y += ROW_H;
+
+      // ─── Draw data rows ───────────────────────────────────────────────────
+      const totalLeftRows = rows.length;
+      const totalRightRows = MAX_GUEST_ROWS;
+      const totalRows = Math.max(totalLeftRows, totalRightRows);
+
+      for (let i = 0; i < totalRows; i++) {
+        const isOdd = i % 2 === 0;
+        const rowBg: [number, number, number] = isOdd ? ROW_ODD : ROW_EVEN;
+
+        // ── Left table row ──────────────────────────────────────────────────
+        if (i < totalLeftRows) {
+          const [label, value, isBlue] = rows[i];
+
+          // Row background
+          doc.setFillColor(...rowBg);
+          doc.rect(MARGIN, y, LEFT_COL_W, ROW_H, "F");
+
+          // Row border
+          doc.setDrawColor(...BORDER);
+          doc.setLineWidth(0.2);
+          doc.rect(MARGIN, y, LEFT_COL_W, ROW_H, "S");
+
+          // Vertical divider
+          doc.line(MARGIN + LEFT_LABEL_W, y, MARGIN + LEFT_LABEL_W, y + ROW_H);
+
+          // Label text (bold orange for labels that are "important" fields)
+          doc.setFontSize(8).setFont("helvetica", "bold").setTextColor(...ORANGE);
+          const labelLines = doc.splitTextToSize(label, LEFT_LABEL_W - 4);
+          doc.text(labelLines, MARGIN + 2, y + (ROW_H / 2) + 1.5);
+
+          // Value text
+          const valueColor: [number, number, number] = isBlue ? BLUE : DARK;
+          doc.setFont("helvetica", "normal").setTextColor(...valueColor);
+          const valueLines = doc.splitTextToSize(value, LEFT_COL_W - LEFT_LABEL_W - 4);
+          doc.text(valueLines, MARGIN + LEFT_LABEL_W + 2, y + (ROW_H / 2) + 1.5);
+        } else {
+          // Empty left row (if right has more rows)
+          doc.setFillColor(...rowBg);
+          doc.rect(MARGIN, y, LEFT_COL_W, ROW_H, "F");
+          doc.setDrawColor(...BORDER);
+          doc.rect(MARGIN, y, LEFT_COL_W, ROW_H, "S");
+        }
+
+        // ── Right table row ─────────────────────────────────────────────────
+        if (i < totalRightRows) {
+          const { childName, adultName } = guestRows[i];
+          const rowNum = i + 1;
+
+          // Row background
+          doc.setFillColor(...rowBg);
+          doc.rect(RIGHT_COL_X, y, RIGHT_COL_W, ROW_H, "F");
+
+          // Row border
+          doc.setDrawColor(...BORDER);
+          doc.setLineWidth(0.2);
+          doc.rect(RIGHT_COL_X, y, RIGHT_COL_W, ROW_H, "S");
+
+          // Vertical dividers
+          doc.line(RIGHT_COL_X + RIGHT_NUM_W, y, RIGHT_COL_X + RIGHT_NUM_W, y + ROW_H);
+          doc.line(RIGHT_COL_X + RIGHT_NUM_W + RIGHT_CHILD_W, y, RIGHT_COL_X + RIGHT_NUM_W + RIGHT_CHILD_W, y + ROW_H);
+
+          // Row number (#1, #2, ...)
+          doc.setFontSize(7.5).setFont("helvetica", "bold").setTextColor(...ORANGE);
+          doc.text(`#${rowNum}`, RIGHT_COL_X + 2, y + (ROW_H / 2) + 1.5);
+
+          // Child name
+          doc.setFont("helvetica", "normal").setTextColor(...(childName ? BLUE : DARK));
+          if (childName) {
+            doc.text(doc.splitTextToSize(childName, RIGHT_CHILD_W - 3), RIGHT_COL_X + RIGHT_NUM_W + 2, y + (ROW_H / 2) + 1.5);
+          }
+
+          // Adult name
+          doc.setTextColor(...(adultName ? BLUE : DARK));
+          if (adultName) {
+            doc.text(doc.splitTextToSize(adultName, RIGHT_ADULT_W - 3), RIGHT_COL_X + RIGHT_NUM_W + RIGHT_CHILD_W + 2, y + (ROW_H / 2) + 1.5);
+          }
+        } else {
+          // Empty right row
+          doc.setFillColor(...rowBg);
+          doc.rect(RIGHT_COL_X, y, RIGHT_COL_W, ROW_H, "F");
+          doc.setDrawColor(...BORDER);
+          doc.rect(RIGHT_COL_X, y, RIGHT_COL_W, ROW_H, "S");
+        }
+
+        y += ROW_H;
+      }
+
+      // ─── Save ─────────────────────────────────────────────────────────────
+      const safeRef = bookingRef.replace(/[^a-zA-Z0-9_-]/g, "-");
+      const safeName = booking.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9_-]/g, "");
+      const fileName = `SpinPin-Party-${safeRef}-${safeName}.pdf`;
       doc.save(fileName);
     } catch (err) {
       console.error("PDF generation failed:", err);

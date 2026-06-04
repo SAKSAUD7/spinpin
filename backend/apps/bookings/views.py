@@ -63,10 +63,12 @@ class BookingViewSet(viewsets.ModelViewSet):
         search = self.request.query_params.get('search', None)
         if search:
             queryset = queryset.filter(
-                Q(name__icontains=search) | 
-                Q(email__icontains=search) | 
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
                 Q(phone__icontains=search) |
-                Q(uuid__icontains=search)
+                Q(booking_number__icontains=search) |
+                Q(uuid__icontains=search) |
+                Q(id__icontains=search)
             )
         
         # Arrival status filter
@@ -929,10 +931,13 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
         search = self.request.query_params.get('search', None)
         if search:
             queryset = queryset.filter(
-                Q(name__icontains=search) | 
-                Q(email__icontains=search) | 
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
                 Q(phone__icontains=search) |
-                Q(uuid__icontains=search)
+                Q(booking_number__icontains=search) |
+                Q(uuid__icontains=search) |
+                Q(id__icontains=search) |
+                Q(birthday_child_name__icontains=search)
             )
         
         # Arrival status filter

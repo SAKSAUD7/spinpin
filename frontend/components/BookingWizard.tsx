@@ -539,7 +539,9 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
         const gst = subtotal * (prices.gstRate / 100);
 
-        return { subtotal, gst, total: subtotal + gst };
+        const onlineBookingFee = 2.00;
+
+        return { subtotal, gst, onlineBookingFee, total: subtotal + gst + onlineBookingFee };
 
     };
 
@@ -586,6 +588,10 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                 setStep(step + 1);
 
                 showToast("success", "Step completed!", 2000);
+
+            } else {
+
+                showToast("error", "Please fix errors before continuing.");
 
             }
 
@@ -2013,6 +2019,12 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                                     </div>
 
                                                 )}
+
+                                                <div className="flex justify-between text-white/60 text-sm mb-1">
+
+                                                    <span>Online Booking Fee</span><span>{totals.onlineBookingFee.toFixed(2)}</span>
+
+                                                </div>
 
                                                 {discount > 0 && (
 

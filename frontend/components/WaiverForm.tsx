@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import React, { useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Plus, Trash2, Calendar, User, Mail, Phone, AlertCircle, Check, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,9 +23,11 @@ export const WaiverForm = () => {
     const kidsCount = watch("kids");
 
     // Auto-fill date of arrival
-    if (date && !watch("dateOfArrival")) {
-        setValue("dateOfArrival", date);
-    }
+    useEffect(() => {
+        if (date && !watch("dateOfArrival")) {
+            setValue("dateOfArrival", date);
+        }
+    }, [date, watch, setValue]);
 
     // Calculate max date for 18+ years
     const maxAdultDOB = new Date();

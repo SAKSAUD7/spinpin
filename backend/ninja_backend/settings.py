@@ -247,9 +247,8 @@ if 'WEBSITE_HOSTNAME' in os.environ:
 
 CORS_ALLOW_CREDENTIALS = True
 
-# In development: allow all origins so 500 errors don't appear as CORS errors in devtools.
-# In production: only CORS_ALLOWED_ORIGINS are permitted (CORS_ALLOW_ALL_ORIGINS=False).
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # True in dev, False in prod
+# In production: only CORS_ALLOWED_ORIGINS are permitted
+CORS_ALLOW_ALL_ORIGINS = False
 
 
 # ====================================================

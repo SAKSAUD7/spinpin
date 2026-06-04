@@ -108,6 +108,18 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
 
     const fmt = (v: any) => `£${Number(v || 0).toFixed(2)}`;
 
+    // Prepare booking object with waivers as participants for the PDF
+    const pdfBooking = {
+        ...booking,
+        participants: {
+            adults: waivers.flatMap(w => [
+                { name: w.name, email: w.email, phone: w.phone, dob: w.dob },
+                ...(w.adults || []).map((a: any) => ({ name: a.name, email: a.email, dob: a.dob }))
+            ]),
+            minors: waivers.flatMap(w => (w.minors || []).map((m: any) => ({ name: m.name, dob: m.dob })))
+        }
+    };
+
     return (
         <div className="p-8 max-w-5xl mx-auto">
             <Link href="/admin/party-bookings" className="inline-flex items-center text-slate-500 hover:text-slate-900 mb-6 transition-colors">
@@ -123,7 +135,7 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <PartyBookingPDF booking={booking} className="text-sm" />
+                    <PartyBookingPDF booking={pdfBooking} className="text-sm" />
                     <button type="button" onClick={handleShare}
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm">
                         {copied ? <><CheckCheck size={16} className="text-green-600" />Copied!</> : <><Share2 size={16} />Share Link</>}

@@ -52,7 +52,14 @@ export async function createPageSection(data: any) {
         details: { after: item }
     });
 
+    // Revalidate all public-facing pages that consume page sections
     revalidatePath('/admin/cms/page-sections');
+    revalidatePath('/pricing');
+    revalidatePath('/');
+    revalidatePath('/parties');
+    revalidatePath('/attractions');
+    revalidatePath('/contact');
+    revalidatePath('/guidelines');
     return { success: true, item: transformCmsItem(item) };
 }
 
@@ -84,7 +91,14 @@ export async function updatePageSection(id: string, data: any) {
         details: { after: item }
     });
 
+    // Revalidate all public-facing pages that consume page sections
     revalidatePath('/admin/cms/page-sections');
+    revalidatePath('/pricing');
+    revalidatePath('/');
+    revalidatePath('/parties');
+    revalidatePath('/attractions');
+    revalidatePath('/contact');
+    revalidatePath('/guidelines');
     return { success: true, item: transformCmsItem(item) };
 }
 
