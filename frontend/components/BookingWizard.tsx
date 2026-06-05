@@ -1327,13 +1327,10 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                 <div className="grid grid-cols-2 gap-3">
 
-                                                    {[
-
-                                                        { val: "60", label: "60 Minutes", note: "Standard Session", price: "" },
-
-                                                        { val: "120", label: "120 Minutes", note: "Extended Session", price: "+ £9.95/pp" },
-
-                                                    ].map(d => (
+                                                    {([
+                                                        { val: "60" as const, label: "60 Minutes", note: "Standard Session", price: "" },
+                                                        { val: "120" as const, label: "120 Minutes", note: "Extended Session", price: "+ £9.95/pp" },
+                                                    ] as const).map(d => (
 
                                                         <button type="button" key={d.val}
 
