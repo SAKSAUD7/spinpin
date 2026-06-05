@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart } from "lucide-react";
@@ -170,7 +170,15 @@ export const Footer = ({ settings, socialLinks }: { settings?: any; socialLinks?
                         © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
                     </p>
                     <p className="text-white/60 text-sm flex items-center gap-1">
-                        Made with <Heart className="w-4 h-4 text-accent fill-accent" /> for fun and entertainment
+                        Made with <Heart className="w-4 h-4 text-accent fill-accent" /> &mdash; by{" "}
+                        <a
+                            href="https://saud-portfolio-eight.vercel.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent font-semibold hover:text-primary transition-colors duration-200 underline underline-offset-2"
+                        >
+                            saud.co
+                        </a>
                     </p>
                 </div>
             </div>

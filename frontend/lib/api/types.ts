@@ -102,7 +102,7 @@ export const bookingSchema = z.object({
     time: z.string()
         .min(1, "Please select a time slot"),
 
-    duration: z.enum(["60", "120"]),
+    duration: z.string().default("60"),
 
     // Guest Details
     adults: z.number()
@@ -205,32 +205,57 @@ export function isValidBookingDate(date: string): boolean {
 }
 
 // Get available time slots for a given date based on SpinPin UK opening hours:
-// Mon: Closed
-// Tue-Fri (term-time): 14:00-22:00
-// Updated hours:
-// Monday: CLOSED
-// Tue-Fri: 12:00 PM – 10:00 PM (also open in school holidays)
-// Sat: 12:00 PM – 11:00 PM
-// Sun: 12:00 PM – 10:00 PM
-// For today's date, only show slots at least 2 hours from now
-export function getAvailableTimeSlots(date: string): string[] {
+//
+// ROLLER SKATING — timed sessions, 60-min slot intervals:
+//   Monday: CLOSED
+//   Tue–Fri: 12:00 PM – 10:00 PM
+//   Sat:     12:00 PM – 11:00 PM
+//   Sun:     12:00 PM – 10:00 PM
+//
+// TEN PIN BOWLING — per-game pricing, no fixed duration, 90-min slot intervals:
+//   Lanes need ~90 mins between slot bookings for the current group to finish,
+//   lane reset/cleanup, and the next group to settle in.
+//   Monday: CLOSED
+//   Tue–Sun: same open/close hours as skating, but slots every 90 mins.
+//
+// For today's date, only show slots at least 2 hours from now.
+export function getAvailableTimeSlots(date: string, activity?: string): string[] {
     const selectedDate = new Date(date + 'T12:00:00');
     const dayOfWeek = selectedDate.getDay(); // 0=Sun, 1=Mon, 2=Tue...
 
     // Monday is always closed
     if (dayOfWeek === 1) return [];
 
+    const isBowling = activity === 'ten-pin-bowling';
     let allSlots: string[];
 
-    if (dayOfWeek === 6) {
-        // Saturday: 12:00 PM – 11:00 PM
-        allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
-    } else if (dayOfWeek === 0) {
-        // Sunday: 12:00 PM – 10:00 PM
-        allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+    if (isBowling) {
+        // ── Bowling: 90-minute slot intervals ─────────────────────────────────
+        // Each slot represents a lane booking window. Groups play per-game
+        // and finish at their own pace; 90-min gaps ensure smooth lane turnover.
+        //
+        // Slots generated from 12:00 in 90-min steps:
+        //   12:00 → 13:30 → 15:00 → 16:30 → 18:00 → 19:30 → 21:00
+        // Saturday gets one extra slot at 21:00 (close 23:00 = more runway).
+        if (dayOfWeek === 6) {
+            // Saturday 12:00–23:00: 90-min gaps, last slot 21:00 (finishes ~22:30)
+            allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
+        } else {
+            // Tue–Fri + Sun 12:00–22:00: 90-min gaps, last slot 21:00
+            allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
+        }
     } else {
-        // Tue-Fri: 12:00 PM – 10:00 PM (same for school holidays — open all week except Mon)
-        allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+        // ── Skating: 60-minute slot intervals (timed sessions) ────────────────
+        if (dayOfWeek === 6) {
+            // Saturday: 12:00 PM – 11:00 PM
+            allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
+        } else if (dayOfWeek === 0) {
+            // Sunday: 12:00 PM – 10:00 PM
+            allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+        } else {
+            // Tue–Fri: 12:00 PM – 10:00 PM
+            allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+        }
     }
 
     // For today's date, only show slots at least 2 hours from now
@@ -238,11 +263,11 @@ export function getAvailableTimeSlots(date: string): string[] {
     if (selectedDate.toDateString() === today.toDateString()) {
         const currentHour = today.getHours();
         const currentMinute = today.getMinutes();
-        // Must be at least 2 hours from now
         const minSlotHour = currentMinute > 0 ? currentHour + 3 : currentHour + 2;
         return allSlots.filter(slot => {
-            const [slotHour] = slot.split(':').map(Number);
-            return slotHour >= minSlotHour;
+            const [slotHour, slotMin] = slot.split(':').map(Number);
+            const slotTotalMins = slotHour * 60 + slotMin;
+            return slotTotalMins >= minSlotHour * 60;
         });
     }
     return allSlots;

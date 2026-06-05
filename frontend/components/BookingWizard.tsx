@@ -357,8 +357,16 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
 
-    // Update available slots when date changes
+    // Auto-set duration for bowling (per-game, no fixed session) when activity changes
+    useEffect(() => {
+        if (selectedActivity === 'ten-pin-bowling') {
+            setValue('duration', 'per-game');
+        } else if (!formData.duration || formData.duration === 'per-game') {
+            setValue('duration', '60');
+        }
+    }, [selectedActivity]);
 
+    // Update available slots when date or activity changes
     useEffect(() => {
 
         if (formData.date) {
@@ -375,7 +383,8 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             }
 
-            const slots = getAvailableTimeSlots(formData.date);
+            // Pass activity so bowling gets 90-min intervals, skating gets 60-min
+            const slots = getAvailableTimeSlots(formData.date, selectedActivity ?? undefined);
 
             setAvailableSlots(slots);
 
@@ -387,7 +396,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
         }
 
-    }, [formData.date, bookingBlocks]);
+    }, [formData.date, bookingBlocks, selectedActivity]);
 
     // Fetch real-time slot occupancy whenever date changes
     useEffect(() => {
@@ -1304,51 +1313,68 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
 
-                                        {/* Duration */}
+                                        {/* Duration — only shown for Roller Skating (timed sessions).
+                                             Bowling is per-game with no fixed duration; lane slots
+                                             are already spaced 90 mins apart for turnover. */}
+                                        {selectedActivity !== 'ten-pin-bowling' && (
+                                            <div>
 
-                                        <div>
+                                                <label className="block text-white/80 text-sm font-bold mb-3 uppercase tracking-wide">
 
-                                            <label className="block text-white/80 text-sm font-bold mb-3 uppercase tracking-wide">
+                                                    <Zap className="inline w-4 h-4 mr-1.5" /> Session Duration
 
-                                                <Zap className="inline w-4 h-4 mr-1.5" /> Session Duration
+                                                </label>
 
-                                            </label>
+                                                <div className="grid grid-cols-2 gap-3">
 
-                                            <div className="grid grid-cols-2 gap-3">
+                                                    {[
 
-                                                {[
+                                                        { val: "60", label: "60 Minutes", note: "Standard Session", price: "" },
 
-                                                    { val: "60", label: "60 Minutes", note: "Standard Session", price: "" },
+                                                        { val: "120", label: "120 Minutes", note: "Extended Session", price: "+ £9.95/pp" },
 
-                                                    { val: "120", label: "120 Minutes", note: "Extended Session", price: "+ £9.95/pp" },
+                                                    ].map(d => (
 
-                                                ].map(d => (
+                                                        <button type="button" key={d.val}
 
-                                                    <button type="button" key={d.val}
+                                                            onClick={() => setValue("duration", d.val, { shouldValidate: true })}
 
-                                                        onClick={() => setValue("duration", d.val as "60" | "120", { shouldValidate: true })}
+                                                            className={`p-4 rounded-xl text-left border-2 transition-all ${formData.duration === d.val
 
-                                                        className={`p-4 rounded-xl text-left border-2 transition-all ${formData.duration === d.val
+                                                                ? "border-primary bg-primary/10"
 
-                                                            ? "border-primary bg-primary/10"
+                                                                : "border-white/10 bg-white/5 hover:border-white/30"
 
-                                                            : "border-white/10 bg-white/5 hover:border-white/30"
+                                                                }`}>
 
-                                                            }`}>
+                                                            <div className="font-black text-white">{d.label}</div>
 
-                                                        <div className="font-black text-white">{d.label}</div>
+                                                            <div className="text-white/50 text-xs mt-0.5">{d.note}</div>
 
-                                                        <div className="text-white/50 text-xs mt-0.5">{d.note}</div>
+                                                            {d.price && <div className="text-primary text-xs font-bold mt-1">{d.price}</div>}
 
-                                                        {d.price && <div className="text-primary text-xs font-bold mt-1">{d.price}</div>}
+                                                        </button>
 
-                                                    </button>
+                                                    ))}
 
-                                                ))}
+                                                </div>
 
                                             </div>
+                                        )}
 
-                                        </div>
+                                        {/* Bowling: per-game info banner instead of duration picker */}
+                                        {selectedActivity === 'ten-pin-bowling' && (
+                                            <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                                                <span className="text-2xl">🎳</span>
+                                                <div>
+                                                    <div className="text-blue-200 font-bold text-sm mb-1">Per-Game Bowling — No Fixed Duration</div>
+                                                    <div className="text-blue-300/80 text-xs leading-relaxed">
+                                                        Your lane is reserved for your slot. Play as many games as you like within the session window.
+                                                        Each time slot is spaced <strong className="text-blue-200">90 minutes apart</strong> to ensure your lane is ready and waiting.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
 
                                     </div>
 
