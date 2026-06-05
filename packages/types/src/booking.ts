@@ -37,7 +37,7 @@ export const bookingSchema = z.object({
     time: z.string()
         .min(1, "Please select a time slot"),
 
-    duration: z.enum(["60", "120"]),
+    duration: z.enum(["60", "90", "120"]),
 
     // Guest Details
     adults: z.number()

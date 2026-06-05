@@ -357,11 +357,13 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
 
-    // Auto-set duration for bowling (per-game, no fixed session) when activity changes
+    // Auto-set duration for bowling (90-min slot window) when activity changes
     useEffect(() => {
         if (selectedActivity === 'ten-pin-bowling') {
-            setValue('duration', 'per-game');
-        } else if (!formData.duration || formData.duration === 'per-game') {
+            // Bowling has no fixed session end — we use 90 (the slot interval in minutes)
+            // so the value parses cleanly to an integer for the backend.
+            setValue('duration', '90');
+        } else if (!formData.duration || formData.duration === '90') {
             setValue('duration', '60');
         }
     }, [selectedActivity]);
