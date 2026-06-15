@@ -1,3 +1,5 @@
+# pyright: reportIncompatibleVariableOverride=false
+# pyright: reportMissingTypeStubs=false
 from django.contrib import admin
 from .models import EmailLog
 

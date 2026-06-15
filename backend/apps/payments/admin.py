@@ -5,6 +5,9 @@ Provides comprehensive admin interface for viewing and managing payments.
 All payment records are read-only to prevent manual editing.
 """
 
+# pyright: reportIncompatibleVariableOverride=false
+# pyright: reportMissingTypeStubs=false
+# pyright: reportAttributeAccessIssue=false
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
