@@ -1,3 +1,5 @@
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportMissingTypeStubs=false
 """
 Customer authentication views for SpinPin.
 Provides register, login, logout, me, and my-bookings endpoints.
