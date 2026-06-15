@@ -1,6 +1,10 @@
 """
 SumUp Payment Gateway Integration for SpinPin.
 
+Dual-Merchant Setup:
+  - Roller Skating & Arcade → SpinPin Ltd account (SUMUP_SKATING_*)
+  - Ten Pin Bowling         → Twinkle Town Ltd account (SUMUP_BOWLING_*)
+
 Uses SumUp Checkout API (hosted redirect flow):
   1. Call /checkouts to create a checkout → get checkout_id
   2. Redirect customer to https://checkout.sumup.com/one/checkout?token={checkout_id}
@@ -25,82 +29,162 @@ logger = logging.getLogger(__name__)
 
 SUMUP_API_BASE = "https://api.sumup.com/v0.1"
 
+# Activities routed to Twinkle Town Ltd (bowling account)
+BOWLING_ACTIVITIES = {"ten-pin-bowling", "bowling"}
+
+# Activities routed to SpinPin Ltd (skating account)
+SKATING_ACTIVITIES = {"roller-skating", "skating", "arcade"}
+
+
+def _get_merchant_credentials(activity: Optional[str]) -> Dict[str, str]:
+    """
+    Return the correct SumUp credentials based on the booking activity.
+
+    Routing logic:
+      - ten-pin-bowling  → Twinkle Town Ltd (SUMUP_BOWLING_*)
+      - roller-skating   → SpinPin Ltd     (SUMUP_SKATING_*)
+      - arcade           → SpinPin Ltd     (SUMUP_SKATING_*)
+      - unknown/None     → SpinPin Ltd     (SUMUP_SKATING_*) as default
+    """
+    activity_lower = (activity or "").lower().strip()
+
+    if activity_lower in BOWLING_ACTIVITIES:
+        api_key       = getattr(settings, "SUMUP_BOWLING_API_KEY", "")
+        merchant_code = getattr(settings, "SUMUP_BOWLING_MERCHANT_CODE", "M7EN4CMZ")
+        account_name  = "Twinkle Town Ltd"
+    else:
+        # Skating, Arcade, or default
+        api_key       = getattr(settings, "SUMUP_SKATING_API_KEY", "")
+        merchant_code = getattr(settings, "SUMUP_SKATING_MERCHANT_CODE", "")
+        account_name  = "SpinPin Ltd"
+
+    # Final fallback to legacy single-key settings
+    if not api_key:
+        api_key = getattr(settings, "SUMUP_API_KEY", "")
+    if not merchant_code:
+        merchant_code = getattr(settings, "SUMUP_MERCHANT_CODE", "")
+
+    return {
+        "api_key":      api_key,
+        "merchant_code": merchant_code,
+        "account_name": account_name,
+    }
+
 
 class SumUpGateway(BasePaymentGateway):
     """
-    SumUp Checkout API gateway.
+    SumUp Checkout API gateway with dual-merchant support.
 
-    Supports:
-    - Creating hosted checkouts (redirect flow)
-    - Verifying payment status via API
-    - Refunds via API
+    The correct merchant credentials are selected automatically based on the
+    booking's activity field:
+      - roller-skating / arcade → SpinPin Ltd
+      - ten-pin-bowling         → Twinkle Town Ltd
     """
 
     def __init__(self):
-        self.api_key = getattr(settings, "SUMUP_API_KEY", "")
-        self.merchant_code = getattr(settings, "SUMUP_MERCHANT_CODE", "")
-        self.return_url = getattr(settings, "SUMUP_RETURN_URL", "http://localhost:5000/book/success")
-        if not self.api_key:
-            logger.warning("SUMUP_API_KEY not configured — SumUp payments will fail")
+        """
+        Base (single-activity) initialization — kept for backward compatibility
+        with the factory singleton. The actual credentials are resolved per-order
+        inside create_order() using the booking's activity field.
+        """
+        self.return_url = getattr(
+            settings, "SUMUP_RETURN_URL", "http://localhost:5000/book/success"
+        )
 
     def get_provider_name(self) -> str:
         return "sumup"
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self, api_key: str) -> Dict[str, str]:
         return {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
 
     def create_order(self, booking, amount: Decimal) -> Dict[str, Any]:
         """
-        Create a SumUp checkout and return checkout details.
+        Create a SumUp checkout using the correct merchant account for this booking.
 
         Returns dict with:
-          - order_id: the checkout_id from SumUp
+          - order_id:     the checkout_id from SumUp
           - checkout_url: URL to redirect customer to
-          - provider: 'sumup'
+          - provider:     'sumup'
+          - merchant:     which account was used ('SpinPin Ltd' or 'Twinkle Town Ltd')
           - amount, currency
         """
-        # Determine booking type
         from apps.bookings.models import PartyBooking
-        is_party = isinstance(booking, PartyBooking)
+
+        is_party    = isinstance(booking, PartyBooking)
         booking_type = "party" if is_party else "session"
 
-        # Generate a unique reference
+        # ── Select merchant credentials from activity ─────────────────────────
+        activity = getattr(booking, "activity", None) or ""
+        creds    = _get_merchant_credentials(activity)
+        api_key       = creds["api_key"]
+        merchant_code = creds["merchant_code"]
+        account_name  = creds["account_name"]
+
+        if not api_key:
+            raise Exception(
+                f"SumUp API key not configured for {account_name}. "
+                f"Please set SUMUP_SKATING_API_KEY / SUMUP_BOWLING_API_KEY in .env"
+            )
+        if not merchant_code:
+            raise Exception(
+                f"SumUp Merchant Code not configured for {account_name}. "
+                f"Please set SUMUP_SKATING_MERCHANT_CODE / SUMUP_BOWLING_MERCHANT_CODE in .env"
+            )
+
+        logger.info(
+            f"SumUp: Using {account_name} account for "
+            f"{booking_type} booking #{booking.id} (activity: '{activity}')"
+        )
+
+        # ── Build checkout payload ────────────────────────────────────────────
         reference = f"SP-{booking.id}-{uuid.uuid4().hex[:8].upper()}"
 
-        description = (
-            f"{'Party' if is_party else 'Session'} Booking #{booking.id} — SpinPin Leicester"
+        activity_label = activity.replace("-", " ").title() if activity else ("Party" if is_party else "Session")
+        description    = f"{activity_label} Booking #{booking.id} — SpinPin Leicester"
+        return_url_str = (
+            f"{self.return_url}"
+            f"?booking_id={booking.id}"
+            f"&booking_type={booking_type}"
+            f"&reference={reference}"
         )
 
         payload = {
             "checkout_reference": reference,
-            "amount": float(amount),
-            "currency": "GBP",
-            "merchant_code": self.merchant_code,
-            "description": description,
-            "return_url": f"{self.return_url}?booking_id={booking.id}&booking_type={booking_type}&reference={reference}",
+            "amount":            float(amount),
+            "currency":          "GBP",
+            "merchant_code":     merchant_code,
+            "description":       description,
+            "hosted_checkout": {
+                "enabled": True,
+                "redirect_url": return_url_str
+            }
         }
 
         try:
             resp = requests.post(
                 f"{SUMUP_API_BASE}/checkouts",
                 json=payload,
-                headers=self._headers(),
+                headers=self._headers(api_key),
                 timeout=15,
             )
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as e:
-            logger.error(f"SumUp create_order failed: {e}")
+            logger.error(f"SumUp create_order failed ({account_name}): {e}")
+            try:
+                logger.error(f"SumUp error response: {e.response.text}")
+            except:
+                pass
             raise Exception(f"SumUp checkout creation failed: {e}")
 
         checkout_id = data.get("id")
         if not checkout_id:
             raise Exception(f"SumUp returned no checkout ID: {data}")
 
-        # Save Payment record
+        # ── Save Payment record ───────────────────────────────────────────────
         payment_kwargs = {"booking": booking} if not is_party else {"party_booking": booking}
         Payment.objects.create(
             **payment_kwargs,
@@ -109,23 +193,36 @@ class SumUpGateway(BasePaymentGateway):
             amount=amount,
             currency="GBP",
             status="CREATED",
-            provider_response=data,
+            provider_response={
+                **data,
+                "_merchant_account": account_name,
+                "_activity": activity,
+            },
         )
 
-        checkout_url = f"https://checkout.sumup.com/one/checkout?token={checkout_id}"
+        # Use the hosted_checkout_url provided by the API, fallback to pay.sumup.com/b2c/
+        checkout_url = data.get("hosted_checkout_url")
+        if not checkout_url:
+            checkout_url = f"https://pay.sumup.com/b2c/{checkout_id}"
 
-        logger.info(f"SumUp checkout created: {checkout_id} for {booking_type} booking {booking.id}")
+        logger.info(
+            f"SumUp checkout created: {checkout_id} "
+            f"via {account_name} for {booking_type} booking {booking.id}"
+        )
 
         return {
-            "order_id": checkout_id,
+            "order_id":     checkout_id,
             "checkout_url": checkout_url,
-            "provider": "sumup",
-            "amount": float(amount),
-            "currency": "GBP",
-            "reference": reference,
+            "provider":     "sumup",
+            "merchant":     account_name,
+            "amount":       float(amount),
+            "currency":     "GBP",
+            "reference":    reference,
         }
 
-    def verify_payment(self, payment_data: Dict[str, Any]) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+    def verify_payment(
+        self, payment_data: Dict[str, Any]
+    ) -> Tuple[bool, Optional[str], Dict[str, Any]]:
         """
         Verify a SumUp checkout by polling /checkouts/{id}.
 
@@ -136,10 +233,13 @@ class SumUpGateway(BasePaymentGateway):
         if not checkout_id:
             return False, None, {"error": "Missing checkout ID"}
 
+        # Look up which merchant processed this checkout from the stored Payment record
+        api_key = self._get_api_key_for_checkout(checkout_id)
+
         try:
             resp = requests.get(
                 f"{SUMUP_API_BASE}/checkouts/{checkout_id}",
-                headers=self._headers(),
+                headers=self._headers(api_key),
                 timeout=15,
             )
             resp.raise_for_status()
@@ -148,20 +248,17 @@ class SumUpGateway(BasePaymentGateway):
             logger.error(f"SumUp verify_payment failed: {e}")
             return False, None, {"error": str(e)}
 
-        status = data.get("status", "").upper()
-        logger.info(f"SumUp checkout {checkout_id} status: {status}")
+        checkout_status = data.get("status", "").upper()
+        logger.info(f"SumUp checkout {checkout_id} status: {checkout_status}")
 
-        if status == "PAID":
-            # Get the transaction ID from the transactions list
+        if checkout_status == "PAID":
             transactions = data.get("transactions", [])
             tx_id = transactions[0].get("id") if transactions else checkout_id
 
-            # Update Payment record
             try:
                 payment = Payment.objects.get(order_id=checkout_id)
                 payment.mark_success(payment_id=tx_id, provider_response=data)
 
-                # Update booking paid_amount and payment_status
                 booking = payment.get_booking()
                 booking.paid_amount = payment.amount
                 if booking.paid_amount >= booking.amount:
@@ -169,32 +266,46 @@ class SumUpGateway(BasePaymentGateway):
                 else:
                     booking.payment_status = "PARTIAL"
                 booking.booking_status = "CONFIRMED"
-                booking.save(update_fields=["paid_amount", "payment_status", "booking_status"])
-
+                booking.save(
+                    update_fields=["paid_amount", "payment_status", "booking_status"]
+                )
             except Payment.DoesNotExist:
                 logger.warning(f"Payment record not found for checkout {checkout_id}")
 
             return True, tx_id, data
 
-        elif status in ("FAILED", "EXPIRED"):
+        elif checkout_status in ("FAILED", "EXPIRED"):
             try:
                 payment = Payment.objects.get(order_id=checkout_id)
-                payment.mark_failed(f"SumUp status: {status}")
+                payment.mark_failed(f"SumUp status: {checkout_status}")
             except Payment.DoesNotExist:
                 pass
-            return False, None, {"error": f"Checkout {status.lower()}", "status": status}
+            return False, None, {
+                "error": f"Checkout {checkout_status.lower()}",
+                "status": checkout_status,
+            }
 
-        # Pending / in-progress
-        return False, None, {"status": status, "message": "Payment not yet completed"}
+        return False, None, {
+            "status": checkout_status,
+            "message": "Payment not yet completed",
+        }
 
-    def refund(self, payment: Payment, amount: Optional[Decimal] = None) -> Dict[str, Any]:
+    def refund(
+        self, payment: Payment, amount: Optional[Decimal] = None
+    ) -> Dict[str, Any]:
         """
-        Initiate a refund via SumUp API.
+        Initiate a refund via SumUp API using the correct merchant API key.
         SumUp refunds are made against the transaction ID, not the checkout ID.
         """
         tx_id = payment.payment_id
         if not tx_id:
             raise ValueError("Cannot refund — no SumUp transaction ID on payment record")
+
+        # Determine merchant from stored provider_response
+        stored_response = payment.provider_response or {}
+        activity = stored_response.get("_activity", "")
+        creds = _get_merchant_credentials(activity)
+        api_key = creds["api_key"]
 
         refund_amount = float(amount) if amount else float(payment.amount)
 
@@ -202,7 +313,7 @@ class SumUpGateway(BasePaymentGateway):
             resp = requests.post(
                 f"{SUMUP_API_BASE}/me/refund/{tx_id}",
                 json={"amount": refund_amount},
-                headers=self._headers(),
+                headers=self._headers(api_key),
                 timeout=15,
             )
             resp.raise_for_status()
@@ -211,25 +322,50 @@ class SumUpGateway(BasePaymentGateway):
             logger.error(f"SumUp refund failed: {e}")
             raise Exception(f"SumUp refund failed: {e}")
 
-        # Update payment record
         payment.status = "REFUNDED"
-        payment.notes = f"Refunded £{refund_amount}"
+        payment.notes  = f"Refunded £{refund_amount}"
         payment.save(update_fields=["status", "notes"])
 
-        # Update booking
         booking = payment.get_booking()
-        booking.paid_amount = max(Decimal("0"), booking.paid_amount - Decimal(str(refund_amount)))
+        booking.paid_amount = max(
+            Decimal("0"), booking.paid_amount - Decimal(str(refund_amount))
+        )
         if booking.paid_amount <= 0:
             booking.payment_status = "REFUNDED"
         else:
             booking.payment_status = "PARTIAL"
         booking.save(update_fields=["paid_amount", "payment_status"])
 
-        logger.info(f"SumUp refund processed: £{refund_amount} for transaction {tx_id}")
+        logger.info(
+            f"SumUp refund processed: £{refund_amount} for transaction {tx_id}"
+        )
 
         return {
             "refund_id": f"refund-{tx_id}",
-            "amount": refund_amount,
-            "currency": "GBP",
-            "status": "REFUNDED",
+            "amount":    refund_amount,
+            "currency":  "GBP",
+            "status":    "REFUNDED",
         }
+
+    # ── Internal helpers ──────────────────────────────────────────────────────
+
+    def _get_api_key_for_checkout(self, checkout_id: str) -> str:
+        """
+        Look up which merchant API key to use for a checkout verification/refund
+        by checking the stored Payment's provider_response._activity field.
+        Falls back to SpinPin Ltd (skating) keys if not determinable.
+        """
+        try:
+            payment = Payment.objects.get(order_id=checkout_id)
+            stored  = payment.provider_response or {}
+            activity = stored.get("_activity", "")
+            creds   = _get_merchant_credentials(activity)
+            return creds["api_key"]
+        except Payment.DoesNotExist:
+            pass
+
+        # Default: SpinPin Ltd
+        return (
+            getattr(settings, "SUMUP_SKATING_API_KEY", "")
+            or getattr(settings, "SUMUP_API_KEY", "")
+        )

@@ -152,7 +152,8 @@ export async function createBooking(formData: any) {
 
         subtotal = parseFloat((subtotal + addOnsTotal).toFixed(2));
         const gst = parseFloat((subtotal * (GST_RATE / 100)).toFixed(2));
-        let totalAmount = parseFloat((subtotal + gst).toFixed(2));
+        const onlineBookingFee = 2.00;
+        let totalAmount = parseFloat((subtotal + gst + onlineBookingFee).toFixed(2));
         let discountAmount = 0;
         let voucherId = null;
 
@@ -256,6 +257,7 @@ export async function createBooking(formData: any) {
             activity: formData.activity || null,
             add_ons: addOnsList.length > 0 ? addOnsList : null,
             parking_plates: (formData.parkingPlates as string[] || []).filter(Boolean),
+            customer_id: formData.customerId || null,
         };
 
         const bookingRes = await fetch(`${API_URL}/bookings/bookings/`, {
@@ -356,7 +358,8 @@ export async function createBooking(formData: any) {
 
         return {
             success: true,
-            bookingId: booking.uuid || booking.id,
+            bookingId: booking.uuid || booking.id, // UUID for display/tracking
+            bookingIntId: booking.id, // Integer ID for backend operations (payments)
             bookingNumber: bookingNumber
         };
     } catch (error) {

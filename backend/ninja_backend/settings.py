@@ -311,13 +311,27 @@ LOGGING = {
 # Payment Mode: 'mock' (default, pay at venue) or 'sumup' (live online payments)
 PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'mock')
 
-# SumUp Credentials (only needed when PAYMENT_MODE='sumup')
-SUMUP_API_KEY = os.getenv('SUMUP_API_KEY', '')
-SUMUP_MERCHANT_CODE = os.getenv('SUMUP_MERCHANT_CODE', '')
+# ── SumUp: Roller Skating & Arcade ─────────────────────────────────────
+# Account: SpinPin Ltd
+# Used for activity: roller-skating, arcade (and any unknown activity)
+SUMUP_SKATING_API_KEY      = os.getenv('SUMUP_SKATING_API_KEY', '')
+SUMUP_SKATING_MERCHANT_CODE = os.getenv('SUMUP_SKATING_MERCHANT_CODE', '')
+
+# ── SumUp: Ten Pin Bowling ──────────────────────────────────────────────
+# Account: Twinkle Town Ltd (Merchant Code: M7EN4CMZ)
+# Used for activity: ten-pin-bowling
+SUMUP_BOWLING_API_KEY      = os.getenv('SUMUP_BOWLING_API_KEY', '')
+SUMUP_BOWLING_MERCHANT_CODE = os.getenv('SUMUP_BOWLING_MERCHANT_CODE', 'M7EN4CMZ')
+
+# Return URL after payment (same for both merchants)
 SUMUP_RETURN_URL = os.getenv('SUMUP_RETURN_URL', 'http://localhost:5000/book/success')
 
+# Legacy single-key fallback (kept for backward compatibility)
+SUMUP_API_KEY      = os.getenv('SUMUP_API_KEY', SUMUP_SKATING_API_KEY)
+SUMUP_MERCHANT_CODE = os.getenv('SUMUP_MERCHANT_CODE', SUMUP_SKATING_MERCHANT_CODE)
+
 # Legacy Razorpay (no longer used — kept for migration safety)
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_ID    = os.getenv('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')
 
 # Payment Settings

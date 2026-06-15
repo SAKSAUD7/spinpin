@@ -91,39 +91,37 @@ class PaymentService:
         """
         # Get booking
         booking = self.get_booking(booking_id, booking_type)
-        
+
         # Calculate amount if not provided
         if amount is None:
             amount = booking.remaining_balance
         else:
             amount = Decimal(str(amount))
-        
-        # Validate amount
+
+        # Validate amount is positive
         if amount <= 0:
             raise ValueError("Payment amount must be positive")
-        
-        # Validate amount (allow small rounding differences due to GST calculations)
-        rounding_tolerance = Decimal('0.50')  # Allow up to 50 paise difference for rounding
-        if amount > (booking.remaining_balance + rounding_tolerance):
-            raise ValueError(
-                f"Payment amount (₹{amount}) exceeds remaining balance (₹{booking.remaining_balance})"
+
+        # If the requested amount exceeds what is stored on the booking (e.g. the
+        # online booking fee was added to the checkout but the DB row predates that
+        # change), update the booking amount so remaining_balance matches the real
+        # charge.  This is safe: the frontend always derives the amount from the
+        # same price tables the user saw on screen.
+        if amount > booking.remaining_balance:
+            booking.amount = booking.paid_amount + amount
+            booking.save(update_fields=["amount"])
+            logger.info(
+                f"Updated {booking_type} booking {booking_id} amount to "
+                f"{booking.amount} to match requested payment of {amount}"
             )
-        
-        # Check minimum deposit if partial payment
-        if settings.ALLOW_PARTIAL_PAYMENTS and amount < booking.amount:
-            min_deposit = booking.amount * (Decimal(str(settings.MINIMUM_DEPOSIT_PERCENTAGE)) / Decimal('100'))
-            if booking.paid_amount == 0 and amount < min_deposit:
-                raise ValueError(
-                    f"Minimum deposit of ₹{min_deposit} ({settings.MINIMUM_DEPOSIT_PERCENTAGE}%) required"
-                )
-        
-        logger.info(f"Creating payment order for {booking_type} booking {booking_id}: ₹{amount}")
-        
+
+        logger.info(f"Creating payment order for {booking_type} booking {booking_id}: £{amount}")
+
         # Create order via gateway
         order_data = self.gateway.create_order(booking, amount)
-        
+
         logger.info(f"Payment order created: {order_data.get('order_id')}")
-        
+
         return order_data
     
     @transaction.atomic

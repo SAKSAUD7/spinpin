@@ -29,13 +29,10 @@ import { useToast } from "./ToastProvider";
 import { WaiverForm } from "./WaiverForm";
 
 import { PaymentStep } from "./PaymentStep";
-
+import { useAccount } from "../state/account/AccountContext";
 import { validateVoucher } from "../app/actions/validateVoucher";
-
 import { PageSection } from "../lib/cms/types";
-
 import { fetchBookingBlocks, isDateBlocked, BookingBlock } from "../lib/api/booking-blocks";
-
 import { SmartCalendar } from "./SmartCalendar";
 
 
@@ -219,7 +216,7 @@ function calculateBowlingLanes(totalGuests: number): number {
 
 interface BookingWizardProps {
 
-    onSubmit: (data: any) => Promise<{ success: boolean; bookingId?: string; bookingNumber?: string; error?: string }>;
+    onSubmit: (data: any) => Promise<{ success: boolean; bookingId?: string; bookingIntId?: number; bookingNumber?: string; error?: string }>;
 
     cmsContent?: PageSection[];
 
@@ -239,14 +236,21 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
     const [bookingNumber, setBookingNumber] = useState<string>("");
 
-    const [createdBookingId, setCreatedBookingId] = useState<number | null>(null);
+    const [createdBookingId, setCreatedBookingId] = useState<string | number | null>(null);
+    const [createdBookingIntId, setCreatedBookingIntId] = useState<number | null>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-
     const { showToast } = useToast();
-
+    const { customer, login, register: registerUser } = useAccount();
+    const [authMode, setAuthMode] = useState<"login"|"register">("login");
+    const [authEmail, setAuthEmail] = useState("");
+    const [authPassword, setAuthPassword] = useState("");
+    const [authName, setAuthName] = useState("");
+    const [authPhone, setAuthPhone] = useState("");
+    const [authError, setAuthError] = useState("");
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
     const [voucher, setVoucher] = useState("");
 
     const [discount, setDiscount] = useState(0);
@@ -315,7 +319,33 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
     const formData = watch();
 
+    const handleAuth = async () => {
+        setIsAuthenticating(true);
+        setAuthError("");
+        let res;
+        if (authMode === "login") {
+            res = await login(authEmail, authPassword);
+        } else {
+            res = await registerUser(authName, authEmail, authPhone, authPassword);
+        }
+        setIsAuthenticating(false);
+        if (res.success) {
+            // Auth succeeded — form will be populated by the useEffect below.
+            // Auto-advance past the auth gate to the Waiver step.
+            setAuthEmail(""); setAuthPassword(""); setAuthName(""); setAuthPhone("");
+            setStep(4); // Step 4 = Waiver
+        } else {
+            setAuthError(res.error || "Authentication failed");
+        }
+    };
 
+    useEffect(() => {
+        if (customer) {
+            setValue("name", customer.name);
+            setValue("email", customer.email);
+            if (customer.phone) setValue("phone", customer.phone);
+        }
+    }, [customer, setValue]);
 
     // Load config + booking blocks
 
@@ -433,29 +463,18 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
     // --- Pricing (all from CMS config with fallbacks) -------------------------
 
     const prices = {
-
-        adult: config ? parseFloat(config.adult_price) : 9.95,
-
-        kid: config ? parseFloat(config.kid_price) : 9.95,
-
-        spectator: config ? parseFloat(config.spectator_price) : 2.95,
-
-        gstRate: config ? parseFloat(config.gst_rate) : 0,
+        adult: (config && config.adult_price) ? parseFloat(config.adult_price) : 9.95,
+        kid: (config && config.kid_price) ? parseFloat(config.kid_price) : 9.95,
+        spectator: (config && config.spectator_price) ? parseFloat(config.spectator_price) : 2.95,
+        gstRate: (config && config.gst_rate) ? parseFloat(config.gst_rate) : 0,
 
         // Add-ons (from CMS, with GBP fallbacks)
-
-        skateHire: config && config.skate_hire_price ? parseFloat(config.skate_hire_price) : 2.95,
-
-        shoeHire: config && config.shoe_hire_price ? parseFloat(config.shoe_hire_price) : 1.50,
-
-        lockerHire: config && config.locker_hire_price ? parseFloat(config.locker_hire_price) : 2.00,
-
-        tokenPack20: config && config.token_pack_20_price ? parseFloat(config.token_pack_20_price) : 5.00,
-
-        tokenPack50: config && config.token_pack_50_price ? parseFloat(config.token_pack_50_price) : 10.00,
-
-        parking: config && config.parking_price ? parseFloat(config.parking_price) : 3.00,
-
+        skateHire: (config && config.skate_hire_price) ? parseFloat(config.skate_hire_price) : 2.95,
+        shoeHire: (config && config.shoe_hire_price) ? parseFloat(config.shoe_hire_price) : 1.50,
+        lockerHire: (config && config.locker_hire_price) ? parseFloat(config.locker_hire_price) : 2.00,
+        tokenPack20: (config && config.token_pack_20_price) ? parseFloat(config.token_pack_20_price) : 5.00,
+        tokenPack50: (config && config.token_pack_50_price) ? parseFloat(config.token_pack_50_price) : 10.00,
+        parking: (config && config.parking_price) ? parseFloat(config.parking_price) : 3.00,
     };
 
 
@@ -566,9 +585,33 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
         if (step === 1) fieldsToValidate = ["date", "time", "duration"];
 
-        if (step === 2) fieldsToValidate = ["adults", "kids", "spectators"];
+        if (step === 2) {
+            fieldsToValidate = ["adults", "kids", "spectators"];
+            const ok = await trigger(fieldsToValidate);
+            if (ok) {
+                if (customer) {
+                    const detailsOk = await trigger(["name", "email", "phone"]);
+                    if (detailsOk) {
+                        setStep(4); // Skip details and go straight to waiver
+                        showToast("success", "Step completed!", 2000);
+                        return;
+                    }
+                }
+                setStep(3); // Go to details / auth gate
+                showToast("success", "Step completed!", 2000);
+            } else {
+                showToast("error", "Please fix errors before continuing.");
+            }
+            return;
+        }
 
-        if (step === 3) fieldsToValidate = ["name", "email", "phone"];
+        if (step === 3) {
+            if (!customer) {
+                showToast("error", "Please sign in or create an account to continue.", 3500);
+                return;
+            }
+            fieldsToValidate = ["name", "email", "phone"];
+        }
 
         if (step === 4) {
 
@@ -676,7 +719,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             }
 
-            const result = await onSubmit({ ...data, activity: selectedActivity, addOns: selectedAddOns, globalAddOns: selectedGlobalAddOns, parkingPlates });
+            const result = await onSubmit({ ...data, activity: selectedActivity, addOns: selectedAddOns, globalAddOns: selectedGlobalAddOns, parkingPlates, customerId: customer?.id });
 
             if (result.success && result.bookingId) {
 
@@ -684,7 +727,8 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                 setBookingNumber(result.bookingNumber || result.bookingId);
 
-                setCreatedBookingId(parseInt(result.bookingId));
+                setCreatedBookingId(result.bookingId);
+                setCreatedBookingIntId(result.bookingIntId ?? null);
 
                 await new Promise(r => setTimeout(r, 500));
 
@@ -1710,65 +1754,74 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
                                     <div className="max-w-lg mx-auto space-y-5">
-
-                                        <div>
-
-                                            <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
-
-                                                <User className="inline w-4 h-4 mr-1.5" /> Full Name
-
-                                            </label>
-
-                                            <input type="text" {...register("name")} placeholder="e.g. Jane Smith"
-
-                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-primary transition-colors" />
-
-                                            <ErrorMessage message={errors.name?.message} />
-
-                                        </div>
-
-                                        <div>
-
-                                            <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
-
-                                                <Mail className="inline w-4 h-4 mr-1.5" /> Email Address
-
-                                            </label>
-
-                                            <input type="email" {...register("email")} placeholder="jane@example.com"
-
-                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-primary transition-colors" />
-
-                                            <ErrorMessage message={errors.email?.message} />
-
-                                        </div>
-
-                                        <div>
-
-                                            <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
-
-                                                <Phone className="inline w-4 h-4 mr-1.5" /> Phone Number
-
-                                            </label>
-
-                                            <input type="tel" {...register("phone")} placeholder="07700 900000"
-
-                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-primary transition-colors" />
-
-                                            <ErrorMessage message={errors.phone?.message} />
-
-                                        </div>
-
-
-
-                                        <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-200 text-sm">
-
-                                            <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-400" />
-
-                                            Your ticket and booking confirmation will be sent to your email. Please double-check it's correct.
-
-                                        </div>
-
+                                        {!customer ? (
+                                            <div className="bg-surface-800 p-6 rounded-2xl border border-white/10 shadow-xl">
+                                                <h3 className="text-xl font-bold text-white mb-2 text-center">Sign in to book</h3>
+                                                <p className="text-white/60 text-sm text-center mb-6">You must be logged in to complete your booking.</p>
+                                                <div className="flex gap-4 mb-6 p-1 bg-black/20 rounded-xl">
+                                                    <button type="button" onClick={() => setAuthMode('login')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${authMode === 'login' ? 'bg-primary text-black' : 'text-white/60 hover:text-white'}`}>Sign In</button>
+                                                    <button type="button" onClick={() => setAuthMode('register')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${authMode === 'register' ? 'bg-primary text-black' : 'text-white/60 hover:text-white'}`}>Create Account</button>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {authMode === 'register' && (
+                                                        <>
+                                                            <input type="text" placeholder="Full Name" value={authName} onChange={e => setAuthName(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                                            <input type="tel" placeholder="Phone Number" value={authPhone} onChange={e => setAuthPhone(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                                        </>
+                                                    )}
+                                                    <input type="email" placeholder="Email Address" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                                    <input type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                                    
+                                                    {authError && <p className="text-red-400 text-sm">{authError}</p>}
+                                                    
+                                                    <button type="button" onClick={handleAuth} disabled={isAuthenticating} className="w-full py-4 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
+                                                        {isAuthenticating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (authMode === 'login' ? 'Sign In & Continue' : 'Register & Continue')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
+                                                            <Check className="w-5 h-5 text-green-400" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white font-bold text-sm">Logged in securely</p>
+                                                            <p className="text-green-400/80 text-xs">{customer.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
+                                                        <User className="inline w-4 h-4 mr-1.5" /> Full Name
+                                                    </label>
+                                                    <input type="text" {...register("name")} readOnly
+                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white/70 cursor-not-allowed focus:outline-none" />
+                                                    <ErrorMessage message={errors.name?.message} />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
+                                                        <Mail className="inline w-4 h-4 mr-1.5" /> Email Address
+                                                    </label>
+                                                    <input type="email" {...register("email")} readOnly
+                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white/70 cursor-not-allowed focus:outline-none" />
+                                                    <ErrorMessage message={errors.email?.message} />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
+                                                        <Phone className="inline w-4 h-4 mr-1.5" /> Phone Number
+                                                    </label>
+                                                    <input type="tel" {...register("phone")} readOnly
+                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white/70 cursor-not-allowed focus:outline-none" />
+                                                    <ErrorMessage message={errors.phone?.message} />
+                                                </div>
+                                                <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-200 text-sm">
+                                                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-400" />
+                                                    Your ticket and booking confirmation will be sent to your email.
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
 
                                 </div>
@@ -2161,51 +2214,48 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                             {/* -- STEP 6 - Payment Gateway -------------------- */}
 
-                            {step === 6 && createdBookingId && (
-
-                                <div>
-
-                                    <div className="text-center mb-8">
-
-                                        <h2 className="text-3xl font-display font-black text-white mb-2">Complete Payment</h2>
-
-                                        <p className="text-white/60">You're almost there! Complete your secure payment below.</p>
-
-                                    </div>
-
-                                    <PaymentStep
-
-                                        bookingId={createdBookingId}
-
-                                        bookingType="session"
-
-                                        amount={Math.round(Math.max(0, totals.total - discount / 100) * 100)}
-
-                                        bookingDetails={{
-
-                                            date: formData.date,
-
-                                            time: formData.time,
-
-                                            name: formData.name,
-
-                                            email: formData.email,
-
-                                            phone: formData.phone,
-
-                                            activity: selectedActivity,
-
-                                        }}
-
-                                        onSuccess={() => setBookingComplete(true)}
-
-                                        onBack={() => setStep(5)}
-
-                                    />
-
-                                </div>
-
-                            )}
+                            {step === 6 && createdBookingId && (() => {
+                                const t = calculateTotal();
+                                const skateHireQty = selectedAddOns["skate-hire"] || 0;
+                                const shoeHireQty = selectedAddOns["bowling-shoes"] || 0;
+                                const lockerQty = (selectedAddOns["locker"] || 0) + (selectedGlobalAddOns["locker"] || 0);
+                                const parkingQty = selectedGlobalAddOns["parking"] || 0;
+                                return (
+                                <PaymentStep
+                                    bookingId={createdBookingIntId || createdBookingId}
+                                    bookingType="session"
+                                    amount={Math.round(Math.max(0, totals.total - discount / 100) * 100)}
+                                    bookingDetails={{
+                                        date: formData.date,
+                                        time: formData.time,
+                                        name: formData.name,
+                                        email: formData.email,
+                                        phone: formData.phone,
+                                        activity: selectedActivity,
+                                        adults: formData.adults,
+                                        kids: formData.kids,
+                                        spectators: formData.spectators,
+                                        adultPrice: prices.adult,
+                                        kidPrice: prices.kid,
+                                        spectatorPrice: prices.spectator,
+                                        skateHireQty,
+                                        skateHirePrice: prices.skateHire,
+                                        shoeHireQty,
+                                        shoeHirePrice: prices.shoeHire,
+                                        lockerQty,
+                                        lockerPrice: prices.lockerHire,
+                                        parkingQty,
+                                        parkingPrice: prices.parking,
+                                        discount: discount / 100,
+                                        appliedVoucher,
+                                        onlineBookingFee: t.onlineBookingFee,
+                                        notes: "",
+                                    }}
+                                    onSuccess={() => setBookingComplete(true)}
+                                    onBack={() => setStep(5)}
+                                />
+                                );
+                            })()}
 
 
 
@@ -2221,7 +2271,12 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                         <div className="px-6 md:px-10 pb-8 flex items-center justify-between border-t border-white/5 pt-6 gap-4">
 
-                            <button type="button" onClick={() => step === 1 ? setStep(0) : setStep(step - 1)}
+                            <button type="button" onClick={() => {
+                                if (step === 1) setStep(0);
+                                // Logged-in users skipped step 3 (Auth Gate), so go back to Guests (step 2)
+                                else if (step === 4 && customer) setStep(2);
+                                else setStep(step - 1);
+                            }}
 
                                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white font-semibold transition-all">
 

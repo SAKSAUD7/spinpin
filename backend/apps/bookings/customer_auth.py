@@ -4,7 +4,7 @@ Provides register, login, logout, me, and my-bookings endpoints.
 Uses simple token auth stored in a separate CustomerToken table.
 No Django sessions — pure API token approach compatible with Next.js frontend.
 """
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
@@ -142,6 +142,7 @@ def customer_login(request):
 
 
 @api_view(["GET"])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def customer_me(request):
     """Get current logged-in customer."""
@@ -152,6 +153,7 @@ def customer_me(request):
 
 
 @api_view(["PATCH"])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def customer_update_profile(request):
     """Update customer profile (name, phone)."""
@@ -170,6 +172,7 @@ def customer_update_profile(request):
 
 
 @api_view(["POST"])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def customer_change_password(request):
     """Change customer password."""
@@ -198,6 +201,7 @@ def customer_change_password(request):
 
 
 @api_view(["GET"])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def customer_my_bookings(request):
     """Get all bookings (session + party) for the logged-in customer."""
@@ -275,6 +279,7 @@ def customer_my_bookings(request):
 
 
 @api_view(["POST"])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def customer_logout(request):
     """Invalidate the customer's token."""

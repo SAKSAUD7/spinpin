@@ -31,10 +31,14 @@ export function Navbar({ settings }: { settings?: any }) {
     useEffect(() => {
         const fetchLogo = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1'}/core/logos/active/`);
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+                const baseUrl = apiUrl.replace('/api/v1', '');
+                const response = await fetch(`${apiUrl}/core/logos/active/`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.image_url) setLogoUrl(data.image_url);
+                    if (data.image_url) {
+                        setLogoUrl(data.image_url.startsWith('http') ? data.image_url : `${baseUrl}${data.image_url}`);
+                    }
                 }
             } catch { }
         };

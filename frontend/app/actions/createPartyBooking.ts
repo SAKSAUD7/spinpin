@@ -122,6 +122,7 @@ export async function createPartyBooking(formData: any) {
             booking_status: "PENDING",
             payment_status: "PENDING",
             waiver_status: "PENDING",
+            customer_id: formData.customerId || null,
         };
 
         const bookingRes = await fetch(`${API_URL}/bookings/party-bookings/`, {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ScrollReveal, BouncyButton } from "@repo/ui";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle, School } from "lucide-react";
+import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle, School, Loader2 } from "lucide-react";
 import { createPartyBooking } from "../../actions/createPartyBooking";
 import ParticipantCollection from "../../../components/ParticipantCollection";
 import { PaymentStep } from "../../../components/PaymentStep";
@@ -13,6 +13,7 @@ import { fetchBookingBlocks, isDateBlocked, BookingBlock } from "@/lib/api/booki
 import { PageSection } from "@/lib/cms/types";
 import { SmartCalendar } from "@/components/SmartCalendar";
 import { isSchoolHoliday } from "@/lib/api/types";
+import { useAccount } from "@/state/account/AccountContext";
 
 interface PartyBookingWizardProps {
     cmsContent?: PageSection[];
@@ -55,16 +56,26 @@ function EInvitationStep({ bookingId, bookingDetails, onNext, onSkip, onBack, ti
 
 export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWizardProps) {
     const router = useRouter();
+    const { customer, login, register: registerUser } = useAccount();
     const MIN_PARTICIPANTS = 10;
 
-    // 1: Basic Info, 2: Participants, 3: E-Invitation, 4: Payment, 5: Confirmation
+    // 1: Basic Info, 2: Auth Gate (if not logged in), 3: Participants, 4: Payment, 5: Confirmation
     const [step, setStep] = useState(1);
     const [bookingBlocks, setBookingBlocks] = useState<BookingBlock[]>([]);
     const [config, setConfig] = useState<any>(null);
     const [submitted, setSubmitted] = useState(false);
     const [tempBookingId, setTempBookingId] = useState<string | null>(null);
+    const [tempBookingIntId, setTempBookingIntId] = useState<number | null>(null);
     const [bookingDetails, setBookingDetails] = useState<any>(null);
     const [participantError, setParticipantError] = useState("");
+    // Auth state
+    const [authMode, setAuthMode] = useState<"login"|"register">("login");
+    const [authEmail, setAuthEmail] = useState("");
+    const [authPassword, setAuthPassword] = useState("");
+    const [authName, setAuthName] = useState("");
+    const [authPhone, setAuthPhone] = useState("");
+    const [authError, setAuthError] = useState("");
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
 
     // Helper function to get CMS content
     const getContent = (key: string, defaultTitle: string, defaultSubtitle: string) => {
@@ -90,7 +101,17 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // ...
+    // Auto-fill customer details if logged in
+    useEffect(() => {
+        if (customer) {
+            setFormData(prev => ({
+                ...prev,
+                name: prev.name || customer.name,
+                email: prev.email || customer.email,
+                phone: prev.phone || customer.phone || "",
+            }));
+        }
+    }, [customer]);
 
     // Load party booking config from CMS AND Booking Blocks
     useEffect(() => {
@@ -150,17 +171,23 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
         try {
             // Create the initial booking
-            const result = await createPartyBooking(formData);
+            const result = await createPartyBooking({ ...formData, customerId: customer?.id });
 
             if (result.success) {
-                setTempBookingId(result.bookingId);
-                // Store complete booking details including the integer id for invitation step
+                setTempBookingId(result.bookingId);            // UUID string
+                setTempBookingIntId(result.bookingIntId ?? null); // integer id
+                // Store complete booking details
                 setBookingDetails({
                     ...formData,
-                    ...result.booking, // Include full booking object (id, uuid, etc.)
+                    ...result.booking,
                     bookingId: result.bookingId
                 });
-                setStep(2); // Move to participant collection
+                // If already logged in, skip to participants
+                if (customer) {
+                    setStep(3);
+                } else {
+                    setStep(2); // Auth gate
+                }
             } else {
                 alert(result.error || "Failed to create booking. Please try again.");
             }
@@ -169,6 +196,23 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
             alert("An error occurred. Please try again.");
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleAuthForParty = async () => {
+        setIsAuthenticating(true);
+        setAuthError("");
+        let res: any;
+        if (authMode === "login") {
+            res = await login(authEmail, authPassword);
+        } else {
+            res = await registerUser(authName, authEmail, authPhone, authPassword);
+        }
+        setIsAuthenticating(false);
+        if (res.success) {
+            setStep(3); // Go to participants
+        } else {
+            setAuthError(res.error || "Authentication failed. Please try again.");
         }
     };
 
@@ -207,9 +251,8 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
         }
     };
 
-    const handleInvitationNext = () => {
-        // Step 3 finished, go to Step 4 (Payment)
-        setStep(4);
+    const handleParticipantsToPayment = () => {
+        setStep(4); // Go to Payment
     };
 
     const calculateTotal = () => {
@@ -659,58 +702,78 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                 )
                 }
 
-                {
-                    step === 2 && (
-                        <ScrollReveal animation="slideUp">
-                            <ParticipantCollection
-                                onSubmit={handleParticipantSubmit}
-                                onBack={() => setStep(1)}
-                                totalParticipants={formData.participants}
-                                title={getContent('step-2', 'Participants', '').title}
-                                subtitle={getContent('step-2', '', `Add details for all ${formData.participants} participants`).subtitle}
-                            />
-                        </ScrollReveal>
-                    )
-                }
+                {/* STEP 2 — Login Gate (only shown if not logged in) */}
+                {step === 2 && (
+                    <div className="max-w-md mx-auto">
+                        <div className="bg-surface-800/50 backdrop-blur-md p-8 rounded-3xl border border-white/10">
+                            <h2 className="text-2xl font-bold text-white mb-2 text-center">Sign in to continue</h2>
+                            <p className="text-white/60 text-sm text-center mb-6">You need to be logged in to complete your party booking.</p>
+                            <div className="flex gap-3 mb-6 p-1 bg-black/20 rounded-xl">
+                                <button type="button" onClick={() => setAuthMode('login')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${authMode === 'login' ? 'bg-primary text-black' : 'text-white/60 hover:text-white'}`}>Sign In</button>
+                                <button type="button" onClick={() => setAuthMode('register')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${authMode === 'register' ? 'bg-primary text-black' : 'text-white/60 hover:text-white'}`}>Create Account</button>
+                            </div>
+                            <div className="space-y-4">
+                                {authMode === 'register' && (
+                                    <>
+                                        <input type="text" placeholder="Full Name" value={authName} onChange={e => setAuthName(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                        <input type="tel" placeholder="Phone Number" value={authPhone} onChange={e => setAuthPhone(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                    </>
+                                )}
+                                <input type="email" placeholder="Email Address" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                <input type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
+                                {authError && <p className="text-red-400 text-sm">{authError}</p>}
+                                <button type="button" onClick={handleAuthForParty} disabled={isAuthenticating} className="w-full py-4 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                    {isAuthenticating ? <Loader2 className="w-5 h-5 animate-spin" /> : (authMode === 'login' ? 'Sign In & Continue' : 'Register & Continue')}
+                                </button>
+                                <button type="button" onClick={() => setStep(1)} className="w-full py-3 bg-white/5 border border-white/10 text-white/60 font-semibold rounded-xl hover:bg-white/10 transition-colors">
+                                    ← Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
-                {
-                    step === 3 && (
-                        <EInvitationStep
-                            bookingId={tempBookingId!}
-                            bookingDetails={bookingDetails}
-                            onNext={handleInvitationNext}
-                            onSkip={handleInvitationNext}
-                            onBack={() => setStep(2)}
-                            title={getContent('step-3', 'E-Invitations', '').title}
-                            subtitle={getContent('step-3', '', 'Send custom invitations to your guests').subtitle}
+                {/* STEP 3 — Participants */}
+                {step === 3 && (
+                    <ScrollReveal animation="slideUp">
+                        <ParticipantCollection
+                            onSubmit={handleParticipantSubmit}
+                            onBack={() => customer ? setStep(1) : setStep(2)}
+                            totalParticipants={formData.participants}
+                            title={getContent('step-2', 'Participants', '').title}
+                            subtitle={getContent('step-2', '', `Add details for all ${formData.participants} participants`).subtitle}
                         />
-                    )
-                }
+                    </ScrollReveal>
+                )}
 
-                {
-                    step === 4 && tempBookingId && (
-                        <ScrollReveal animation="slideUp">
-                            <PaymentStep
-                                bookingId={parseInt(tempBookingId)}
-                                bookingType="party"
-                                amount={costs.total}
-                                bookingDetails={{
-                                    date: formData.date,
-                                    time: formData.time,
-                                    name: formData.name,
-                                    email: formData.email,
-                                    phone: formData.phone
-                                }}
-                                onSuccess={() => {
-                                    setSubmitted(true);
-                                    setStep(5);
-                                }}
-                                onBack={() => setStep(3)}
-                            />
-                        </ScrollReveal>
-                    )
-                }
-            </div >
-        </main >
+                {/* STEP 4 — Payment */}
+                {step === 4 && tempBookingIntId && (
+                    <ScrollReveal animation="slideUp">
+                        <PaymentStep
+                            bookingId={tempBookingIntId}
+                            bookingType="party"
+                            amount={Math.round(costs.total * 100)}
+                            bookingDetails={{
+                                date: formData.date,
+                                time: formData.time,
+                                name: formData.name,
+                                email: formData.email,
+                                phone: formData.phone,
+                                adults: formData.spectators,
+                                kids: formData.participants,
+                                adultPrice: Number(config?.spectator_price ?? 2.95),
+                                kidPrice: Number(config?.participant_price ?? 15),
+                                onlineBookingFee: 0,
+                            }}
+                            onSuccess={() => {
+                                setSubmitted(true);
+                                setStep(5);
+                            }}
+                            onBack={() => setStep(3)}
+                        />
+                    </ScrollReveal>
+                )}
+            </div>
+        </main>
     );
 }

@@ -1,31 +1,111 @@
 "use client";
 
 /**
- * Payment Step Component
+ * Payment Step Component — SumUp Integration (Live)
+ * Styled to match the old SpinPin website booking payment layout.
  *
- * Payment gateway is NOT yet integrated.
- * SumUp will be connected here in a future release.
- *
- * Current behaviour: booking is confirmed and payment is collected at the venue.
+ * Flow:
+ *   1. Shows detailed booking breakdown table (left) + payment box (right)
+ *   2. "Pay Now" → backend creates SumUp Hosted Checkout
+ *   3. User redirected to SumUp → redirected back to /book/success
  */
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Clock, MapPin, Shield, Lock, CreditCard, Banknote } from "lucide-react";
+import {
+    Loader2, AlertCircle, Shield, Lock, CreditCard, ChevronLeft
+} from "lucide-react";
+
+interface BookingDetails {
+    date: string;
+    time: string;
+    name: string;
+    email: string;
+    phone?: string;
+    activity?: string | null;
+    adults?: number;
+    kids?: number;
+    spectators?: number;
+    adultPrice?: number;
+    kidPrice?: number;
+    spectatorPrice?: number;
+    skateHireQty?: number;
+    skateHirePrice?: number;
+    shoeHireQty?: number;
+    shoeHirePrice?: number;
+    lockerQty?: number;
+    lockerPrice?: number;
+    parkingQty?: number;
+    parkingPrice?: number;
+    discount?: number;
+    appliedVoucher?: string | null;
+    onlineBookingFee?: number;
+    notes?: string;
+    [key: string]: any;
+}
 
 interface PaymentStepProps {
-    bookingId: number;
+    bookingId: string | number;
     bookingType: "session" | "party";
-    amount: number;
-    bookingDetails: {
-        date: string;
-        time: string;
-        name: string;
-        email: string;
-        [key: string]: any;
-    };
+    amount: number; // in pence (e.g. 1995 = £19.95)
+    bookingDetails: BookingDetails;
     onSuccess: () => void;
     onBack: () => void;
+}
+
+const MERCHANT_LABELS: Record<string, string> = {
+    "roller-skating":  "SpinPin Ltd",
+    "arcade":          "SpinPin Ltd",
+    "ten-pin-bowling": "Twinkle Town Ltd",
+};
+
+const ACTIVITY_LABELS: Record<string, string> = {
+    "roller-skating":  "Roller Skating",
+    "ten-pin-bowling": "Ten Pin Bowling",
+    "arcade":          "Arcade",
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+
+function fmt(amount: number) {
+    return `£${amount.toFixed(2)}`;
+}
+
+function formatDate(dateStr: string) {
+    if (!dateStr) return "—";
+    try {
+        return new Date(dateStr).toLocaleDateString("en-GB", {
+            weekday: "short", day: "numeric", month: "short", year: "numeric"
+        });
+    } catch { return dateStr; }
+}
+
+function formatTime(time: string, activity?: string | null) {
+    if (!time) return "—";
+    const [h, m] = time.split(":").map(Number);
+    const startMins = h * 60 + m;
+    const durationMins = activity === "ten-pin-bowling" ? 90 : 60;
+    const endMins = startMins + durationMins;
+    const fmtTime = (mins: number) => {
+        const hh = Math.floor(mins / 60) % 24;
+        const mm = mins % 60;
+        const ampm = hh >= 12 ? "pm" : "am";
+        const hh12 = hh % 12 || 12;
+        return `${hh12}:${mm.toString().padStart(2, "0")} ${ampm}`;
+    };
+    return `${fmtTime(startMins)} - ${fmtTime(endMins)}`;
+}
+
+// A single row in the breakdown table
+function Row({ label, value, bold, accent }: { label: string; value: string; bold?: boolean; accent?: boolean }) {
+    return (
+        <tr className={`border-b border-gray-100 ${bold ? "font-bold" : ""}`}>
+            <td className="py-2.5 px-4 text-gray-700 text-sm w-1/2">{label}</td>
+            <td className={`py-2.5 px-4 text-sm w-1/2 ${accent ? "text-primary font-bold" : bold ? "text-gray-900 font-bold" : "text-gray-800"}`}>
+                {value}
+            </td>
+        </tr>
+    );
 }
 
 export function PaymentStep({
@@ -36,135 +116,264 @@ export function PaymentStep({
     onSuccess,
     onBack,
 }: PaymentStepProps) {
-    const [confirmed, setConfirmed] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError]     = useState<string | null>(null);
 
-    const handleConfirm = () => {
-        setConfirmed(true);
-        setTimeout(() => {
-            onSuccess();
-        }, 1200);
+    const d = bookingDetails;
+    const activity  = d.activity || "";
+    const merchant  = MERCHANT_LABELS[activity] || "SpinPin Ltd";
+    const actLabel  = ACTIVITY_LABELS[activity] || (bookingType === "party" ? "Party" : "Session");
+
+    // Quantities & prices
+    const adults       = d.adults       ?? 1;
+    const kids         = d.kids         ?? 0;
+    const spectators   = d.spectators   ?? 0;
+    const adultPrice   = d.adultPrice   ?? 9.95;
+    const kidPrice     = d.kidPrice     ?? 9.95;
+    const specPrice    = d.spectatorPrice ?? 2.95;
+    const skateQty     = d.skateHireQty  ?? 0;
+    const skatePrice   = d.skateHirePrice ?? 2.95;
+    const shoeQty      = d.shoeHireQty   ?? 0;
+    const shoePrice    = d.shoeHirePrice  ?? 1.50;
+    const lockerQty    = d.lockerQty     ?? 0;
+    const lockerPrice  = d.lockerPrice   ?? 2.00;
+    const parkingQty   = d.parkingQty    ?? 0;
+    const parkingPrice = d.parkingPrice  ?? 3.00;
+    const discount     = d.discount      ?? 0;
+    const onlineFee    = d.onlineBookingFee ?? 2.00;
+    const notes        = d.notes || "N/a";
+
+    // Derived totals
+    const ticketsAdults    = adults * adultPrice;
+    const ticketsKids      = kids   * kidPrice;
+    const ticketsSpecs     = spectators * specPrice;
+    const totalTickets     = ticketsAdults + ticketsKids + ticketsSpecs;
+    const skateTotal       = skateQty  * skatePrice;
+    const shoeTotal        = shoeQty   * shoePrice;
+    const lockerTotal      = lockerQty * lockerPrice;
+    const parkingTotal     = parkingQty * parkingPrice;
+    const addOnsTotal      = skateTotal + shoeTotal + lockerTotal + parkingTotal;
+    const subtotal         = totalTickets + addOnsTotal;
+    const afterDiscount    = Math.max(0, subtotal - discount);
+    const grandTotal       = afterDiscount + onlineFee;
+    const amountGBP        = (amount / 100).toFixed(2);
+
+    const handlePayNow = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(`${API_URL}/payments/create-order/`, {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({
+                    booking_id:   bookingId,
+                    booking_type: bookingType,
+                    amount:       parseFloat(amountGBP),
+                }),
+                cache: "no-store",
+            });
+            const data = await res.json();
+            if (!res.ok || !data.checkout_url) {
+                throw new Error(data.error || "Failed to create payment. Please try again.");
+            }
+            window.location.href = data.checkout_url;
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+            setLoading(false);
+        }
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="w-full"
         >
             {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <CreditCard className="text-primary h-6 w-6" />
-                </div>
-                <div>
-                    <h2 className="text-2xl md:text-3xl font-display font-black text-white">Confirm Booking</h2>
-                    <p className="text-white/50 text-sm">Review and confirm your booking</p>
-                </div>
+            <div className="text-center mb-8">
+                <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-bold uppercase tracking-wider mb-3">
+                    Step 7
+                </span>
+                <h2 className="text-3xl md:text-4xl font-display font-black text-white mb-2">
+                    Booking Payment
+                </h2>
+                <p className="text-white/60">Review your booking and complete payment securely via SumUp.</p>
             </div>
 
-            {/* Booking Summary */}
-            <div className="bg-surface-900/50 rounded-2xl p-6 border-2 border-white/10">
-                <h3 className="text-lg font-bold text-white mb-4">Booking Summary</h3>
-                <div className="space-y-3 text-white/70">
-                    <div className="flex justify-between">
-                        <span>Date &amp; Time</span>
-                        <span className="font-bold text-white">
-                            {new Date(bookingDetails.date).toLocaleDateString('en-GB', {
-                                day: 'numeric', month: 'short', year: 'numeric'
-                            })} at {bookingDetails.time}
-                        </span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Contact</span>
-                        <span className="font-bold text-white">{bookingDetails.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Type</span>
-                        <span className="font-bold text-white capitalize">{bookingType} booking</span>
-                    </div>
-                    <div className="flex justify-between pt-3 border-t border-white/10">
-                        <span className="text-xl font-bold text-white">Total Amount</span>
-                        <span className="text-2xl font-black text-primary">£{(amount / 100).toFixed(2)}</span>
-                    </div>
-                </div>
-            </div>
+            {/* Two-column layout */}
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-            {/* Pay at Venue Notice */}
-            <div className="bg-amber-400/10 border-2 border-amber-400/30 rounded-2xl p-6">
-                <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-amber-400/20 flex items-center justify-center flex-shrink-0">
-                        <Banknote className="text-amber-400 h-5 w-5" />
+                {/* ── LEFT: Booking Breakdown Table ─────────────────────── */}
+                <div className="flex-1 bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-gray-800 text-white">
+                                <th className="py-3 px-4 text-left text-sm font-bold uppercase tracking-wide w-1/2">Info</th>
+                                <th className="py-3 px-4 text-left text-sm font-bold uppercase tracking-wide w-1/2">You&apos;ve Chosen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <Row label="Session Date"    value={formatDate(d.date)} />
+                            <Row label="Session Time"    value={formatTime(d.time, activity)} />
+                            <Row label="Activity"        value={actLabel} />
+
+                            {/* Skaters / Bowlers */}
+                            <Row
+                                label={activity === "ten-pin-bowling" ? "Bowlers Quantity" : "Skaters Quantity"}
+                                value={String(adults + kids)}
+                            />
+                            {spectators > 0 && (
+                                <Row label="Spectators Quantity" value={String(spectators)} />
+                            )}
+
+                            {/* Add-ons */}
+                            {skateQty > 0 && <Row label="Skate Hire Quantity" value={String(skateQty)} />}
+                            {shoeQty  > 0 && <Row label="Shoe Hire Quantity"  value={String(shoeQty)} />}
+                            {lockerQty > 0 && <Row label="Locker Hire Quantity" value={String(lockerQty)} />}
+                            {parkingQty > 0 && <Row label="Parking Spaces"     value={String(parkingQty)} />}
+
+                            {/* Pricing breakdown */}
+                            <Row label={activity === "ten-pin-bowling" ? "Total Bowler Tickets Price" : "Total Skater Tickets Price"} value={fmt(ticketsAdults + ticketsKids)} />
+                            {spectators > 0 && <Row label="Total Spectators Tickets Price" value={fmt(ticketsSpecs)} />}
+                            {skateQty  > 0 && <Row label="Total Skate Hire Price"  value={fmt(skateTotal)} />}
+                            {shoeQty   > 0 && <Row label="Total Shoe Hire Price"   value={fmt(shoeTotal)} />}
+                            {lockerQty > 0 && <Row label="Total Locker Hire Price" value={fmt(lockerTotal)} />}
+                            {parkingQty > 0 && <Row label="Total Parking Price"    value={fmt(parkingTotal)} />}
+
+                            <Row label="Paying Full Amount?" value="Yes" />
+
+                            <Row
+                                label="Amount Paying"
+                                value={fmt(afterDiscount)}
+                                bold
+                            />
+
+                            {discount > 0 && (
+                                <Row
+                                    label={`Discount Applied${d.appliedVoucher ? ` (${d.appliedVoucher})` : ""}`}
+                                    value={`-${fmt(discount)}`}
+                                    accent
+                                />
+                            )}
+                            {discount === 0 && (
+                                <Row label="Discount Applied" value="No" accent />
+                            )}
+
+                            <Row label="Pay For Locker?" value={lockerQty > 0 ? fmt(lockerTotal) : "£0"} />
+                            <Row label="Pay For Parking?" value={parkingQty > 0 ? fmt(parkingTotal) : "£0"} />
+
+                            <Row label="Notes" value={notes} />
+
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                                <td className="py-2.5 px-4 text-sm text-gray-600">
+                                    Online Booking Charge
+                                    <br />
+                                    <span className="text-xs text-gray-400">(Tickets can be purchased at centre, cash only)</span>
+                                </td>
+                                <td className="py-2.5 px-4 text-sm text-gray-800 font-medium">{fmt(onlineFee)}</td>
+                            </tr>
+
+                            {/* Grand total */}
+                            <tr className="bg-gray-900 text-white">
+                                <td className="py-4 px-4 text-base font-black uppercase tracking-wide">Overall Total Amount</td>
+                                <td className="py-4 px-4 text-2xl font-black text-yellow-400">{fmt(grandTotal)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* ── RIGHT: Payment Box ────────────────────────────────── */}
+                <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+
+                    {/* Card logos + Pay panel */}
+                    <div className="bg-white rounded-2xl shadow-xl p-6">
+                        {/* Card brand logos */}
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="bg-[#1A1F71] text-white text-xs font-black px-2 py-1 rounded">VISA</span>
+                            <span className="bg-gradient-to-r from-red-500 to-yellow-500 text-white text-xs font-black px-2 py-1 rounded">MC</span>
+                            <span className="bg-[#016FD0] text-white text-xs font-black px-2 py-1 rounded">AMEX</span>
+                        </div>
+
+                        <h3 className="text-gray-900 font-black text-lg mb-1">Pay with Credit/Debit Card</h3>
+                        <p className="text-gray-500 text-xs mb-5">
+                            You&apos;ll be securely redirected to <strong>SumUp</strong> to complete payment.
+                            No card details are stored on our servers.
+                        </p>
+
+                        {/* Booking Ref */}
+                        <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4 flex justify-between items-center">
+                            <span className="text-gray-500 text-xs font-medium">Booking Ref</span>
+                            <span className="text-gray-800 font-mono font-bold text-sm">#{bookingId}</span>
+                        </div>
+
+                        {/* Merchant */}
+                        <div className="bg-gray-50 rounded-xl px-4 py-3 mb-5 flex justify-between items-center">
+                            <span className="text-gray-500 text-xs font-medium">Payable to</span>
+                            <span className="text-gray-800 font-bold text-sm">{merchant}</span>
+                        </div>
+
+                        {/* Amount */}
+                        <div className="text-center mb-5">
+                            <p className="text-gray-500 text-xs mb-1">Total Amount Due</p>
+                            <p className="text-4xl font-black text-gray-900">£{amountGBP}</p>
+                        </div>
+
+                        {/* Error */}
+                        {error && (
+                            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-red-600 text-sm">
+                                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                <p>{error}</p>
+                            </div>
+                        )}
+
+                        {/* Pay button */}
+                        <button
+                            type="button"
+                            onClick={handlePayNow}
+                            disabled={loading}
+                            className="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white font-black rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    Connecting to SumUp…
+                                </>
+                            ) : (
+                                <>
+                                    <CreditCard className="w-5 h-5" />
+                                    Pay Now
+                                </>
+                            )}
+                        </button>
+
+                        {/* SumUp branding */}
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                            <Shield className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-400 text-xs">powered by</span>
+                            <span className="text-gray-600 font-black text-sm tracking-tight">sumup</span>
+                        </div>
                     </div>
-                    <div>
-                        <h4 className="text-amber-400 font-bold text-lg mb-1">Pay at Venue</h4>
-                        <p className="text-white/70 text-sm leading-relaxed">
-                            Online payment will be available soon via <strong className="text-white">SumUp</strong>.
-                            For now, please complete your payment when you arrive at Spin Pin Leicester.
-                            We accept <strong className="text-white">cash and card</strong> at reception.
+
+                    {/* Security notice */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start gap-3">
+                        <Lock className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-white/50 text-xs leading-relaxed">
+                            256-bit SSL encrypted. Confirmation sent to{" "}
+                            <span className="text-white/80">{bookingDetails.email}</span>.
                         </p>
                     </div>
-                </div>
-            </div>
 
-            {/* What to bring */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-surface-800/50 rounded-xl p-4 flex items-start gap-3 border border-white/10">
-                    <Clock className="text-primary h-5 w-5 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <p className="text-white font-semibold text-sm">Arrive 10 minutes early</p>
-                        <p className="text-white/50 text-xs">Allow time for check-in and payment</p>
-                    </div>
+                    {/* Back button */}
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 font-semibold transition-all disabled:opacity-40"
+                    >
+                        <ChevronLeft className="w-4 h-4" /> Back to Summary
+                    </button>
                 </div>
-                <div className="bg-surface-800/50 rounded-xl p-4 flex items-start gap-3 border border-white/10">
-                    <MapPin className="text-primary h-5 w-5 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <p className="text-white font-semibold text-sm">Spin Pin Leicester</p>
-                        <p className="text-white/50 text-xs">Show your booking reference at reception</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Security Notice */}
-            <div className="bg-background-dark/50 rounded-xl p-4 flex items-start gap-3">
-                <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-white/60">
-                    <p className="font-medium text-white/80 mb-1">
-                        <Lock className="w-4 h-4 inline mr-1" />
-                        Secure Booking
-                    </p>
-                    <p>Your booking reference #{bookingId} has been saved. A confirmation email will be sent to {bookingDetails.email}.</p>
-                </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    disabled={confirmed}
-                    className="px-6 py-3 bg-surface-700 hover:bg-surface-600 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    Back
-                </button>
-                <button
-                    type="button"
-                    onClick={handleConfirm}
-                    disabled={confirmed}
-                    className="flex-1 px-8 py-4 bg-gradient-to-r from-primary to-secondary text-black font-black rounded-xl shadow-lg transform transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                >
-                    {confirmed ? (
-                        <>
-                            <Check className="w-6 h-6 animate-bounce" />
-                            Booking Confirmed!
-                        </>
-                    ) : (
-                        <>
-                            <Check className="w-6 h-6" />
-                            Confirm Booking — Pay at Venue
-                        </>
-                    )}
-                </button>
             </div>
         </motion.div>
     );
