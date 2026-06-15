@@ -106,8 +106,8 @@ class EmailLogAdmin(admin.ModelAdmin):
         return False
     
     def has_delete_permission(self, request, obj=None):
-        """Disable deletion of email logs (audit trail)"""
-        return False
+        """Disable deletion of email logs (audit trail) except for superusers"""
+        return request.user.is_superuser
     
     def has_change_permission(self, request, obj=None):
         """Make all fields read-only"""

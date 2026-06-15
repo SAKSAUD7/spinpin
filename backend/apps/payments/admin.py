@@ -106,8 +106,8 @@ class PaymentAdmin(admin.ModelAdmin):
         return False
     
     def has_delete_permission(self, request, obj=None):
-        """Disable payment deletion"""
-        return False
+        """Allow payment deletion only for superusers"""
+        return request.user.is_superuser
     
     def booking_link(self, obj):
         """Display clickable link to booking"""
