@@ -20,8 +20,8 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Allow Superusers and Staff (Managers/Employees) to view all users
-        if self.request.user.is_superuser or self.request.user.is_staff:
+        # Allow Superusers and ADMIN roles to view all users
+        if self.request.user.is_superuser or self.request.user.role == 'ADMIN':
             return User.objects.all()
         # Regular users can only see themselves
         return User.objects.filter(id=self.request.user.id)
@@ -56,6 +56,26 @@ class UserViewSet(viewsets.ModelViewSet):
             'recentLogins': recent_logins,
             'roleDistribution': role_distribution
         })
+
+    @action(detail=True, methods=['post'])
+    def reset_password(self, request, pk=None):
+        user = self.get_object()
+        
+        # Security: Only ADMIN or the user themselves can reset the password
+        is_admin = request.user.is_superuser or request.user.role == 'ADMIN'
+        is_self = request.user.id == user.id
+        
+        if not (is_admin or is_self):
+            return Response({'error': 'You do not have permission to reset this password.'}, status=403)
+            
+        new_password = request.data.get('new_password')
+        if not new_password or len(new_password) < 8:
+            return Response({'error': 'Password must be at least 8 characters long.'}, status=400)
+            
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({'status': 'success', 'message': 'Password has been reset successfully.'})
 
     @action(detail=False, methods=['get'])
     def recent_activity(self, request):

@@ -162,3 +162,24 @@ export async function updateAdminUser(id: string, data: any) {
 export async function deleteAdminUser(id: string) {
     return deleteUser(id);
 }
+
+export async function resetAdminPassword(id: string, new_password: string) {
+    // Only users with write access to 'users' can reset passwords (typically ADMINs as per our RBAC)
+    await requirePermission('users', 'write');
+
+    const res = await fetchAPI(`/core/users/${id}/reset_password/`, {
+        method: "POST",
+        body: JSON.stringify({ new_password })
+    });
+
+    if (!res || !res.ok) {
+        try {
+            const error = await res.json();
+            throw new Error(error.error || error.detail || "Failed to reset password");
+        } catch (e) {
+            throw new Error("Failed to reset password");
+        }
+    }
+
+    return await res.json();
+}
