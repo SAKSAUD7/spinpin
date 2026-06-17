@@ -13,7 +13,7 @@ import {
     CreditCard, Search, RefreshCw, CheckCircle, XCircle,
     Clock, TrendingUp, ArrowUpRight, ArrowDownRight,
     ChevronUp, ChevronDown, Filter, Eye, Zap,
-    ShieldCheck, AlertCircle, ReceiptText
+    ShieldCheck, AlertCircle, FileText
 } from "lucide-react";
 import Link from "next/link";
 
@@ -208,7 +208,7 @@ export default function PaymentsListPage() {
                     label="Total"
                     value={stats.total}
                     color="text-white bg-white/5 border-white/10"
-                    icon={<ReceiptText className="w-5 h-5" />}
+                    icon={<FileText className="w-5 h-5" />}
                 />
                 <StatCard
                     label="Revenue"

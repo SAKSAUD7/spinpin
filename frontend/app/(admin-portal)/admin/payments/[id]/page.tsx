@@ -11,8 +11,8 @@ import { motion } from "framer-motion";
 import {
     ArrowLeft, CreditCard, CheckCircle, XCircle, Clock,
     ArrowDownRight, AlertTriangle, RefreshCw, Copy,
-    ShieldCheck, Receipt, ExternalLink, Banknote,
-    CalendarDays, Hash, Building2, RotateCcw
+    ShieldCheck, FileText, ExternalLink, DollarSign,
+    Calendar, Hash, Building, RefreshCcw
 } from "lucide-react";
 import Link from "next/link";
 
@@ -244,7 +244,7 @@ export default function PaymentDetailPage() {
                         className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6"
                     >
                         <h2 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Receipt className="w-4 h-4" /> Transaction Details
+                            <FileText className="w-4 h-4" /> Transaction Details
                         </h2>
                         <div>
                             <InfoRow label="Payment ID" mono>
@@ -331,7 +331,7 @@ export default function PaymentDetailPage() {
                             className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6"
                         >
                             <h2 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <Building2 className="w-4 h-4" /> Provider Response
+                                <Building className="w-4 h-4" /> Provider Response
                             </h2>
                             <pre className="bg-black/40 border border-white/5 p-4 rounded-xl text-xs text-white/50 overflow-x-auto leading-relaxed">
                                 {JSON.stringify(payment.provider_response, null, 2)}
@@ -410,7 +410,7 @@ export default function PaymentDetailPage() {
                                     {isRefunding ? (
                                         <><RefreshCw className="w-4 h-4 animate-spin" /> Processing…</>
                                     ) : (
-                                        <><RotateCcw className="w-4 h-4" /> Issue Refund</>
+                                        <><RefreshCcw className="w-4 h-4" /> Issue Refund</>
                                     )}
                                 </button>
 
