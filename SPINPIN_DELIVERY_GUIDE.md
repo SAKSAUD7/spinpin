@@ -1,136 +1,168 @@
-# SpinPin Leicester - Full Delivery & Deployment Guide
+# 🚀 SpinPin Leicester - Complete Delivery & Hosting Guide
 
-This guide contains everything you need to set up, deploy, and manage the SpinPin platform (Frontend, Backend, Database, and Payment Integration).
-
-## 1. Project Architecture
-
-- **Frontend**: Next.js 14 (App Router), React, TailwindCSS, Framer Motion
-- **Backend**: Django 5.1.4, Django REST Framework (DRF), Django Ninja
-- **Database**: SQLite (Local) / MySQL or PostgreSQL (Production recommended)
-- **Payments**: SumUp API (Dual-merchant integration)
+This document serves as the **Ultimate Handover and Setup Guide** for the SpinPin platform. It contains everything the hosting team needs to know to deploy, configure, and maintain the platform in a production environment.
 
 ---
 
-## 2. Environment Variables Setup
+## 1. Project Overview & Architecture
 
-Both the frontend and backend require `.env` files.
+SpinPin is a modern, high-performance web platform built with a decoupled architecture.
 
-### Backend (`backend/.env`)
-Create a `.env` file in the `backend` folder:
+- **Frontend Application**: Built with **Next.js 14 (App Router)**, React, TailwindCSS, and Framer Motion. It handles the customer-facing booking wizards, the CMS-driven marketing pages, and the secure Admin Portal.
+- **Backend API**: Built with **Django 5.1.4**, Django REST Framework (DRF), and Django Ninja. It manages business logic, database transactions, dual-merchant payment routing, and email communications.
+- **Monorepo Structure**: Uses Turborepo (`packages/ui`, `packages/hooks`) to share components and logic across the platform.
+- **Database**: SQLite (Development) / MySQL or PostgreSQL (Production).
+- **Payment Gateway**: **SumUp API** configured for dual-merchant routing (SpinPin Ltd for Skating/Arcade, Twinkle Town Ltd for Bowling).
 
+---
+
+## 2. GitHub Repository Deliverables
+
+The complete source code is securely stored in your private GitHub repository. 
+
+**What is included in the repository:**
+- `frontend/` - The Next.js web application and admin portal.
+- `backend/` - The Django API, models, and business logic.
+- `packages/` - Shared UI components and configurations.
+- `spinpin_db_fixture.json` - **CRITICAL:** This file contains the complete snapshot of the database, including all CMS content, pricing tables, admin accounts, and package configurations created during development.
+
+**What is explicitly excluded (for security/performance):**
+- `.env` and `.env.local` files containing secrets.
+- `node_modules/` and Python `.venv/` directories.
+- The local development database file (`db.sqlite3`).
+
+---
+
+## 3. Server Deployment Procedure (VPS / Ubuntu)
+
+To host the platform on a VPS (e.g., Hostinger, DigitalOcean, AWS), follow this exact order of operations:
+
+### Step 1: Clone and Prepare
+1. SSH into the production server.
+2. Clone the private GitHub repository to `/var/www/spinpin` (or your preferred directory).
+3. Ensure **Node.js (v20+)** and **Python (3.11+)** are installed on the server.
+4. Install MySQL server and create a dedicated database and user for `spinpin_prod`.
+
+### Step 2: Backend Setup (Django API)
+1. Navigate to the `backend/` directory.
+2. Create and activate a Python virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   pip install mysqlclient  # Required for production MySQL connection
+   ```
+4. **Create the Production `.env` File**: Create `backend/.env` using the template provided in Section 4.
+5. Run database migrations:
+   ```bash
+   python manage.py migrate
+   ```
+6. **Load the Initial Data Fixture**: This populates the CMS and settings.
+   ```bash
+   python manage.py loaddata ../spinpin_db_fixture.json
+   ```
+7. Start the backend using **Gunicorn** managed by PM2:
+   ```bash
+   npm install -g pm2
+   pm2 start "gunicorn ninja_backend.wsgi:application --bind 0.0.0.0:9000" --name spinpin-api
+   ```
+
+### Step 3: Frontend Setup (Next.js)
+1. Navigate to the `frontend/` directory.
+2. Install Node dependencies:
+   ```bash
+   npm install
+   ```
+3. **Create the Production `.env.local` File**: Create `frontend/.env.local` using the template provided in Section 4.
+4. Build the Next.js production application:
+   ```bash
+   npm run build
+   ```
+5. Start the frontend using PM2:
+   ```bash
+   pm2 start npm --name spinpin-web -- start
+   ```
+
+### Step 4: Nginx Reverse Proxy Setup
+Configure Nginx to safely expose the applications to the web and secure them with SSL (Let's Encrypt).
+
+1. Route `yourdomain.com/api` and `yourdomain.com/admin` to the Gunicorn server running on `localhost:9000`.
+2. Route all other traffic on `yourdomain.com` to the Next.js server running on `localhost:5000`.
+
+---
+
+## 4. Production Environment Variables (Credentials)
+
+The hosting team must create these files manually on the server. **Never commit these to GitHub.**
+
+### 📄 File: `backend/.env`
 ```ini
-# Core Django
-SECRET_KEY=your-secure-secret-key
-DEBUG=True # Set to False in production
-ALLOWED_HOSTS=localhost,127.0.0.1,your-production-domain.com
-CORS_ALLOWED_ORIGINS=http://localhost:5000,http://localhost:3000,https://your-production-domain.com
+# Core Django Security
+SECRET_KEY=[Generate a new strong 50+ character string]
+DEBUG=False
+ALLOWED_HOSTS=api.spinpin.co.uk, spinpin.co.uk, www.spinpin.co.uk, localhost, 127.0.0.1
+CORS_ALLOWED_ORIGINS=https://spinpin.co.uk, https://www.spinpin.co.uk
 
-# Database (Default is SQLite for dev)
-DB_ENGINE=django.db.backends.sqlite3
+# Database Configuration (MySQL)
+DB_ENGINE=django.db.backends.mysql
+DB_NAME=spinpin_prod
+DB_USER=spinpin_user
+DB_PASSWORD=[Secure Database Password]
+DB_HOST=localhost
+DB_PORT=3306
 
-# Email Settings (Configure Azure or SMTP for production)
-EMAIL_ENABLED=True
-EMAIL_BOOKING_ENABLED=True
-
-# Payment Configuration (Dual-Merchant SumUp)
+# SumUp Dual-Merchant Payment Integration
 PAYMENT_MODE=sumup
-SUMUP_RETURN_URL=https://your-production-domain.com/book/success
+SUMUP_RETURN_URL=https://spinpin.co.uk/book/success
 
-# SpinPin Ltd (Skating/Arcade)
+# Account 1: SpinPin Ltd (Skating/Arcade)
 SUMUP_SKATING_API_KEY=sup_sk_fLnsSyO1H7KviBiaeq5NcPDKYULWioiyM
 SUMUP_SKATING_MERCHANT_CODE=MC933QM6
 
-# Twinkle Town Ltd (Bowling)
+# Account 2: Twinkle Town Ltd (Bowling)
 SUMUP_BOWLING_API_KEY=sup_sk_rvC5s5NFxx2lNzKd54bJgXFwCDXnSCP8S
 SUMUP_BOWLING_MERCHANT_CODE=M7EN4CMZ
+
+# Email Configuration (Set up SMTP or Azure for Booking Confirmations)
+EMAIL_ENABLED=True
+EMAIL_BOOKING_ENABLED=True
+# Add SMTP host, port, user, and password here based on your provider
 ```
 
-### Frontend (`frontend/.env.local`)
-Create a `.env.local` file in the `frontend` folder:
-
+### 📄 File: `frontend/.env.local`
 ```ini
-NEXT_PUBLIC_API_URL=http://localhost:9000/api/v1 # Update to production API URL
+# Must point to the production Nginx route that proxies the Django backend
+NEXT_PUBLIC_API_URL=https://spinpin.co.uk/api/v1
 ```
 
 ---
 
-## 3. Database Setup & Migrations
+## 5. Admin Portal Access
 
-The backend uses Django ORM. To set up the database from scratch:
+Once the database fixture is loaded (`python manage.py loaddata`), the administrator accounts are automatically restored.
 
-1. Open a terminal in the `backend` directory.
-2. Activate your virtual environment (e.g., `.\.venv\Scripts\activate`).
-3. Run the migrations to create the database tables:
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-4. Create an admin superuser to access the Django admin panel and frontend CMS portal:
-   ```bash
-   python manage.py createsuperuser
-   ```
-   *Follow the prompts to enter a username, email, and password.*
+- **Admin URL**: `https://spinpin.co.uk/admin`
+- **Default Username**: `admin`
+- **Default Password**: *(Use the password configured during local development. If forgotten, you can create a new superuser via SSH: `python manage.py createsuperuser`)*
+
+From the Admin Portal, staff can:
+- View all online transactions and their SumUp payment status.
+- Manage CMS content (Pricing, Guidelines, Hero Banners).
+- Process "Free Entries" and manage party bookings.
+- Review digitally signed liability waivers.
 
 ---
 
-## 4. Running the Application Locally
+## 6. How the Dual-Merchant Payment System Works
 
-### Start the Backend Server (Port 9000)
-```bash
-cd backend
-.\.venv\Scripts\activate
-python manage.py runserver 9000
-```
+The hosting team should understand that SpinPin utilizes a complex payment routing system. 
 
-### Start the Frontend Server (Port 5000)
-```bash
-cd frontend
-npm install
-npm run dev
-```
+1. When a customer adds **Roller Skating** to their cart, the Django backend dynamically generates a checkout token using the `SUMUP_SKATING_API_KEY` (SpinPin Ltd).
+2. If the cart contains **Ten Pin Bowling**, the backend generates a token using the `SUMUP_BOWLING_API_KEY` (Twinkle Town Ltd).
+3. The Next.js frontend securely renders the SumUp payment widget using this token.
+4. Once paid, the backend verifies the transaction with SumUp before confirming the booking in the database.
 
-The website will be available at `http://localhost:5000`.
-
----
-
-## 5. SumUp Payment Gateway Integration
-
-The platform is integrated with **SumUp Checkout API** to support two separate merchant accounts based on the booked activity:
-
-- **Roller Skating & Arcade**: Routes payments to **SpinPin Ltd**.
-- **Ten Pin Bowling**: Routes payments to **Twinkle Town Ltd**.
-
-### How it works:
-1. When a user books "Roller Skating", the backend selects the `SUMUP_SKATING_API_KEY` and creates a checkout session for SpinPin Ltd.
-2. When a user books "Ten Pin Bowling", the backend selects the `SUMUP_BOWLING_API_KEY` and creates a checkout session for Twinkle Town Ltd.
-3. The user is redirected to the securely hosted SumUp payment page.
-4. After payment, the user is redirected back to the `/book/success` page.
-5. The backend verifies the transaction with SumUp and updates the booking status to `PAID`.
-
----
-
-## 6. Deployment Guidelines (VPS / Server)
-
-If deploying to a Hostinger VPS or similar Ubuntu server:
-
-1. **Backend (Gunicorn & PM2/Systemd)**:
-   - Use `gunicorn` to serve the Django application.
-   - Run the API behind Nginx reverse proxy on port 9000.
-   - Example PM2 command: `pm2 start "gunicorn ninja_backend.wsgi:application --bind 0.0.0.0:9000" --name spinpin-api`
-
-2. **Frontend (Next.js)**:
-   - Build the Next.js app: `npm run build`
-   - Start the production server: `npm start`
-   - Run via PM2: `pm2 start npm --name spinpin-web -- start`
-
-3. **Nginx Reverse Proxy**:
-   - Route `yourdomain.com/api` to `localhost:9000`
-   - Route `yourdomain.com` to `localhost:5000` (or whichever port Next.js is running on)
-
----
-
-## 7. Email & Communication
-
-To enable booking confirmation emails, you will need to update the Azure Communication Services or SMTP settings in the production `.env` file. The integration is already built into `apps.emails.services`.
-
-*End of Document*
+*End of Document. Project is ready for production hosting.*
