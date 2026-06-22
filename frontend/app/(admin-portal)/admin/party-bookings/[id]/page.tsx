@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Cake, Share2, CheckCheck } from "lucide-react";
+import {
+    ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle,
+    FileSignature, Cake, Share2, CheckCheck, Clock, AlertCircle,
+    RefreshCw, Shield
+} from "lucide-react";
 import { PartyBookingPDF } from "../../../../../components/PartyBookingPDF";
-
-// Uses Next.js API routes for all backend calls
+import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
 
 export default function PartyBookingDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -15,41 +18,43 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
     const [resending, setResending] = useState(false);
+    const [refreshingWaivers, setRefreshingWaivers] = useState(false);
 
-    useEffect(() => {
-        async function loadBookingData() {
-            try {
-                // Fetch party booking details via API route
-                const bookingResponse = await fetch(`/api/bookings/${params.id}?type=PARTY`, {
-                    credentials: 'include',
-                    cache: 'no-store',
-                });
+    const loadBookingData = useCallback(async () => {
+        try {
+            const bookingResponse = await fetch(`/api/bookings/${params.id}?type=PARTY`, {
+                credentials: 'include',
+                cache: 'no-store',
+            });
 
-                if (bookingResponse.ok) {
-                    const bookingData = await bookingResponse.json();
-                    setBooking(bookingData);
+            if (bookingResponse.ok) {
+                const bookingData = await bookingResponse.json();
+                setBooking(bookingData);
 
-                    // Fetch waivers for this party booking
-                    const waiversResponse = await fetch(`/api/waivers`, {
-                        credentials: 'include',
-                        cache: 'no-store',
-                    });
-
-                    if (waiversResponse.ok) {
-                        const allWaivers = await waiversResponse.json();
-                        // Filter waivers for this party booking
-                        const bookingWaivers = allWaivers.filter((w: any) => w.party_booking === bookingData.id);
-                        setWaivers(bookingWaivers);
-                    }
+                // Fetch waivers scoped to this party booking (server-side filtered)
+                const waiversResponse = await fetch(
+                    `/api/waivers?party_booking_id=${bookingData.id}`,
+                    { credentials: 'include', cache: 'no-store' }
+                );
+                if (waiversResponse.ok) {
+                    const waiversData = await waiversResponse.json();
+                    setWaivers(Array.isArray(waiversData) ? waiversData : waiversData.results ?? []);
                 }
-            } catch (error) {
-                console.error('Error loading party booking:', error);
-            } finally {
-                setLoading(false);
             }
+        } catch (error) {
+            console.error('Error loading party booking:', error);
+        } finally {
+            setLoading(false);
         }
-        loadBookingData();
     }, [params.id]);
+
+    useEffect(() => { loadBookingData(); }, [loadBookingData]);
+
+    const refreshWaivers = async () => {
+        setRefreshingWaivers(true);
+        await loadBookingData();
+        setRefreshingWaivers(false);
+    };
 
     const handlePrint = () => window.print();
 
@@ -79,14 +84,10 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ type: 'PARTY', status: status }),
+                body: JSON.stringify({ type: 'PARTY', status }),
                 cache: 'no-store',
             });
-            if (response.ok) {
-                // Reload booking data
-                const data = await response.json();
-                setBooking(data);
-            }
+            if (response.ok) setBooking(await response.json());
         } catch (error) {
             console.error('Error updating status:', error);
         }
@@ -97,9 +98,7 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
         return age;
     };
 
@@ -108,15 +107,31 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
 
     const fmt = (v: any) => `£${Number(v || 0).toFixed(2)}`;
 
-    // Prepare booking object with waivers as participants for the PDF
+    // ── Waiver tracking ──────────────────────────────────────────────────
+    const totalExpected = (booking.adults || 0) + (booking.kids || 0);
+    const waiversSigned = waivers.length;
+    const waiversRemaining = Math.max(0, totalExpected - waiversSigned);
+    const waiverProgress = totalExpected > 0 ? Math.min((waiversSigned / totalExpected) * 100, 100) : 0;
+
+    // Collect all named participants from waivers
+    const allSignedAdults: any[] = waivers.flatMap(w => [
+        { name: w.name, email: w.email, phone: w.phone, dob: w.dob, isPrimary: true, waiverId: w.id },
+        ...(w.adults || []).map((a: any) => ({ ...a, isPrimary: false, waiverId: w.id }))
+    ]).filter(a => a.name);
+    const allSignedMinors: any[] = waivers.flatMap(w =>
+        (w.minors || []).map((m: any) => ({ ...m, waiverId: w.id }))
+    ).filter(m => m.name);
+
+    // Participants from booking.participants JSON (added during booking)
+    const bookedParticipants = booking.participants || { adults: [], minors: [] };
+    const bookedAdults: any[] = bookedParticipants.adults || [];
+    const bookedMinors: any[] = bookedParticipants.minors || [];
+
     const pdfBooking = {
         ...booking,
         participants: {
-            adults: waivers.flatMap(w => [
-                { name: w.name, email: w.email, phone: w.phone, dob: w.dob },
-                ...(w.adults || []).map((a: any) => ({ name: a.name, email: a.email, dob: a.dob }))
-            ]),
-            minors: waivers.flatMap(w => (w.minors || []).map((m: any) => ({ name: m.name, dob: m.dob })))
+            adults: allSignedAdults,
+            minors: allSignedMinors,
         }
     };
 
@@ -131,7 +146,7 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                     <h1 className="text-3xl font-bold text-slate-900">Party #{String(booking.id).padStart(6, '0')}</h1>
                     <p className="text-slate-500 mt-1">
                         Ref: <span className="font-mono font-bold text-purple-600">{booking.booking_number || `SPPARTY-${booking.id}`}</span>
-                        {' · '}Created {new Date(booking.created_at).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'})}
+                        {' · '}Created {new Date(booking.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -195,6 +210,9 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                         </div>
                     </div>
 
+                    {/* Payment History & Gateway Updates */}
+                    <PaymentHistoryCard bookingId={booking.id} bookingType="party" />
+
                     {/* Birthday Child */}
                     {booking.birthday_child_name && (
                         <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl shadow-sm border border-pink-200 p-6">
@@ -215,11 +233,10 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                         </div>
                     )}
 
-                    {/* Guest Summary - Always show from booking data */}
+                    {/* Guest Summary */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <Users size={20} />
-                            Guest Summary
+                            <Users size={20} /> Guest Summary
                         </h2>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -238,97 +255,125 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                         </div>
                     </div>
 
-                    {/* Participant Details & Waivers */}
+                    {/* ── Waiver Progress Tracker ── */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h2 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                            <FileSignature size={20} />
-                            Participant Details & Waivers
-                        </h2>
-                        <p className="text-sm text-slate-500 mb-4">
-                            Individual participant information from signed waivers
-                        </p>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <Shield size={20} className="text-purple-600" />
+                                Waiver & Participant Tracker
+                            </h2>
+                            <button
+                                onClick={refreshWaivers}
+                                disabled={refreshingWaivers}
+                                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors disabled:opacity-50"
+                            >
+                                <RefreshCw size={13} className={refreshingWaivers ? "animate-spin" : ""} />
+                                Refresh
+                            </button>
+                        </div>
 
-                        {waivers && waivers.length > 0 ? (
-                            <div className="space-y-4">
+                        {/* Progress bar */}
+                        <div className="mb-5">
+                            <div className="flex justify-between text-sm mb-2">
+                                <span className="text-slate-600">
+                                    <span className="font-bold text-green-600">{waiversSigned}</span> of{" "}
+                                    <span className="font-bold">{totalExpected}</span> participants signed
+                                </span>
+                                {waiversRemaining > 0 ? (
+                                    <span className="text-amber-600 font-semibold flex items-center gap-1">
+                                        <Clock size={13} /> {waiversRemaining} pending
+                                    </span>
+                                ) : (
+                                    <span className="text-green-600 font-semibold flex items-center gap-1">
+                                        <CheckCircle size={13} /> All signed
+                                    </span>
+                                )}
+                            </div>
+                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-500 ${waiverProgress === 100 ? "bg-green-500" : "bg-purple-500"}`}
+                                    style={{ width: `${waiverProgress}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Pending notice */}
+                        {waiversRemaining > 0 && (
+                            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                                <AlertCircle size={15} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                                <p className="text-xs text-amber-800">
+                                    <strong>{waiversRemaining} participant{waiversRemaining !== 1 ? 's have' : ' has'}</strong> not yet signed a waiver.
+                                    They will receive a waiver link via email. This tracker updates automatically when they sign.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Signed waivers list */}
+                        {waivers.length > 0 ? (
+                            <div className="space-y-3">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed Participants</p>
                                 {waivers.map((waiver: any) => (
-                                    <div key={waiver.id} className="border border-slate-200 rounded-lg p-4">
-                                        {/* Primary Signer */}
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                                    <User size={20} className="text-purple-600" />
+                                    <div key={waiver.id} className="border border-slate-100 rounded-xl p-4 bg-slate-50">
+                                        {/* Primary signer row */}
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                                    <CheckCircle size={16} className="text-green-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-900">{waiver.name}</p>
-                                                    <p className="text-sm text-slate-500">
-                                                        {waiver.participant_type === 'ADULT' ? 'Primary Adult' : 'Minor'}
-                                                        {waiver.is_primary_signer && ' (Primary Signer)'}
+                                                    <p className="font-semibold text-slate-900 text-sm">{waiver.name}</p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {waiver.is_primary_signer ? 'Primary signer' : 'Participant'}
+                                                        {waiver.participant_type === 'ADULT' ? ' · Adult' : ' · Minor'}
                                                     </p>
-                                                    {waiver.email && <p className="text-sm text-slate-600">{waiver.email}</p>}
-                                                    {waiver.phone && <p className="text-sm text-slate-600">{waiver.phone}</p>}
+                                                    {waiver.email && <p className="text-xs text-slate-500">{waiver.email}</p>}
+                                                    {waiver.phone && <p className="text-xs text-slate-500">{waiver.phone}</p>}
                                                     {waiver.dob && <p className="text-xs text-slate-400">DOB: {waiver.dob}</p>}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div>
                                                 {waiver.is_verified ? (
                                                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
-                                                        <CheckCircle size={14} />
-                                                        Checked In
+                                                        <Check size={11} /> Checked In
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
-                                                        Pending Check-in
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-600">
+                                                        <Clock size={11} /> Not Arrived
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* Additional Adults */}
+                                        {/* Additional adults in this waiver */}
                                         {waiver.adults && waiver.adults.length > 0 && (
-                                            <div className="ml-4 mt-3 pl-4 border-l-2 border-purple-200">
-                                                <p className="text-xs font-bold text-slate-500 uppercase mb-2">Additional Adults ({waiver.adults.length})</p>
-                                                <div className="space-y-2">
-                                                    {waiver.adults.map((adult: any, idx: number) => (
-                                                        <div key={`adult-${idx}`} className="flex items-center gap-2 text-sm">
-                                                            <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                                                            <div>
-                                                                <span className="font-medium text-slate-900">{adult.name}</span>
-                                                                {adult.email && <span className="text-slate-500 ml-2">({adult.email})</span>}
-                                                                {adult.dob && <span className="text-xs text-slate-400 ml-2">DOB: {adult.dob}</span>}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                            <div className="ml-12 mt-3 pl-3 border-l-2 border-purple-200 space-y-1">
+                                                <p className="text-xs font-semibold text-slate-400 uppercase">Additional Adults</p>
+                                                {waiver.adults.map((a: any, i: number) => (
+                                                    <div key={i} className="flex items-center gap-2 text-sm">
+                                                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
+                                                        <span className="font-medium text-slate-800">{a.name}</span>
+                                                        {a.email && <span className="text-slate-500 text-xs">({a.email})</span>}
+                                                        {a.dob && <span className="text-xs text-slate-400">DOB: {a.dob}</span>}
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
 
-                                        {/* Minors */}
+                                        {/* Minors in this waiver */}
                                         {waiver.minors && waiver.minors.length > 0 && (
-                                            <div className="ml-4 mt-3 pl-4 border-l-2 border-pink-200">
-                                                <p className="text-xs font-bold text-slate-500 uppercase mb-2">Party Kids ({waiver.minors.length})</p>
-                                                <div className="space-y-2">
-                                                    {waiver.minors.map((minor: any, idx: number) => (
-                                                        <div key={`minor-${idx}`} className="flex items-center gap-2 text-sm">
-                                                            <span className="w-2 h-2 bg-pink-400 rounded-full"></span>
-                                                            <div>
-                                                                <span className="font-medium text-slate-900">{minor.name}</span>
-                                                                {minor.dob && (
-                                                                    <span className="text-xs text-slate-500 ml-2">
-                                                                        DOB: {minor.dob} (Age {calculateAge(minor.dob)})
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {waiver.emergency_contact && (
-                                            <div className="mt-3 pt-3 border-t border-slate-100">
-                                                <p className="text-xs text-slate-500">
-                                                    <span className="font-semibold">Emergency Contact:</span> {waiver.emergency_contact}
-                                                </p>
+                                            <div className="ml-12 mt-3 pl-3 border-l-2 border-pink-200 space-y-1">
+                                                <p className="text-xs font-semibold text-slate-400 uppercase">Children</p>
+                                                {waiver.minors.map((m: any, i: number) => (
+                                                    <div key={i} className="flex items-center gap-2 text-sm">
+                                                        <span className="w-1.5 h-1.5 bg-pink-400 rounded-full" />
+                                                        <span className="font-medium text-slate-800">{m.name}</span>
+                                                        {m.dob && (
+                                                            <span className="text-xs text-slate-500">
+                                                                DOB: {m.dob} (Age {calculateAge(m.dob)})
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
@@ -336,20 +381,67 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                             </div>
                         ) : (
                             <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-lg">
-                                <FileSignature size={48} className="mx-auto text-slate-300 mb-3" />
+                                <FileSignature size={40} className="mx-auto text-slate-300 mb-3" />
                                 <p className="text-slate-700 font-medium mb-1">No waivers signed yet</p>
-                                <p className="text-sm text-slate-500 mb-3">
-                                    Expecting {booking.adults || 0} adult{(booking.adults || 0) !== 1 ? 's' : ''} and {booking.kids || 0} kid{(booking.kids || 0) !== 1 ? 's' : ''} to sign waivers
+                                <p className="text-sm text-slate-500">
+                                    Expecting {booking.adults || 0} adult{(booking.adults || 0) !== 1 ? 's' : ''} and {booking.kids || 0} kid{(booking.kids || 0) !== 1 ? 's' : ''} to sign
                                 </p>
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-slate-400 mt-2">
                                     Participants will appear here once they complete the waiver signing process
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Participants added during booking (before waivers) */}
+                        {(bookedAdults.length > 0 || bookedMinors.length > 0) && (
+                            <div className="mt-5 pt-5 border-t border-slate-100">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                                    Pre-registered Participants (added during booking)
+                                </p>
+                                <div className="space-y-2">
+                                    {bookedAdults.map((a: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-3 text-sm">
+                                            <User size={14} className="text-blue-500 flex-shrink-0" />
+                                            <span className="text-slate-800 font-medium">{a.name || '(no name)'}</span>
+                                            {a.email && <span className="text-slate-500 text-xs">{a.email}</span>}
+                                            {a.isPrimary && (
+                                                <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Primary</span>
+                                            )}
+                                            {/* Check if this person has signed */}
+                                            {a.name && allSignedAdults.some(s => s.name?.toLowerCase() === a.name?.toLowerCase()) ? (
+                                                <span className="text-xs text-green-600 flex items-center gap-1 ml-auto">
+                                                    <CheckCircle size={11} /> Waiver signed
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
+                                                    <Clock size={11} /> Pending waiver
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {bookedMinors.map((m: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-3 text-sm">
+                                            <Cake size={14} className="text-pink-500 flex-shrink-0" />
+                                            <span className="text-slate-800 font-medium">{m.name || '(no name)'}</span>
+                                            {m.guardian && <span className="text-slate-500 text-xs">Guardian: {m.guardian}</span>}
+                                            {m.name && allSignedMinors.some(s => s.name?.toLowerCase() === m.name?.toLowerCase()) ? (
+                                                <span className="text-xs text-green-600 flex items-center gap-1 ml-auto">
+                                                    <CheckCircle size={11} /> Waiver signed
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
+                                                    <Clock size={11} /> Pending waiver
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Sidebar Actions */}
+                {/* Sidebar */}
                 <div className="space-y-6">
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <h2 className="text-lg font-bold text-slate-900 mb-4">Status</h2>
@@ -376,6 +468,28 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                                 <X size={18} /> Cancel Party
                             </button>
                         </div>
+                    </div>
+
+                    {/* Waiver Summary Card in sidebar */}
+                    <div className={`rounded-xl border p-5 ${waiverProgress === 100 ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Shield size={18} className={waiverProgress === 100 ? 'text-green-600' : 'text-amber-600'} />
+                            <h3 className="font-bold text-slate-800 text-sm">Waivers</h3>
+                        </div>
+                        <p className="text-3xl font-black text-slate-900">
+                            {waiversSigned}<span className="text-lg text-slate-400 font-normal"> / {totalExpected}</span>
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">participants signed</p>
+                        {waiversRemaining > 0 && (
+                            <p className="text-xs text-amber-700 mt-3 font-medium">
+                                ⏳ {waiversRemaining} still pending
+                            </p>
+                        )}
+                        {waiverProgress === 100 && totalExpected > 0 && (
+                            <p className="text-xs text-green-700 mt-3 font-medium flex items-center gap-1">
+                                <CheckCircle size={12} /> All waivers complete!
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

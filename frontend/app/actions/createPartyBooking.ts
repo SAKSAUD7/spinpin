@@ -145,6 +145,7 @@ export async function createPartyBooking(formData: any) {
         return {
             success: true,
             bookingId: booking.uuid || String(booking.id),
+            bookingIntId: booking.id,
             booking,
             amount: totalAmount,
             depositAmount: totalAmount * 0.2 // 20% deposit (from DB config)

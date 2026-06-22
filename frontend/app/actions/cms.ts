@@ -48,3 +48,68 @@ export async function createPricingCarouselImage(payload: any) {
         return { success: false, error: error.message || "Failed to create record" };
     }
 }
+
+// Free Entry Actions
+
+export async function getFreeEntries() {
+    try {
+        const response = await fetchAPI(API_ENDPOINTS.cms.freeEntries);
+        if (!response.ok) return [];
+        const data = await response.json();
+        // Depending on DRF pagination, it might return an array or { results: [] }
+        if (data && data.results) {
+            return data.results;
+        }
+        return Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.error("Failed to fetch free entries:", error);
+        return [];
+    }
+}
+
+export async function createFreeEntry(payload: any) {
+    try {
+        const response = await postAPI(API_ENDPOINTS.cms.freeEntries, payload);
+        revalidatePath('/admin/free-entries');
+        return response;
+    } catch (error: any) {
+        console.error("Create Free Entry Error:", error);
+        throw new Error(error.message || "Failed to create free entry");
+    }
+}
+
+export async function updateFreeEntryStatus(id: number, status: string, notes?: string) {
+    try {
+        const payload: any = { status };
+        if (notes !== undefined) {
+            payload.notes = notes;
+        }
+        
+        // Use standard fetchAPI but pass method: PATCH to update only specific fields
+        const response = await fetchAPI(`${API_ENDPOINTS.cms.freeEntries}${id}/`, {
+            method: "PATCH",
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed with status: ${response.status}`);
+        }
+        
+        revalidatePath('/admin/free-entries');
+        return await response.json();
+    } catch (error: any) {
+        console.error("Update Free Entry Status Error:", error);
+        throw new Error(error.message || "Failed to update free entry status");
+    }
+}
+
+export async function deleteFreeEntry(id: number) {
+    try {
+        await deleteAPI(`${API_ENDPOINTS.cms.freeEntries}${id}/`);
+        revalidatePath('/admin/free-entries');
+        return true;
+    } catch (error: any) {
+        console.error("Delete Free Entry Error:", error);
+        throw new Error(error.message || "Failed to delete free entry");
+    }
+}

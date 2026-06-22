@@ -56,7 +56,7 @@ function EInvitationStep({ bookingId, bookingDetails, onNext, onSkip, onBack, ti
 
 export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWizardProps) {
     const router = useRouter();
-    const { customer, login, register: registerUser } = useAccount();
+    const { customer, token, login, register: registerUser } = useAccount();
     const MIN_PARTICIPANTS = 10;
 
     // 1: Basic Info, 2: Auth Gate (if not logged in), 3: Participants, 4: Payment, 5: Confirmation
@@ -175,7 +175,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
             if (result.success) {
                 setTempBookingId(result.bookingId);            // UUID string
-                setTempBookingIntId(result.bookingIntId ?? null); // integer id
+                setTempBookingIntId(result.bookingIntId ?? result.booking?.id ?? null); // integer id
                 // Store complete booking details
                 setBookingDetails({
                     ...formData,
@@ -226,6 +226,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                     participants: {
@@ -238,8 +239,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
             });
 
             if (response.ok) {
-                // Instead of finishing immediately, we go to Step 3 (Invitation)
-                setStep(3);
+                setStep(4); // Advance to Payment
             } else {
                 alert("Failed to save participants. Please try again.");
             }
@@ -411,8 +411,8 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                     </div>
                     <div className="flex justify-between mt-2 text-xs font-semibold px-4 max-w-lg mx-auto">
                         <span className={step >= 1 ? 'text-primary' : 'text-white/30'}>Details</span>
-                        <span className={step >= 2 ? 'text-primary' : 'text-white/30'}>Participants</span>
-                        <span className={step >= 3 ? 'text-primary' : 'text-white/30'}>E-Invitation</span>
+                        <span className={step >= 2 ? 'text-primary' : 'text-white/30'}>Sign In</span>
+                        <span className={step >= 3 ? 'text-primary' : 'text-white/30'}>Participants</span>
                         <span className={step >= 4 ? 'text-primary' : 'text-white/30'}>Payment</span>
                         <span className={step >= 5 ? 'text-primary' : 'text-white/30'}>Confirm</span>
                     </div>

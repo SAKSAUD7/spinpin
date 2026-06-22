@@ -2,9 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { getFreeEntries } from "@/app/actions/cms";
-import { Mail, Phone, Calendar, CheckCircle, XCircle, Clock, Plus } from "lucide-react";
+import { Mail, Phone, Calendar, CheckCircle, XCircle, Clock, Plus, Ticket, FileText } from "lucide-react";
 import { FreeEntryActions } from "../components/FreeEntryActions";
 import { CreateFreeEntryModal } from "../components/CreateFreeEntryModal";
+import { motion, AnimatePresence } from "framer-motion";
+
+function StatCard({ label, value, color, icon }: { label: string; value: string | number; color: string; icon: React.ReactNode }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`relative overflow-hidden rounded-2xl border p-5 backdrop-blur-sm flex flex-col gap-3 ${color}`}
+        >
+            <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-widest opacity-70">{label}</p>
+                <div className="opacity-60">{icon}</div>
+            </div>
+            <div>
+                <p className="text-3xl font-black tracking-tight">{value}</p>
+            </div>
+            {/* subtle glow blob */}
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-20 bg-current" />
+        </motion.div>
+    );
+}
 
 export default function FreeEntriesPage() {
     const [entries, setEntries] = useState<any[]>([]);
@@ -33,155 +54,161 @@ export default function FreeEntriesPage() {
         rejected: entries.filter(e => e.status === "REJECTED").length
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
-
     return (
-        <div className="p-8">
-            <div className="flex justify-between items-start mb-8">
+        <div className="p-6 space-y-6 min-h-screen bg-[#0a0118]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Free Entry Submissions</h1>
-                    <p className="text-slate-500 mt-1">Manage free entry requests from customers</p>
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                            <Ticket className="w-6 h-6 text-primary" />
+                        </div>
+                        <h1 className="text-2xl font-black text-white">Free Entries</h1>
+                    </div>
+                    <p className="text-white/40 text-sm ml-14">
+                        {loading ? "Loading..." : `${stats.total} total submissions`}
+                    </p>
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(var(--primary),0.3)]"
                 >
-                    <Plus size={20} />
+                    <Plus className="w-5 h-5" />
                     Create New Entry
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
-                            <Mail size={24} />
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-500 font-medium">Total Requests</p>
-                            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg">
-                            <Clock size={24} />
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-500 font-medium">Pending</p>
-                            <p className="text-2xl font-bold text-slate-900">{stats.pending}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-green-100 text-green-600 rounded-lg">
-                            <CheckCircle size={24} />
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-500 font-medium">Approved</p>
-                            <p className="text-2xl font-bold text-slate-900">{stats.approved}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-red-100 text-red-600 rounded-lg">
-                            <XCircle size={24} />
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-500 font-medium">Rejected</p>
-                            <p className="text-2xl font-bold text-slate-900">{stats.rejected}</p>
-                        </div>
-                    </div>
-                </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <StatCard
+                    label="Total Requests"
+                    value={stats.total}
+                    color="text-white bg-white/5 border-white/10"
+                    icon={<FileText className="w-5 h-5" />}
+                />
+                <StatCard
+                    label="Pending"
+                    value={stats.pending}
+                    color="text-amber-400 bg-amber-400/10 border-amber-400/20"
+                    icon={<Clock className="w-5 h-5" />}
+                />
+                <StatCard
+                    label="Approved"
+                    value={stats.approved}
+                    color="text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
+                    icon={<CheckCircle className="w-5 h-5" />}
+                />
+                <StatCard
+                    label="Rejected"
+                    value={stats.rejected}
+                    color="text-red-400 bg-red-400/10 border-red-400/20"
+                    icon={<XCircle className="w-5 h-5" />}
+                />
             </div>
 
             {/* Entries Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Applicant</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reason</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {entries.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                                    No free entry requests yet. Click "Create New Entry" to add one.
-                                </td>
+            <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.03] backdrop-blur-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b border-white/10 bg-white/[0.04]">
+                                <th className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-white/40">Applicant</th>
+                                <th className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-white/40">Reason</th>
+                                <th className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-white/40">Status</th>
+                                <th className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-white/40">Date</th>
+                                <th className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-widest text-white/40">Actions</th>
                             </tr>
-                        ) : (
-                            entries.map((entry) => (
-                                <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div>
-                                            <p className="font-bold text-slate-900">{entry.name}</p>
-                                            <p className="text-sm text-slate-500 flex items-center gap-1">
-                                                <Mail size={14} />
-                                                {entry.email}
-                                            </p>
-                                            {entry.phone && (
-                                                <p className="text-sm text-slate-500 flex items-center gap-1">
-                                                    <Phone size={14} />
-                                                    {entry.phone}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm text-slate-700 max-w-md">{entry.reason}</p>
-                                        {entry.notes && (
-                                            <p className="text-xs text-slate-500 mt-1 italic">Note: {entry.notes}</p>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {entry.status === "PENDING" && (
-                                            <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">
-                                                Pending
-                                            </span>
-                                        )}
-                                        {entry.status === "APPROVED" && (
-                                            <span className="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-                                                Approved
-                                            </span>
-                                        )}
-                                        {entry.status === "REJECTED" && (
-                                            <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
-                                                Rejected
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-600">
-                                        <span className="flex items-center gap-1">
-                                            <Calendar size={14} className="text-slate-400" />
-                                            {new Date(entry.createdAt).toLocaleDateString()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <FreeEntryActions entry={entry} />
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <tr key={i} className="border-b border-white/5">
+                                        {Array.from({ length: 5 }).map((_, j) => (
+                                            <td key={j} className="px-5 py-4">
+                                                <div className="h-4 rounded-md bg-white/5 animate-pulse" style={{ width: `${[120, 200, 70, 80, 50][j]}px` }} />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))
+                            ) : entries.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-20 text-center">
+                                        <Ticket className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                                        <p className="text-white/30 font-medium">No free entry requests found</p>
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                <AnimatePresence>
+                                    {entries.map((entry, i) => (
+                                        <motion.tr 
+                                            key={entry.id} 
+                                            initial={{ opacity: 0, x: -6 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.02 }}
+                                            className="border-b border-white/5 hover:bg-white/[0.04] transition-colors"
+                                        >
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-black shrink-0">
+                                                        {(entry.name || "?").charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-semibold text-sm text-white truncate">{entry.name}</p>
+                                                        <p className="text-xs text-white/40 flex items-center gap-1 mt-0.5 truncate">
+                                                            <Mail size={12} />
+                                                            {entry.email}
+                                                        </p>
+                                                        {entry.phone && (
+                                                            <p className="text-xs text-white/40 flex items-center gap-1 mt-0.5 truncate">
+                                                                <Phone size={12} />
+                                                                {entry.phone}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <p className="text-sm text-white/70 max-w-md line-clamp-2">{entry.reason}</p>
+                                                {entry.notes && (
+                                                    <p className="text-xs text-primary mt-1 italic">Note: {entry.notes}</p>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                {entry.status === "PENDING" && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border text-amber-400 bg-amber-400/10 border-amber-400/30">
+                                                        <Clock className="w-3.5 h-3.5" /> Pending
+                                                    </span>
+                                                )}
+                                                {entry.status === "APPROVED" && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border text-emerald-400 bg-emerald-400/10 border-emerald-400/30">
+                                                        <CheckCircle className="w-3.5 h-3.5" /> Approved
+                                                    </span>
+                                                )}
+                                                {entry.status === "REJECTED" && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border text-red-400 bg-red-400/10 border-red-400/30">
+                                                        <XCircle className="w-3.5 h-3.5" /> Rejected
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4 text-sm text-white/50">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Calendar size={14} className="text-white/30" />
+                                                    {new Date(entry.created_at || entry.createdAt).toLocaleDateString()}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <FreeEntryActions entry={entry} />
+                                                </div>
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </AnimatePresence>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            {/* Create Modal */}
             {showCreateModal && (
                 <CreateFreeEntryModal
                     onClose={() => setShowCreateModal(false)}

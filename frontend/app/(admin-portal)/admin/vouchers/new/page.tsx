@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { createVoucher } from "@/app/actions/vouchers";
 import { useRouter } from "next/navigation";

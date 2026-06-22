@@ -3,10 +3,9 @@ import Link from 'next/link';
 import { getPages } from '@/app/actions/pages';
 import { PermissionGate } from '@/components/PermissionGate';
 import {
-    Layout, FileText, Image, MessageSquare,
-    Calendar, Users, Shield, HelpCircle,
-    Settings, Instagram, Utensils, Award
+    Layout, FileText
 } from 'lucide-react';
+import { SafeIcon } from '../components/SafeIcon';
 
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/app/lib/admin-auth';
@@ -22,35 +21,35 @@ export default async function CmsDashboard() {
     );
 
     const collections = [
-        { name: 'Banners', href: '/admin/banners', icon: Image, description: 'Homepage hero sliders' },
-        { name: 'Logos', href: '/admin/cms/logos', icon: Image, description: 'Site logos and branding' },
+        { name: 'Banners', href: '/admin/banners', icon: 'Image', description: 'Homepage hero sliders' },
+        { name: 'Logos', href: '/admin/cms/logos', icon: 'Image', description: 'Site logos and branding' },
 
-        { name: 'FAQs', href: '/admin/faqs', icon: HelpCircle, description: 'Questions and answers (FAQ page)' },
-        { name: 'Social Links', href: '/admin/cms/social-links', icon: Users, description: 'Social media profiles' },
-        { name: 'Gallery', href: '/admin/cms/gallery', icon: Image, description: 'Photo gallery items' },
-        { name: 'Stat Cards', href: '/admin/cms/stat-cards', icon: Award, description: 'Homepage statistics' },
-        { name: 'Instagram Reels', href: '/admin/cms/instagram-reels', icon: Instagram, description: 'Social feed items' },
-        { name: 'Menu Sections', href: '/admin/cms/menu-sections', icon: Utensils, description: 'Food and drink menu' },
-        { name: 'Party Packages', href: '/admin/cms/party-packages', icon: Calendar, description: 'Birthday party options' },
-        { name: 'Pricing Plans', href: '/admin/cms/pricing-plans', icon: FileText, description: 'Session and party pricing' },
-        { name: 'Guidelines', href: '/admin/cms/guideline-categories', icon: Shield, description: 'Safety rules' },
-        { name: 'Legal Docs', href: '/admin/cms/legal-documents', icon: FileText, description: 'Terms, privacy, waivers' },
-        { name: 'Contact Info', href: '/admin/cms/contact-info', icon: Settings, description: 'Site-wide contact details' },
-        { name: 'Timeline', href: '/admin/cms/timeline-items', icon: Calendar, description: 'Company history' },
-        { name: 'Values', href: '/admin/cms/value-items', icon: Award, description: 'Company core values' },
-        { name: 'Facilities', href: '/admin/cms/facility-items', icon: Layout, description: 'Park amenities' },
+        { name: 'FAQs', href: '/admin/faqs', icon: 'HelpCircle', description: 'Questions and answers (FAQ page)' },
+        { name: 'Social Links', href: '/admin/cms/social-links', icon: 'Users', description: 'Social media profiles' },
+        { name: 'Gallery', href: '/admin/cms/gallery', icon: 'Image', description: 'Photo gallery items' },
+        { name: 'Stat Cards', href: '/admin/cms/stat-cards', icon: 'Award', description: 'Homepage statistics' },
+        { name: 'Instagram Reels', href: '/admin/cms/instagram-reels', icon: 'Instagram', description: 'Social feed items' },
+        { name: 'Menu Sections', href: '/admin/cms/menu-sections', icon: 'Utensils', description: 'Food and drink menu' },
+        { name: 'Party Packages', href: '/admin/cms/party-packages', icon: 'Calendar', description: 'Birthday party options' },
+        { name: 'Pricing Plans', href: '/admin/cms/pricing-plans', icon: 'FileText', description: 'Session and party pricing' },
+        { name: 'Guidelines', href: '/admin/cms/guideline-categories', icon: 'Shield', description: 'Safety rules' },
+        { name: 'Legal Docs', href: '/admin/cms/legal-documents', icon: 'FileText', description: 'Terms, privacy, waivers' },
+        { name: 'Contact Info', href: '/admin/cms/contact-info', icon: 'Settings', description: 'Site-wide contact details' },
+        { name: 'Timeline', href: '/admin/cms/timeline-items', icon: 'Calendar', description: 'Company history' },
+        { name: 'Values', href: '/admin/cms/value-items', icon: 'Award', description: 'Company core values' },
+        { name: 'Facilities', href: '/admin/cms/facility-items', icon: 'Layout', description: 'Park amenities' },
 
         // Booking Wizards
-        { name: 'Book Page Content', href: '/admin/cms/session-booking', icon: FileText, description: 'Edit /book page info, sessions, rules' },
-        { name: 'Party Booking', href: '/admin/cms/party-booking', icon: Calendar, description: 'Party wizard steps' },
+        { name: 'Book Page Content', href: '/admin/cms/session-booking', icon: 'FileText', description: 'Edit /book page info, sessions, rules' },
+        { name: 'Party Booking', href: '/admin/cms/party-booking', icon: 'Calendar', description: 'Party wizard steps' },
 
         // Moved from Pages
-        { name: 'Facilities Page', href: '/admin/cms/facilities', icon: Layout, description: 'Facilities page content' },
-        { name: 'Privacy Policy', href: '/admin/cms/privacy', icon: Shield, description: 'Privacy policy page content' },
-        { name: 'Waiver Terms', href: '/admin/cms/waiver-terms', icon: FileText, description: 'Waiver terms page content' },
+        { name: 'Facilities Page', href: '/admin/cms/facilities', icon: 'Layout', description: 'Facilities page content' },
+        { name: 'Privacy Policy', href: '/admin/cms/privacy', icon: 'Shield', description: 'Privacy policy page content' },
+        { name: 'Waiver Terms', href: '/admin/cms/waiver-terms', icon: 'FileText', description: 'Waiver terms page content' },
 
         // Global Components
-        { name: 'Timing Cards', href: '/admin/cms/timing-cards', icon: Calendar, description: 'Opening hours shown on all pages' },
+        { name: 'Timing Cards', href: '/admin/cms/timing-cards', icon: 'Calendar', description: 'Opening hours shown on all pages' },
     ];
 
     return (
@@ -103,7 +102,7 @@ export default async function CmsDashboard() {
                         >
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    <item.icon className="w-5 h-5" />
+                                    <SafeIcon name={item.icon} className="w-5 h-5" />
                                 </div>
                                 <span className="font-medium text-slate-900">{item.name}</span>
                             </div>

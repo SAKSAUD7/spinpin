@@ -12,6 +12,7 @@ from apps.bookings.models import Booking, Waiver, Customer, PartyBooking
 from apps.bookings.serializers import BookingSerializer, PartyBookingSerializer
 from apps.shop.models import Voucher
 from apps.cms.models import Activity, Faq, Banner
+from apps.bookings.permissions import IsStaffUser, IsSuperAdminOnly
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -91,7 +92,7 @@ class GlobalSettingsViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'fix_db_schema']:
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [IsSuperAdminOnly()]
 
     @action(detail=False, methods=['post', 'get'])
     def fix_db_schema(self, request):
@@ -112,7 +113,7 @@ class LogoViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'active']:
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [IsSuperAdminOnly()]
     
     @action(detail=False, methods=['get'])
     def active(self, request):
@@ -136,7 +137,7 @@ class LogoViewSet(viewsets.ModelViewSet):
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.AllowAny]  # TODO: Change to IsAdminUser in production
+    permission_classes = [IsSuperAdminOnly]
     
     @action(detail=False, methods=['get'])
     def unread(self, request):
@@ -168,8 +169,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
 
 
-from apps.bookings.permissions import IsStaffUser
-
 class DashboardViewSet(viewsets.ViewSet):
     permission_classes = [IsStaffUser]  # Allow employees to access dashboard
 
@@ -179,9 +178,9 @@ class DashboardViewSet(viewsets.ViewSet):
         first_day_of_month = today.replace(day=1)
 
         # Session Bookings (Standard Booking model)
-        session_bookings_today = Booking.objects.filter(date=today).exclude(status='CANCELLED').count()
-        total_session_bookings = Booking.objects.exclude(status='CANCELLED').count()
-        session_revenue = Booking.objects.exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        session_bookings_today = Booking.objects.filter(date=today).exclude(booking_status='CANCELLED').count()
+        total_session_bookings = Booking.objects.exclude(booking_status='CANCELLED').count()
+        session_revenue = Booking.objects.exclude(booking_status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
 
         # Party Bookings (New PartyBooking model)
         party_bookings_today = PartyBooking.objects.filter(date=today).exclude(status='CANCELLED').count()
@@ -194,7 +193,7 @@ class DashboardViewSet(viewsets.ViewSet):
         total_revenue = session_revenue + party_revenue
 
         # Waivers
-        pending_waivers = Booking.objects.filter(waiver_status='PENDING').exclude(status='CANCELLED').count()
+        pending_waivers = Booking.objects.filter(waiver_status='PENDING').exclude(booking_status='CANCELLED').count()
         pending_party_waivers = PartyBooking.objects.filter(waiver_signed=False).exclude(status='CANCELLED').count()
         total_pending_waivers = pending_waivers + pending_party_waivers
 
@@ -239,15 +238,32 @@ class DashboardViewSet(viewsets.ViewSet):
         )[:5]
 
         # Revenue Chart (last 7 days)
+        start_date = today - timedelta(days=6)
+        
+        session_revenue_by_date = Booking.objects.filter(
+            date__gte=start_date, date__lte=today
+        ).exclude(booking_status='CANCELLED').values('date').annotate(
+            daily_revenue=Sum('amount')
+        )
+        
+        party_revenue_by_date = PartyBooking.objects.filter(
+            date__gte=start_date, date__lte=today
+        ).exclude(status='CANCELLED').values('date').annotate(
+            daily_revenue=Sum('amount')
+        )
+        
+        session_rev_dict = {item['date']: item['daily_revenue'] for item in session_revenue_by_date}
+        party_rev_dict = {item['date']: item['daily_revenue'] for item in party_revenue_by_date}
+        
         monthly_revenue = []
         for i in range(6, -1, -1):
             d = today - timedelta(days=i)
-            day_session_revenue = Booking.objects.filter(date=d).exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
-            day_party_revenue = PartyBooking.objects.filter(date=d).exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+            day_session_revenue = session_rev_dict.get(d, 0)
+            day_party_revenue = party_rev_dict.get(d, 0)
             
             monthly_revenue.append({
                 "name": d.strftime('%a'),
-                "total": float(day_session_revenue + day_party_revenue)  # Convert Decimal to float
+                "total": float(day_session_revenue + day_party_revenue)
             })
 
         # Customers

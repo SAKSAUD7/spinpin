@@ -73,10 +73,10 @@ function StatCard({ label, value, sub, color, icon }: {
     );
 }
 
-function SortBtn({ col, sort, dir, onClick }: { col: SortKey; sort: SortKey; dir: SortDir; onClick: () => void }) {
+function SortBtn({ col, sort, dir }: { col: SortKey; sort: SortKey; dir: SortDir }) {
     const active = sort === col;
     return (
-        <button onClick={onClick} className="flex items-center gap-1 group select-none">
+        <span className="flex items-center gap-1 group select-none">
             {active ? (
                 dir === "asc"
                     ? <ChevronUp className="w-3.5 h-3.5 text-primary" />
@@ -84,7 +84,7 @@ function SortBtn({ col, sort, dir, onClick }: { col: SortKey; sort: SortKey; dir
             ) : (
                 <ChevronUp className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity" />
             )}
-        </button>
+        </span>
     );
 }
 
@@ -306,7 +306,7 @@ export default function PaymentsListPage() {
                                         {key ? (
                                             <button onClick={() => toggleSort(key)} className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
                                                 {label}
-                                                <SortBtn col={key} sort={sort} dir={dir} onClick={() => toggleSort(key)} />
+                                                <SortBtn col={key} sort={sort} dir={dir} />
                                             </button>
                                         ) : label}
                                     </th>

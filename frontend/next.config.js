@@ -7,8 +7,25 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
-    transpilePackages: ["@repo/ui", "@repo/config"],
+    transpilePackages: ["@repo/ui", "@repo/config", "@repo/hooks"],
+
+    // ── Performance ──────────────────────────────────────────────
+    compress: true,
+    poweredByHeader: false,
+
+    // Reduce bundle size — only import what's used from packages
+    modularizeImports: {
+        'lucide-react': {
+            transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+        },
+    },
+
+    // ── Image Optimization ────────────────────────────────────────
     images: {
+        // Modern formats for 20-30% smaller file sizes
+        formats: ['image/avif', 'image/webp'],
+        // Cache optimized images for 7 days
+        minimumCacheTTL: 604800,
         remotePatterns: [
             // SpinPin Azure Blob Storage (production media)
             {
@@ -49,13 +66,67 @@ const nextConfig = {
             },
         ],
     },
-    // Performance: compress responses
-    compress: true,
+
+    // ── HTTP Headers ──────────────────────────────────────────────
+    async headers() {
+        return [
+            {
+                // Cache static assets aggressively
+                source: '/_next/static/:path*',
+                headers: [
+                    { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+                ],
+            },
+            {
+                // Cache public images for 7 days
+                source: '/images/:path*',
+                headers: [
+                    { key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' },
+                ],
+            },
+            {
+                // Security headers for all pages
+                source: '/(.*)',
+                headers: [
+                    { key: 'X-Content-Type-Options', value: 'nosniff' },
+                    { key: 'X-Frame-Options', value: 'DENY' },
+                    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+                ],
+            },
+        ];
+    },
+
     // Dev-only: reduce logging noise
     logging: {
         fetches: {
             fullUrl: false,
         },
+    },
+
+    // ── Webpack optimizations ─────────────────────────────────────
+    webpack: (config, { isServer }) => {
+        // Split large vendor chunks for better browser caching
+        if (!isServer) {
+            config.optimization.splitChunks = {
+                ...config.optimization.splitChunks,
+                cacheGroups: {
+                    ...(config.optimization.splitChunks?.cacheGroups || {}),
+                    framer: {
+                        name: 'framer-motion',
+                        test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+                        chunks: 'all',
+                        priority: 20,
+                    },
+                    recharts: {
+                        name: 'recharts',
+                        test: /[\\/]node_modules[\\/](recharts|d3-.*)[\\/]/,
+                        chunks: 'all',
+                        priority: 20,
+                    },
+                },
+            };
+        }
+        return config;
     },
 };
 

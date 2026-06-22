@@ -312,4 +312,5 @@ export function AdminUserForm({ user, roles, isNew = false }: AdminUserFormProps
                 </div>
             )}
         </>
+    );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Mail, Phone, X, Plus, Shield, Users, ChevronRight, AlertCircle, CheckCircle2, Cake } from "lucide-react";
+import { User, Mail, Phone, X, Plus, Shield, Users, ChevronRight, AlertCircle, CheckCircle2, Cake, Info } from "lucide-react";
 import { HybridDateInput } from "./HybridDateInput";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -12,6 +12,7 @@ interface Adult {
     phone: string;
     dob: string;
     isPrimary: boolean;
+    waiverSigned?: boolean;
 }
 
 interface Minor {
@@ -27,6 +28,9 @@ interface ParticipantCollectionProps {
     totalParticipants: number;
     title?: string;
     subtitle?: string;
+    initialAdults?: Adult[];
+    initialMinors?: Minor[];
+    initialWaiverSigned?: boolean;
 }
 
 export default function ParticipantCollection({
@@ -35,20 +39,23 @@ export default function ParticipantCollection({
     totalParticipants,
     title,
     subtitle,
+    initialAdults,
+    initialMinors,
+    initialWaiverSigned,
 }: ParticipantCollectionProps) {
-    const [adults, setAdults] = useState<Adult[]>([{
-        id: "1", name: "", email: "", phone: "", dob: "", isPrimary: true,
+    const [adults, setAdults] = useState<Adult[]>(initialAdults && initialAdults.length > 0 ? initialAdults : [{
+        id: "1", name: "", email: "", phone: "", dob: "", isPrimary: true, waiverSigned: false,
     }]);
-    const [minors, setMinors] = useState<Minor[]>([]);
-    const [waiverSigned, setWaiverSigned] = useState(false);
+    const [minors, setMinors] = useState<Minor[]>(initialMinors || []);
+    const [waiverSigned, setWaiverSigned] = useState(initialWaiverSigned || false);
     const [error, setError] = useState("");
 
-    const totalAdded = adults.length + minors.length;
+    const totalAdded = adults.filter(a => a.name).length + minors.filter(m => m.name).length;
     const progress = Math.min((totalAdded / totalParticipants) * 100, 100);
 
     /* ── Adults ── */
     const addAdult = () =>
-        setAdults([...adults, { id: Date.now().toString(), name: "", email: "", phone: "", dob: "", isPrimary: false }]);
+        setAdults([...adults, { id: Date.now().toString(), name: "", email: "", phone: "", dob: "", isPrimary: false, waiverSigned: false }]);
     const removeAdult = (id: string) => { if (adults.length > 1) setAdults(adults.filter(a => a.id !== id)); };
     const updateAdult = (id: string, field: keyof Adult, value: any) =>
         setAdults(adults.map(a => a.id === id ? { ...a, [field]: value } : a));
@@ -60,15 +67,18 @@ export default function ParticipantCollection({
     const updateMinor = (id: string, field: keyof Minor, value: string) =>
         setMinors(minors.map(m => m.id === id ? { ...m, [field]: value } : m));
 
-    /* ── Submit ── */
+    /* ── Submit — only primary contact name + waiver is required ── */
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (adults.length === 0) { setError("At least one adult participant is required."); return; }
-        if (!waiverSigned) { setError("Please read and agree to the waiver to continue."); return; }
-        const badAdult = adults.find(a => !a.name || !a.email || !a.phone || !a.dob);
-        if (badAdult) { setError("Please fill in all required fields for every adult."); return; }
-        const badMinor = minors.find(m => !m.name || !m.dob || !m.guardian);
-        if (badMinor) { setError("Please fill in all required fields for every minor."); return; }
+        const primary = adults[0];
+        if (!primary?.name?.trim()) {
+            setError("Please enter the primary contact's name.");
+            return;
+        }
+        if (!waiverSigned) {
+            setError("Please read and agree to the liability waiver to continue.");
+            return;
+        }
         setError("");
         onSubmit({ adults, minors, waiverSigned });
     };
@@ -109,6 +119,15 @@ export default function ParticipantCollection({
                                 transition={{ duration: 0.4, ease: "easeOut" }}
                             />
                         </div>
+                    </div>
+
+                    {/* Optional notice */}
+                    <div className="flex items-start gap-2 mt-4 p-3 bg-blue-500/10 border border-blue-400/20 rounded-xl">
+                        <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-blue-300 leading-relaxed">
+                            Only the <strong className="text-blue-200">primary contact</strong> details are required now. 
+                            All other participants can complete their details and sign waivers later via their invitation link.
+                        </p>
                     </div>
                 </div>
 
@@ -161,6 +180,11 @@ export default function ParticipantCollection({
                                                 Will receive confirmation
                                             </span>
                                         )}
+                                        {index > 0 && (
+                                            <span className="px-2 py-0.5 text-xs bg-white/10 text-white/50 border border-white/10 rounded-full">
+                                                Optional
+                                            </span>
+                                        )}
                                     </div>
                                     {adults.length > 1 && (
                                         <button type="button" onClick={() => removeAdult(adult.id)}
@@ -173,43 +197,49 @@ export default function ParticipantCollection({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                                            Full Name *
+                                            Full Name {index === 0 ? <span className="text-red-400">*</span> : <span className="text-white/30 normal-case font-normal">(optional)</span>}
                                         </label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                            <input type="text" required value={adult.name}
+                                            <input type="text"
+                                                required={index === 0}
+                                                value={adult.name}
                                                 onChange={e => updateAdult(adult.id, "name", e.target.value)}
-                                                className="w-full pl-10 pr-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-slate-500 text-sm transition-all"
+                                                className="w-full pl-10 pr-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-white/30 text-sm transition-all"
                                                 placeholder="John Smith" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                                            Email *
+                                            Email {index === 0 ? <span className="text-red-400">*</span> : <span className="text-white/30 normal-case font-normal">(optional)</span>}
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                            <input type="email" required value={adult.email}
+                                            <input type="email"
+                                                required={index === 0}
+                                                value={adult.email}
                                                 onChange={e => updateAdult(adult.id, "email", e.target.value)}
-                                                className="w-full pl-10 pr-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-slate-500 text-sm transition-all"
+                                                className="w-full pl-10 pr-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-white/30 text-sm transition-all"
                                                 placeholder="john@example.com" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                                            Phone *
+                                            Phone {index === 0 ? <span className="text-red-400">*</span> : <span className="text-white/30 normal-case font-normal">(optional)</span>}
                                         </label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                            <input type="tel" required value={adult.phone}
+                                            <input type="tel"
+                                                required={index === 0}
+                                                value={adult.phone}
                                                 onChange={e => updateAdult(adult.id, "phone", e.target.value)}
-                                                className="w-full pl-10 pr-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-slate-500 text-sm transition-all"
+                                                className="w-full pl-10 pr-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-white/30 text-sm transition-all"
                                                 placeholder="07700 900000" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                                            Date of Birth * <span className="text-white/30 normal-case font-normal">(must be 18+)</span>
+                                            Date of Birth <span className="text-white/30 normal-case font-normal">(must be 18+, optional)</span>
                                         </label>
                                         <HybridDateInput
                                             value={adult.dob}
@@ -242,7 +272,7 @@ export default function ParticipantCollection({
 
                     {minors.length === 0 ? (
                         <div className="px-6 py-8 text-center text-white/30 text-sm">
-                            No children added yet. Click "Add Child" if any participants are under 18.
+                            No children added yet. Click &quot;Add Child&quot; if any participants are under 18.
                         </div>
                     ) : (
                         <div className="divide-y divide-white/5">
@@ -256,6 +286,9 @@ export default function ParticipantCollection({
                                                 {index + 1}
                                             </div>
                                             <span className="font-semibold text-white text-sm">Child {index + 1}</span>
+                                            <span className="px-2 py-0.5 text-xs bg-white/10 text-white/50 border border-white/10 rounded-full">
+                                                Optional
+                                            </span>
                                         </div>
                                         <button type="button" onClick={() => removeMinor(minor.id)}
                                             className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
@@ -264,15 +297,17 @@ export default function ParticipantCollection({
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
-                                            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Full Name *</label>
-                                            <input type="text" required value={minor.name}
+                                            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
+                                                Full Name <span className="text-white/30 normal-case font-normal">(optional)</span>
+                                            </label>
+                                            <input type="text" value={minor.name}
                                                 onChange={e => updateMinor(minor.id, "name", e.target.value)}
-                                                className="w-full px-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400/30 outline-none text-white placeholder:text-slate-500 text-sm transition-all"
+                                                className="w-full px-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400/30 outline-none text-white placeholder:text-white/30 text-sm transition-all"
                                                 placeholder="Jane Smith" />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                                                Date of Birth *
+                                                Date of Birth <span className="text-white/30 normal-case font-normal">(optional)</span>
                                             </label>
                                             <HybridDateInput
                                                 value={minor.dob}
@@ -282,10 +317,12 @@ export default function ParticipantCollection({
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Guardian Name *</label>
-                                            <input type="text" required value={minor.guardian}
+                                            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
+                                                Guardian Name <span className="text-white/30 normal-case font-normal">(optional)</span>
+                                            </label>
+                                            <input type="text" value={minor.guardian}
                                                 onChange={e => updateMinor(minor.id, "guardian", e.target.value)}
-                                                className="w-full px-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400/30 outline-none text-white placeholder:text-slate-500 text-sm transition-all"
+                                                className="w-full px-4 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400/30 outline-none text-white placeholder:text-white/30 text-sm transition-all"
                                                 placeholder="Parent / Guardian" />
                                         </div>
                                     </div>
@@ -303,7 +340,7 @@ export default function ParticipantCollection({
                         <span className="ml-auto text-xs text-amber-400 font-semibold">Required</span>
                     </div>
                     <div className="p-6">
-                        <div className="bg-background-dark/60 rounded-xl p-4 mb-5 max-h-36 overflow-y-auto text-sm text-white/60 leading-relaxed scrollbar-thin scrollbar-thumb-surface-600">
+                        <div className="bg-background-dark/60 rounded-xl p-4 mb-5 max-h-36 overflow-y-auto text-sm text-white/60 leading-relaxed">
                             <p className="mb-2">
                                 By checking the box below, I acknowledge that I have read and agree to the{" "}
                                 <a href="/waiver-terms" target="_blank" className="text-primary hover:underline">
@@ -317,7 +354,8 @@ export default function ParticipantCollection({
                             </p>
                             <p>
                                 For all minors listed above, I confirm that I am their legal guardian and have
-                                full authority to sign this waiver on their behalf.
+                                full authority to sign this waiver on their behalf. Additional participants
+                                will need to sign their own waivers via their invitation link.
                             </p>
                         </div>
                         <label className={`flex items-start gap-3 cursor-pointer p-4 rounded-xl border transition-all ${waiverSigned ? "bg-green-500/10 border-green-500/30" : "bg-surface-800/40 border-white/10 hover:border-amber-500/30"}`}>
@@ -340,7 +378,7 @@ export default function ParticipantCollection({
                     </button>
                     <button type="submit"
                         className={`flex-2 flex-grow flex items-center justify-center gap-2 px-8 py-4 font-bold rounded-2xl text-sm transition-all ${waiverSigned ? "bg-primary hover:bg-primary-light text-black shadow-lg shadow-primary/30" : "bg-surface-700 text-white/40 cursor-not-allowed"}`}>
-                        Continue to Invitations
+                        Continue to Payment
                         <ChevronRight className="w-5 h-5" />
                     </button>
                 </div>

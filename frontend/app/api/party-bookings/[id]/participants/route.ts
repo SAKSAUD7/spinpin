@@ -12,10 +12,13 @@ export async function POST(
 
         console.log(`[Party Participants API] POST participants for booking ${params.id}`);
 
+        const authHeader = request.headers.get('authorization');
+        
         const response = await fetch(`${API_URL}/bookings/party-bookings/${params.id}/add_participants/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(authHeader ? { 'Authorization': authHeader } : {})
             },
             body: JSON.stringify(body),
             cache: 'no-store',

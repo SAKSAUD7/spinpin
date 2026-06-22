@@ -293,11 +293,11 @@ def customer_logout(request):
 
 # ─── ADMIN-ONLY endpoints ─────────────────────────────────────────────────────
 
-from rest_framework.permissions import IsAdminUser
+from apps.bookings.permissions import IsSuperAdminOnly
 from django.contrib.auth.hashers import make_password
 
 @api_view(["GET"])
-@permission_classes([IsAdminUser])
+@permission_classes([IsSuperAdminOnly])
 def admin_customer_account(request, customer_id):
     """Admin: Get full CustomerToken details for a customer (password hash, token, expiry)."""
     from apps.bookings.models import Customer
@@ -328,7 +328,7 @@ def admin_customer_account(request, customer_id):
 
 
 @api_view(["POST"])
-@permission_classes([IsAdminUser])
+@permission_classes([IsSuperAdminOnly])
 def admin_reset_customer_password(request, customer_id):
     """Admin: Reset a customer's password to a new value."""
     from apps.bookings.models import Customer
@@ -353,7 +353,7 @@ def admin_reset_customer_password(request, customer_id):
 
 
 @api_view(["DELETE"])
-@permission_classes([IsAdminUser])
+@permission_classes([IsSuperAdminOnly])
 def admin_revoke_customer_token(request, customer_id):
     """Admin: Revoke/delete the customer's active token (force logout)."""
     from apps.bookings.models import Customer

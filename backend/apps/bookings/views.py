@@ -371,7 +371,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             'booking': serializer.data
         })
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['post'], permission_classes=[IsStaffUser])
     def mark_not_arrived(self, request, pk=None):
         """Mark a booking as not arrived"""
         booking = self.get_object()
@@ -408,7 +408,7 @@ class WaiverViewSet(viewsets.ModelViewSet):
         else:
             queryset = queryset.order_by('-created_at')
             
-        return queryset
+        return queryset.select_related('booking', 'party_booking')
     
     def get_permissions(self):
         # Allow public access for create (when customers sign waivers)
@@ -419,22 +419,16 @@ class WaiverViewSet(viewsets.ModelViewSet):
     
     def partial_update(self, request, *args, **kwargs):
         """Handle PATCH requests for updating waiver fields like minors"""
-        print(f"DEBUG: partial_update called with data: {request.data}")
         instance = self.get_object()
         
-        # Update only the fields provided in the request
         if 'minors' in request.data:
-            print(f"DEBUG: Updating minors to: {request.data['minors']}")
             instance.minors = request.data['minors']
         if 'adults' in request.data:
-            print(f"DEBUG: Updating adults to: {request.data['adults']}")
             instance.adults = request.data['adults']
         if 'is_verified' in request.data:
-            print(f"DEBUG: Updating is_verified to: {request.data['is_verified']}")
             instance.is_verified = request.data['is_verified']
             
         instance.save()
-        print(f"DEBUG: Waiver saved successfully")
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
         
@@ -771,7 +765,7 @@ def waiver_detail_view(request, id):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TransactionViewSet(viewsets.ModelViewSet):
-    queryset = Transaction.objects.all()
+    queryset = Transaction.objects.select_related('booking').all()
     serializer_class = TransactionSerializer
     permission_classes = [IsStaffUser]  # Allow employees to access transactions
 
@@ -825,7 +819,7 @@ def create_party_booking_view(request):
     """Custom view to create party bookings without using ModelSerializer"""
     if request.method == 'GET':
         # List all party bookings
-        bookings = PartyBooking.objects.all().order_by('-created_at')
+        bookings = PartyBooking.objects.select_related('customer').order_by('-created_at')
         data = []
         for booking in bookings:
             data.append({
@@ -958,8 +952,8 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
         return queryset
     
     def get_permissions(self):
-        # Allow public access for create, list (for duplicate checking), and ticket retrieval
-        if self.action in ['create', 'list', 'ticket']:
+        # Allow public access for create, list (for duplicate checking), ticket retrieval, and add_participants (which has internal auth checks)
+        if self.action in ['create', 'list', 'ticket', 'add_participants']:
             return [permissions.AllowAny()]
         return [IsStaffUser()]  # Allow employees to access party bookings
     
@@ -1003,6 +997,11 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
         from django.utils import timezone
         
         party_booking = self.get_object()
+        
+        # Verify user is staff OR is the customer who owns this booking
+        if not (request.user.is_staff or (request.user.is_authenticated and hasattr(request.user, 'customer') and request.user.customer == party_booking.customer)):
+            return Response({"detail": "You do not have permission to modify this booking's participants."}, status=status.HTTP_403_FORBIDDEN)
+
         participants = request.data.get('participants', {})
         waiver_signed = request.data.get('waiver_signed', False)
         ip_address = request.META.get('REMOTE_ADDR')
@@ -1072,7 +1071,7 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
             'waiver_count': len(participants.get('adults', [])) + len(participants.get('minors', []))
         })
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['post'], permission_classes=[IsStaffUser])
     def resend_confirmation_email(self, request, pk=None):
         """Resend booking confirmation email to customer"""
         party_booking = self.get_object()
@@ -1203,7 +1202,7 @@ def add_party_participants_view(request, uuid):
     })
 
 @api_view(['GET', 'PATCH', 'DELETE'])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([IsStaffUser])
 def party_booking_detail_view(request, id):
     """Custom view to get/update/delete party booking details by ID"""
     try:
@@ -1332,7 +1331,7 @@ class SessionBookingHistoryViewSet(viewsets.ModelViewSet):
         
         return queryset.order_by('-created_at')
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['post'], permission_classes=[IsSuperAdminOnly])
     def restore(self, request, pk=None):
         """
         Restore a booking from history to the main Booking table.
@@ -1434,7 +1433,7 @@ class PartyBookingHistoryViewSet(viewsets.ModelViewSet):
         
         return queryset.order_by('-created_at')
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['post'], permission_classes=[IsSuperAdminOnly])
     def restore(self, request, pk=None):
         """
         Restore a party booking from history to the main PartyBooking table.

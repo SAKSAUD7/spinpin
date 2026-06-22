@@ -244,7 +244,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     const { showToast } = useToast();
     const { customer, login, register: registerUser } = useAccount();
-    const [authMode, setAuthMode] = useState<"login"|"register">("login");
+    const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const [authEmail, setAuthEmail] = useState("");
     const [authPassword, setAuthPassword] = useState("");
     const [authName, setAuthName] = useState("");
@@ -1771,9 +1771,9 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                                     )}
                                                     <input type="email" placeholder="Email Address" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
                                                     <input type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" />
-                                                    
+
                                                     {authError && <p className="text-red-400 text-sm">{authError}</p>}
-                                                    
+
                                                     <button type="button" onClick={handleAuth} disabled={isAuthenticating} className="w-full py-4 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
                                                         {isAuthenticating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (authMode === 'login' ? 'Sign In & Continue' : 'Register & Continue')}
                                                     </button>
@@ -2065,7 +2065,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                                             <div className="mt-1 ml-5 space-y-0.5">
                                                                 {parkingPlates.filter(Boolean).map((plate, i) => (
                                                                     <div key={i} className="text-xs text-yellow-200/70 flex items-center gap-1.5">
-                                                                        <span className="bg-yellow-400 text-black text-[9px] font-black px-1 rounded">{i+1}</span>
+                                                                        <span className="bg-yellow-400 text-black text-[9px] font-black px-1 rounded">{i + 1}</span>
                                                                         <span className="font-mono">{plate}</span>
                                                                     </div>
                                                                 ))}
@@ -2221,39 +2221,39 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                 const lockerQty = (selectedAddOns["locker"] || 0) + (selectedGlobalAddOns["locker"] || 0);
                                 const parkingQty = selectedGlobalAddOns["parking"] || 0;
                                 return (
-                                <PaymentStep
-                                    bookingId={createdBookingIntId || createdBookingId}
-                                    bookingType="session"
-                                    amount={Math.round(Math.max(0, totals.total - discount / 100) * 100)}
-                                    bookingDetails={{
-                                        date: formData.date,
-                                        time: formData.time,
-                                        name: formData.name,
-                                        email: formData.email,
-                                        phone: formData.phone,
-                                        activity: selectedActivity,
-                                        adults: formData.adults,
-                                        kids: formData.kids,
-                                        spectators: formData.spectators,
-                                        adultPrice: prices.adult,
-                                        kidPrice: prices.kid,
-                                        spectatorPrice: prices.spectator,
-                                        skateHireQty,
-                                        skateHirePrice: prices.skateHire,
-                                        shoeHireQty,
-                                        shoeHirePrice: prices.shoeHire,
-                                        lockerQty,
-                                        lockerPrice: prices.lockerHire,
-                                        parkingQty,
-                                        parkingPrice: prices.parking,
-                                        discount: discount / 100,
-                                        appliedVoucher,
-                                        onlineBookingFee: t.onlineBookingFee,
-                                        notes: "",
-                                    }}
-                                    onSuccess={() => setBookingComplete(true)}
-                                    onBack={() => setStep(5)}
-                                />
+                                    <PaymentStep
+                                        bookingId={createdBookingIntId || createdBookingId}
+                                        bookingType="session"
+                                        amount={Math.round(Math.max(0, totals.total - discount / 100) * 100)}
+                                        bookingDetails={{
+                                            date: formData.date,
+                                            time: formData.time,
+                                            name: formData.name,
+                                            email: formData.email,
+                                            phone: formData.phone,
+                                            activity: selectedActivity,
+                                            adults: formData.adults,
+                                            kids: formData.kids,
+                                            spectators: formData.spectators,
+                                            adultPrice: prices.adult,
+                                            kidPrice: prices.kid,
+                                            spectatorPrice: prices.spectator,
+                                            skateHireQty,
+                                            skateHirePrice: prices.skateHire,
+                                            shoeHireQty,
+                                            shoeHirePrice: prices.shoeHire,
+                                            lockerQty,
+                                            lockerPrice: prices.lockerHire,
+                                            parkingQty,
+                                            parkingPrice: prices.parking,
+                                            discount: discount / 100,
+                                            appliedVoucher,
+                                            onlineBookingFee: t.onlineBookingFee,
+                                            notes: "",
+                                        }}
+                                        onSuccess={() => setBookingComplete(true)}
+                                        onBack={() => setStep(5)}
+                                    />
                                 );
                             })()}
 

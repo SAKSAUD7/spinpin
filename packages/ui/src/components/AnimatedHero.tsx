@@ -1,11 +1,29 @@
 "use client";
 
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { BouncyButton } from "./BouncyButton";
 import { SectionDivider } from "./SectionDivider";
-import { useTextCarousel } from "@repo/hooks";
+
+// Inlined to avoid cross-package webpack resolution issues with @repo/hooks
+function useTextCarousel(texts: string[], interval: number = 3000) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setIsAnimating(true);
+            setTimeout(() => {
+                setCurrentIndex((prev) => (prev + 1) % texts.length);
+                setIsAnimating(false);
+            }, 500);
+        }, interval);
+        return () => clearInterval(timer);
+    }, [texts.length, interval]);
+
+    return { currentText: texts[currentIndex], isAnimating };
+}
 
 export const AnimatedHero = () => {
     const ref = useRef(null);

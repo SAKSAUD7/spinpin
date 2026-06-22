@@ -202,6 +202,11 @@ function BookingCard({ booking, formattedDate }: { booking: Booking; formattedDa
                             View <ChevronRight className="w-3 h-3" />
                         </Link>
                     )}
+                    {booking.type === "PARTY" && booking.id && (
+                        <Link href={`/party-booking/${booking.id}`} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-0.5 mt-1 justify-end font-bold">
+                            Manage Participants <ChevronRight className="w-3 h-3" />
+                        </Link>
+                    )}
                 </div>
             </div>
         </motion.div>

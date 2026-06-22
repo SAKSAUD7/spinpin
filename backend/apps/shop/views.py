@@ -6,6 +6,7 @@ from .models import Product, Voucher
 from .serializers import ProductSerializer, VoucherSerializer
 from django.utils import timezone
 from decimal import Decimal
+from apps.bookings.permissions import IsSuperAdminOnly
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -14,7 +15,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [IsSuperAdminOnly()]
 
 class VoucherViewSet(viewsets.ModelViewSet):
     queryset = Voucher.objects.all()
@@ -24,7 +25,7 @@ class VoucherViewSet(viewsets.ModelViewSet):
         # Allow public access for list and validate
         if self.action in ['list', 'validate']:
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [IsSuperAdminOnly()]
     
     @action(detail=False, methods=['post'])
     def validate(self, request):

@@ -3,44 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-    LayoutDashboard,
-    Calendar,
-    PartyPopper,
-    Users,
-    FileSignature,
-    Clock,
-    CalendarDays,
-    CalendarX,
-    Ticket,
-    Gift,
-    Zap,
-    Image,
-    HelpCircle,
-    Mail,
-    FileText,
-    Globe,
-    MessageSquare,
-    Star,
-    User,
-    ExternalLink,
-    LogOut,
-    ChevronDown,
-    ChevronRight,
-    Menu,
-    X,
-    Shield,
-    Settings,
-    CreditCard
-} from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X, ExternalLink, LogOut } from "lucide-react";
 import { hasPermission, type PermissionCheck } from "../../../lib/permissions";
 import { logoutAdmin } from "@/app/actions/admin";
 import { Logo } from "@/components/admin/Logo";
+import { SafeIcon } from "./SafeIcon";
 
 interface NavItem {
     name: string;
     href: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon: string;
     badge?: string;
     permission?: PermissionCheck;
     external?: boolean;
@@ -55,66 +27,66 @@ const navigation: NavGroup[] = [
     {
         name: "Overview",
         items: [
-            { name: "Dashboard", href: "/admin", icon: LayoutDashboard, permission: { entity: 'dashboard', action: 'read' } },
-            { name: "Website Content", href: "/admin/cms", icon: Globe, permission: { entity: 'cms', action: 'read' } },
-            { name: "Contact Messages", href: "/admin/cms/contact-messages", icon: MessageSquare, permission: { entity: 'cms', action: 'read' } },
-            { name: "Go Kids Go", href: "https://www.gokidsgo.co.uk/", icon: Globe, external: true, permission: { entity: '*', action: 'read' } },
-            { name: "Go Kids Play", href: "https://www.gokidsplay.co.uk/", icon: PartyPopper, external: true, permission: { entity: '*', action: 'read' } },
-            { name: "Spin Pin", href: "https://www.spinpin.uk/", icon: Star, external: true, permission: { entity: '*', action: 'read' } },
+            { name: "Dashboard", href: "/admin", icon: "LayoutDashboard", permission: { entity: 'dashboard', action: 'read' } },
+            { name: "Website Content", href: "/admin/cms", icon: "Globe", permission: { entity: 'cms', action: 'read' } },
+            { name: "Contact Messages", href: "/admin/cms/contact-messages", icon: "MessageSquare", permission: { entity: 'cms', action: 'read' } },
+            { name: "Go Kids Go", href: "https://www.gokidsgo.co.uk/", icon: "Globe", external: true, permission: { entity: '*', action: 'read' } },
+            { name: "Go Kids Play", href: "https://www.gokidsplay.co.uk/", icon: "PartyPopper", external: true, permission: { entity: '*', action: 'read' } },
+            { name: "Spin Pin", href: "https://www.spinpin.uk/", icon: "Star", external: true, permission: { entity: '*', action: 'read' } },
         ]
     },
     {
         name: "Booking Management",
         items: [
-            { name: "All Bookings", href: "/admin/all-bookings", icon: Calendar, permission: { entity: 'bookings', action: 'read' } },
-            { name: "Calendar", href: "/admin/calendar", icon: CalendarDays, permission: { entity: 'bookings', action: 'read' } },
-            { name: "Session Bookings", href: "/admin/bookings", icon: Users, permission: { entity: 'bookings', action: 'read' } },
-            { name: "🛼 Skating Bookings", href: "/admin/skating-bookings", icon: Users, permission: { entity: 'bookings', action: 'read' } },
-            { name: "🎳 Bowling Bookings", href: "/admin/bowling-bookings", icon: Users, permission: { entity: 'bookings', action: 'read' } },
-            { name: "Manual Session Booking", href: "/admin/bookings/new", icon: Users, permission: { entity: 'bookings', action: 'write' } },
-            { name: "Session Booking History", href: "/admin/bookings/history", icon: Clock, permission: { entity: 'bookings', action: 'read' } },
-            { name: "Party Bookings", href: "/admin/party-bookings", icon: PartyPopper, permission: { entity: 'parties', action: 'read' } },
-            { name: "Manual Party Booking", href: "/admin/party-bookings/new", icon: PartyPopper, permission: { entity: 'parties', action: 'write' } },
-            { name: "Party Booking History", href: "/admin/party-bookings/history", icon: Clock, permission: { entity: 'parties', action: 'read' } },
-            { name: "Payments", href: "/admin/payments", icon: CreditCard, permission: { entity: 'payments', action: 'read' } },
-            { name: "Invitation Templates", href: "/admin/invitations", icon: Image },
-            { name: "Booking Blocks", href: "/admin/booking-blocks", icon: Calendar, permission: { entity: 'bookings', action: 'read' } },
-            { name: "Customers", href: "/admin/customers", icon: Users, permission: { entity: 'customers', action: 'read' } },
+            { name: "All Bookings", href: "/admin/all-bookings", icon: "Calendar", permission: { entity: 'bookings', action: 'read' } },
+            { name: "Calendar", href: "/admin/calendar", icon: "CalendarDays", permission: { entity: 'bookings', action: 'read' } },
+            { name: "Session Bookings", href: "/admin/bookings", icon: "Users", permission: { entity: 'bookings', action: 'read' } },
+            { name: "🛼 Skating Bookings", href: "/admin/skating-bookings", icon: "Users", permission: { entity: 'bookings', action: 'read' } },
+            { name: "🎳 Bowling Bookings", href: "/admin/bowling-bookings", icon: "Users", permission: { entity: 'bookings', action: 'read' } },
+            { name: "Manual Session Booking", href: "/admin/bookings/new", icon: "Users", permission: { entity: 'bookings', action: 'write' } },
+            { name: "Session Booking History", href: "/admin/bookings/history", icon: "Clock", permission: { entity: 'bookings', action: 'read' } },
+            { name: "Party Bookings", href: "/admin/party-bookings", icon: "PartyPopper", permission: { entity: 'parties', action: 'read' } },
+            { name: "Manual Party Booking", href: "/admin/party-bookings/new", icon: "PartyPopper", permission: { entity: 'parties', action: 'write' } },
+            { name: "Party Booking History", href: "/admin/party-bookings/history", icon: "Clock", permission: { entity: 'parties', action: 'read' } },
+            { name: "Payments", href: "/admin/payments", icon: "CreditCard", permission: { entity: 'payments', action: 'read' } },
+            { name: "Invitation Templates", href: "/admin/invitations", icon: "Image" },
+            { name: "Booking Blocks", href: "/admin/booking-blocks", icon: "Calendar", permission: { entity: 'bookings', action: 'read' } },
+            { name: "Customers", href: "/admin/customers", icon: "Users", permission: { entity: 'customers', action: 'read' } },
         ]
     },
     {
         name: "Waivers & Entries",
         items: [
-            { name: "Waiver Submissions", href: "/admin/waivers", icon: FileSignature, permission: { entity: 'waivers', action: 'read' } },
-            { name: "Free Entry Submissions", href: "/admin/free-entries", icon: Gift, permission: { entity: 'waivers', action: 'read' } },
+            { name: "Waiver Submissions", href: "/admin/waivers", icon: "FileSignature", permission: { entity: 'waivers', action: 'read' } },
+            { name: "Free Entry Submissions", href: "/admin/free-entries", icon: "Gift", permission: { entity: 'waivers', action: 'read' } },
         ]
     },
     {
         name: "Promotions",
         items: [
-            { name: "Vouchers", href: "/admin/vouchers", icon: Ticket, permission: { entity: 'vouchers', action: 'read' } },
+            { name: "Vouchers", href: "/admin/vouchers", icon: "Ticket", permission: { entity: 'vouchers', action: 'read' } },
         ]
     },
     {
         name: "Marketing",
         items: [
-            { name: "Campaigns", href: "/admin/marketing", icon: Mail, permission: { entity: 'marketing', action: 'read' } },
-            { name: "Templates", href: "/admin/marketing/templates", icon: FileText, permission: { entity: 'marketing', action: 'read' } },
+            { name: "Campaigns", href: "/admin/marketing", icon: "Mail", permission: { entity: 'marketing', action: 'read' } },
+            { name: "Templates", href: "/admin/marketing/templates", icon: "FileText", permission: { entity: 'marketing', action: 'read' } },
         ]
     },
     // Content Management section removed - use CMS section instead to avoid duplicates
     {
         name: "System",
         items: [
-            { name: "Settings", href: "/admin/settings", icon: Settings, permission: { entity: 'settings', action: 'read' } },
-            { name: "Admin Users", href: "/admin/users", icon: Shield, permission: { entity: 'users', action: 'read' } },
+            { name: "Settings", href: "/admin/settings", icon: "Settings", permission: { entity: 'settings', action: 'read' } },
+            { name: "Admin Users", href: "/admin/users", icon: "Shield", permission: { entity: 'users', action: 'read' } },
         ]
     }
 ];
 
 const userMenu: NavItem[] = [
-    { name: "My Profile", href: "/admin/profile", icon: User },
-    { name: "View Site", href: "/", icon: ExternalLink },
+    { name: "My Profile", href: "/admin/profile", icon: "User" },
+    { name: "View Site", href: "/", icon: "ExternalLink" },
 ];
 
 interface AdminSidebarProps {
@@ -206,7 +178,7 @@ export function AdminSidebar({ permissions = [] }: AdminSidebarProps) {
                                                 : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                                 }`}
                                         >
-                                            <item.icon className={`w-5 h-5 ${active ? "text-white" : "text-slate-400"}`} />
+                                            <SafeIcon name={item.icon} className={`w-5 h-5 ${active ? "text-white" : "text-slate-400"}`} />
                                             <span className="flex-1">{item.name}</span>
                                             {item.external && (
                                                 <ExternalLink className="w-4 h-4 text-slate-400" />
@@ -234,7 +206,7 @@ export function AdminSidebar({ permissions = [] }: AdminSidebarProps) {
                         target={item.name === "View Site" ? "_blank" : undefined}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-slate-900 hover:shadow-sm transition-all duration-200"
                     >
-                        <item.icon className="w-5 h-5 text-slate-400" />
+                        <SafeIcon name={item.icon} className="w-5 h-5 text-slate-400" />
                         <span>{item.name}</span>
                     </Link>
                 ))}

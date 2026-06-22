@@ -2,7 +2,7 @@
 Test view to manually trigger email sending for debugging.
 """
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from apps.bookings.permissions import IsSuperAdminOnly
 from rest_framework.response import Response
 from rest_framework import status
 from apps.bookings.models import Booking
@@ -13,7 +13,7 @@ logger = logging.getLogger('apps.emails')
 
 
 @api_view(['POST'])
-@permission_classes([IsAdminUser])
+@permission_classes([IsSuperAdminOnly])
 def test_send_booking_email(request):
     """
     Test endpoint to manually trigger email for a booking.

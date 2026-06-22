@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature } from "lucide-react";
+import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
 
 export default function BookingDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -161,6 +162,9 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                             )}
                         </div>
                     </div>
+
+                    {/* Payment History & Gateway Updates */}
+                    <PaymentHistoryCard bookingId={booking.id} bookingType="session" />
 
                     {booking.add_ons && booking.add_ons.length > 0 && (
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

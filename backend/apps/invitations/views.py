@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import InvitationTemplate, BookingInvitation
 from .serializers import InvitationTemplateSerializer, BookingInvitationSerializer, PublicInvitationSerializer
 from apps.bookings.models import PartyBooking
+from apps.bookings.permissions import IsSuperAdminOnly
 
 class InvitationTemplateViewSet(viewsets.ModelViewSet):
     queryset = InvitationTemplate.objects.all()
@@ -12,7 +13,7 @@ class InvitationTemplateViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [IsSuperAdminOnly()]
 
     def create(self, request, *args, **kwargs):
         print("------- INVITATION TEMPLATE CREATE STARTED -------")
