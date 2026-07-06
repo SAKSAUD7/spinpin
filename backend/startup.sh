@@ -4,6 +4,9 @@ set -e
 # Temporarily bypassed to prevent DB lock hangs during crash loop recovery
 # python manage.py migrate --noinput
 
+echo "Loading SpinPin data fixture..."
+python manage.py loaddata spinpin_data.json
+
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
