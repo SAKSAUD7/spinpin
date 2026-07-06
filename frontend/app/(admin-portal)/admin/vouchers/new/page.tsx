@@ -2,7 +2,7 @@
 
 import { createVoucher } from "@/app/actions/vouchers";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useRef } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
