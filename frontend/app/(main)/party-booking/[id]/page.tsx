@@ -133,6 +133,36 @@ export default function ManagePartyParticipantsPage() {
     const existingMinors = booking.participants?.minors || [];
     const totalParticipantsExpected = (booking.adults || 0) + (booking.kids || 0) + (booking.spectators || 0);
 
+    const [paying, setPaying] = useState(false);
+    const [payError, setPayError] = useState("");
+
+    const handlePayNow = async () => {
+        if (!booking) return;
+        setPaying(true);
+        setPayError("");
+        try {
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+            const res = await fetch(`${API}/payments/create-order/`, {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({
+                    booking_id:   booking.id,
+                    booking_type: "party",
+                    amount:       booking.amount,
+                }),
+                cache: "no-store",
+            });
+            const data = await res.json();
+            if (!res.ok || !data.checkout_url) {
+                throw new Error(data.error || "Failed to initiate payment");
+            }
+            window.location.href = data.checkout_url;
+        } catch (err) {
+            setPayError(err instanceof Error ? err.message : "Payment error occurred");
+            setPaying(false);
+        }
+    };
+
     return (
         <main className="min-h-screen bg-[#0a0118] py-20 px-4">
             <div className="max-w-4xl mx-auto">
@@ -169,9 +199,21 @@ export default function ManagePartyParticipantsPage() {
                                 {booking.booking_status}
                             </span>
                         </div>
-                        <p className="text-white/60">
+                        <p className="text-white/60 mb-4">
                             {new Date(booking.date).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} at {booking.time}
                         </p>
+                        {booking.booking_status === "PENDING" && (
+                            <div className="mt-2 space-y-2">
+                                <button
+                                    onClick={handlePayNow}
+                                    disabled={paying}
+                                    className="px-6 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-bold rounded-xl hover:scale-[1.02] transition-all text-sm shadow-lg disabled:opacity-50 inline-flex items-center"
+                                >
+                                    {paying ? "Redirecting..." : "Complete Payment"}
+                                </button>
+                                {payError && <div className="text-red-400 text-xs font-bold">{payError}</div>}
+                            </div>
+                        )}
                     </div>
                     <div className="bg-background-dark p-4 rounded-2xl border border-white/5 text-center min-w-[200px]">
                         <p className="text-white/50 text-xs uppercase font-bold tracking-wider mb-1">Total Expected Guests</p>
