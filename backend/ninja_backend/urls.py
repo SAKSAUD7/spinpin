@@ -52,10 +52,22 @@ def reset_admin_password(request):
             user.is_staff = True
             user.is_superuser = True
             user.is_active = True
+            user.role = 'ADMIN'
             user.save()
             results['admin'] = f"Password for {ADMIN_EMAIL} reset to: {NEW_PASSWORD}"
         except User.DoesNotExist:
-            user = User.objects.create_superuser(email=ADMIN_EMAIL, password=NEW_PASSWORD)
+            # Custom User model needs username + name as REQUIRED_FIELDS
+            user = User(
+                email=ADMIN_EMAIL,
+                username='admin',
+                name='SpinPin Admin',
+                role='ADMIN',
+                is_staff=True,
+                is_superuser=True,
+                is_active=True,
+            )
+            user.set_password(NEW_PASSWORD)
+            user.save()
             results['admin'] = f"Admin created. Email: {ADMIN_EMAIL}, Password: {NEW_PASSWORD}"
 
         # 2. Create logo from frontend's public folder if none exists
