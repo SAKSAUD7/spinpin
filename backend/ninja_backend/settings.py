@@ -39,24 +39,20 @@ DEBUG = get_env_bool('DEBUG', False)  # SAFETY: defaults to False; set DEBUG=Tru
 # VPS/Local/Azure: Allow all hosts or specific Azure domains
 ALLOWED_HOSTS = ['*']
 
-# CORS - Allow all origins (both new and legacy setting names for compatibility)
+# CORS settings for django-cors-headers (belt)
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ORIGIN_ALLOW_ALL = True  # Legacy setting name for older django-cors-headers
-CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+    'accept', 'accept-encoding', 'authorization',
+    'content-type', 'dnt', 'origin', 'user-agent',
+    'x-csrftoken', 'x-requested-with',
 ]
 CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 
-CSRF_TRUSTED_ORIGINS = ['https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net', 'https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net']
+CSRF_TRUSTED_ORIGINS = [
+    'https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net',
+    'https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net',
+]
 
 
 # Application definition
@@ -88,7 +84,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'ninja_backend.force_cors.ForceCORSMiddleware',  # Hard-forces CORS on every response
+    'corsheaders.middleware.CorsMiddleware',          # django-cors-headers belt+suspenders
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
     'django.contrib.sessions.middleware.SessionMiddleware',
