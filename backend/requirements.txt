@@ -12,8 +12,10 @@ django-cors-headers==4.6.0
 
 # Database
 # SQLite is built into Python (dev)
-# Uncomment for PostgreSQL on VPS:
-# psycopg2-binary==2.9.10
+# PostgreSQL and Azure dependencies for production:
+psycopg2-binary==2.9.10
+dj-database-url==2.1.0
+django-storages[azure]==1.14.2
 
 # Static Files (VPS: Nginx serves static, whitenoise used in dev)
 whitenoise==6.5.0

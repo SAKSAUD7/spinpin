@@ -111,33 +111,15 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500 MB
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use PostgreSQL if DB_ENGINE is set in environment, otherwise use SQLite
-# Use PostgreSQL by default for production readiness
-DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.postgresql')
+import dj_database_url
 
-if DB_ENGINE == 'django.db.backends.postgresql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'ninjapark_db'),
-            'USER': os.getenv('DB_USER', 'postgres'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),  # Always set via .env — no default
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 60,  # Persistent connections — reduces overhead
-            'OPTIONS': {
-                'connect_timeout': 5,
-            },
-        }
-    }
-else:
-    # Default to SQLite for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 
 # Password validation
@@ -252,13 +234,22 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 
 # ====================================================
-# STORAGE CONFIGURATION (Local filesystem / VPS)
-# On VPS: media is served by Nginx from /backend/media/
+# STORAGE CONFIGURATION (Azure Blob / Local)
 # ====================================================
 
-# Always use local filesystem storage — no Azure/S3 needed
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+if 'AZURE_STORAGE_CONNECTION_STRING' in os.environ:
+    # Use Azure Blob Storage in production
+    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+    AZURE_CONNECTION_STRING = os.environ['AZURE_STORAGE_CONNECTION_STRING']
+    AZURE_CONTAINER = os.environ.get('AZURE_STORAGE_CONTAINER', 'media')
+    
+    # Extract account name from connection string for MEDIA_URL
+    account_name = [p.split('=')[1] for p in AZURE_CONNECTION_STRING.split(';') if p.startswith('AccountName=')][0]
+    MEDIA_URL = f'https://{account_name}.blob.core.windows.net/{AZURE_CONTAINER}/'
+else:
+    # Local fallback
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ====================================================
 # EMAIL CONFIGURATION (SMTP — VPS ready)
