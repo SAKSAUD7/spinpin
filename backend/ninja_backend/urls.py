@@ -18,8 +18,9 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 
 def seed_database(request):
     try:
-        subprocess.Popen(["python", "cms_seed_spinpin.py"], cwd=settings.BASE_DIR)
-        return JsonResponse({"status": "Seeding started in background!"})
+        command = "python populate_spinpin_content.py && python full_seed.py && python cms_seed_spinpin.py"
+        subprocess.Popen(command, shell=True, cwd=settings.BASE_DIR)
+        return JsonResponse({"status": "All 3 Seed scripts started in background!"})
     except Exception as e:
         return JsonResponse({"status": "Error", "message": str(e)})
 
