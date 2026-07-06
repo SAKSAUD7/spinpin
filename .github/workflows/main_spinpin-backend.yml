@@ -60,9 +60,25 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B2A789ECB355459E903A6B0241C9B0FB }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_42475C034FE54FA595735BC91F8FF60B }}
 
+      - name: Stop Azure Web App
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            RG=$(az webapp list --query "[?name=='spinpin-backend'].resourceGroup" -o tsv)
+            echo "Found Resource Group: $RG"
+            az webapp stop --name spinpin-backend --resource-group $RG
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'spinpin-backend'
           slot-name: 'Production'
+
+      - name: Start Azure Web App
+        if: always()
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            RG=$(az webapp list --query "[?name=='spinpin-backend'].resourceGroup" -o tsv)
+            az webapp start --name spinpin-backend --resource-group $RG
