@@ -38,7 +38,23 @@ DEBUG = get_env_bool('DEBUG', False)  # SAFETY: defaults to False; set DEBUG=Tru
 
 # VPS/Local/Azure: Allow all hosts or specific Azure domains
 ALLOWED_HOSTS = ['*']
+
+# CORS - Allow all origins (both new and legacy setting names for compatibility)
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True  # Legacy setting name for older django-cors-headers
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 
 CSRF_TRUSTED_ORIGINS = ['https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net', 'https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net']
 

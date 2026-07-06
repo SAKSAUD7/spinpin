@@ -16,6 +16,18 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
 
+
+def health_check(request):
+    """Root health check endpoint so the backend root doesn't return 404."""
+    return JsonResponse({
+        "status": "online",
+        "service": "SpinPin Backend API",
+        "version": "1.0",
+        "api_docs": "/api/docs/",
+        "admin": "/admin/",
+    })
+
+
 def seed_database(request):
     try:
         command = "python populate_spinpin_content.py && python full_seed.py && python cms_seed_spinpin.py"
@@ -24,9 +36,12 @@ def seed_database(request):
     except Exception as e:
         return JsonResponse({"status": "Error", "message": str(e)})
 
+
 def reset_admin_password(request):
-    """Temporary endpoint to reset admin password. Remove after use."""
+    """Temporary endpoint: resets admin password and creates logo. Remove after use."""
+    results = {}
     try:
+        # 1. Reset / create admin user
         from django.contrib.auth import get_user_model
         User = get_user_model()
         NEW_PASSWORD = "SpinPin2026!"
@@ -38,33 +53,57 @@ def reset_admin_password(request):
             user.is_superuser = True
             user.is_active = True
             user.save()
-            return JsonResponse({"status": "success", "message": f"Password for {ADMIN_EMAIL} reset to: {NEW_PASSWORD}"})
+            results['admin'] = f"Password for {ADMIN_EMAIL} reset to: {NEW_PASSWORD}"
         except User.DoesNotExist:
-            # Create admin if doesn't exist
             user = User.objects.create_superuser(email=ADMIN_EMAIL, password=NEW_PASSWORD)
-            return JsonResponse({"status": "created", "message": f"Admin user created. Email: {ADMIN_EMAIL}, Password: {NEW_PASSWORD}"})
+            results['admin'] = f"Admin created. Email: {ADMIN_EMAIL}, Password: {NEW_PASSWORD}"
+
+        # 2. Create logo from frontend's public folder if none exists
+        try:
+            from apps.core.models import Logo
+            if not Logo.objects.filter(is_active=True).exists():
+                import urllib.request
+                from django.core.files import File
+                logo_url = "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net/logo_transparent.png"
+                tmp_path = "/tmp/spinpin_logo.png"
+                try:
+                    urllib.request.urlretrieve(logo_url, tmp_path)
+                    logo = Logo(name="SpinPin Logo", is_active=True)
+                    with open(tmp_path, 'rb') as f:
+                        logo.image.save("logo_transparent.png", File(f), save=True)
+                    results['logo'] = "Logo created from frontend public folder"
+                except Exception as logo_err:
+                    results['logo'] = f"Auto-download failed: {str(logo_err)} — upload manually via Django Admin at /admin/"
+            else:
+                results['logo'] = "Active logo already exists — no changes made"
+        except Exception as e:
+            results['logo'] = f"Logo error: {str(e)}"
+
+        return JsonResponse({"status": "success", "results": results})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
 
+
 urlpatterns = [
+    path('', health_check),                         # Root health check
     path('api/v1/seed-db/', seed_database),
     path('api/v1/reset-admin/', reset_admin_password),
     path('admin/', admin.site.urls),
-    
+
     # API V1
     path('api/v1/core/', include('apps.core.urls')),
-    path('api/v1/shop/', include('apps.shop.urls')),  # Kept: vouchers API still used by bookings
+    path('api/v1/shop/', include('apps.shop.urls')),
     path('api/v1/cms/', include('apps.cms.urls')),
     path('api/v1/bookings/', include('apps.bookings.urls')),
-    path('api/v1/payments/', include('apps.payments.urls')),  # Payment system
+    path('api/v1/payments/', include('apps.payments.urls')),
     path('api/v1/invitations/', include('apps.invitations.urls')),
     path('api/v1/emails/', include('apps.emails.urls')),
     path('api/v1/marketing/', include('apps.marketing.urls')),
-    
-    # Auth - Using custom email-based token view
+
+    # Auth
     path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
+
     # Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
@@ -74,4 +113,3 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
