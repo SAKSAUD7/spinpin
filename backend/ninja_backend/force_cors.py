@@ -20,15 +20,21 @@ class ForceCORSMiddleware:
         # Handle preflight OPTIONS immediately — don't pass to Django's view layer
         if request.method == "OPTIONS":
             response = HttpResponse(status=200)
-            self._add_cors(response)
+            self._add_cors(request, response)
             return response
 
         response = self.get_response(request)
-        self._add_cors(response)
+        self._add_cors(request, response)
         return response
 
-    def _add_cors(self, response):
-        response["Access-Control-Allow-Origin"] = "*"
+    def _add_cors(self, request, response):
+        origin = request.headers.get("Origin")
+        if origin:
+            response["Access-Control-Allow-Origin"] = origin
+        else:
+            response["Access-Control-Allow-Origin"] = "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net"
+            
         response["Access-Control-Allow-Methods"] = self.ALLOWED_METHODS
         response["Access-Control-Allow-Headers"] = self.ALLOWED_HEADERS
+        response["Access-Control-Allow-Credentials"] = "true"
         response["Access-Control-Max-Age"] = "86400"
