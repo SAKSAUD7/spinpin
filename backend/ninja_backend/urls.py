@@ -24,8 +24,31 @@ def seed_database(request):
     except Exception as e:
         return JsonResponse({"status": "Error", "message": str(e)})
 
+def reset_admin_password(request):
+    """Temporary endpoint to reset admin password. Remove after use."""
+    try:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        NEW_PASSWORD = "SpinPin2026!"
+        ADMIN_EMAIL = "admin@spinpin.co.uk"
+        try:
+            user = User.objects.get(email=ADMIN_EMAIL)
+            user.set_password(NEW_PASSWORD)
+            user.is_staff = True
+            user.is_superuser = True
+            user.is_active = True
+            user.save()
+            return JsonResponse({"status": "success", "message": f"Password for {ADMIN_EMAIL} reset to: {NEW_PASSWORD}"})
+        except User.DoesNotExist:
+            # Create admin if doesn't exist
+            user = User.objects.create_superuser(email=ADMIN_EMAIL, password=NEW_PASSWORD)
+            return JsonResponse({"status": "created", "message": f"Admin user created. Email: {ADMIN_EMAIL}, Password: {NEW_PASSWORD}"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
 urlpatterns = [
     path('api/v1/seed-db/', seed_database),
+    path('api/v1/reset-admin/', reset_admin_password),
     path('admin/', admin.site.urls),
     
     # API V1
