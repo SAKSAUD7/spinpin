@@ -36,8 +36,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-fallback')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_env_bool('DEBUG', False)  # SAFETY: defaults to False; set DEBUG=True in local .env
 
-# VPS/Local: set ALLOWED_HOSTS in .env
-ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+# VPS/Local/Azure: Allow all hosts or specific Azure domains
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = []
 

@@ -16,7 +16,7 @@ const standaloneServerPath = path.join(__dirname, '.next/standalone/frontend/ser
 console.log('Starting Next.js from:', standaloneServerPath);
 
 // Start the Next.js standalone server directly on Azure's PORT
-const server = spawn('node', [standaloneServerPath], {
+const server = spawn(process.execPath, [standaloneServerPath], {
     env: {
         ...process.env,
         PORT: PORT,
