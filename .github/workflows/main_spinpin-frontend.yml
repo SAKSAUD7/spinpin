@@ -36,6 +36,7 @@ jobs:
           # Create a root server.js to start the frontend server in the standalone context
           echo "const PORT = process.env.PORT || 8080;" > .next/standalone/server.js
           echo "process.env.PORT = PORT;" >> .next/standalone/server.js
+          echo "process.env.HOSTNAME = '0.0.0.0';" >> .next/standalone/server.js
           echo "require('./frontend/server.js');" >> .next/standalone/server.js
 
       - name: Upload artifact for deployment job
