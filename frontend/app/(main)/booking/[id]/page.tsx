@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -102,21 +102,55 @@ export default function BookingConfirmationPage() {
     const activityEmoji = booking.activity?.toLowerCase().includes("skating") ? "🛼" : booking.activity?.toLowerCase().includes("bowling") ? "🎳" : "🎮";
     const totalGuests = (booking.adults || 0) + (booking.kids || 0) + (booking.spectators || 0);
 
+    const [paying, setPaying] = useState(false);
+    const [payError, setPayError] = useState("");
+
+    const handlePayNow = async () => {
+        if (!booking) return;
+        setPaying(true);
+        setPayError("");
+        try {
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+            const res = await fetch(`${API}/payments/create-order/`, {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({
+                    booking_id:   booking.id,
+                    booking_type: "session",
+                    amount:       booking.total_amount,
+                }),
+                cache: "no-store",
+            });
+            const data = await res.json();
+            if (!res.ok || !data.checkout_url) {
+                throw new Error(data.error || "Failed to initiate payment");
+            }
+            window.location.href = data.checkout_url;
+        } catch (err) {
+            setPayError(err instanceof Error ? err.message : "Payment error occurred");
+            setPaying(false);
+        }
+    };
+
     return (
         <main className="min-h-screen bg-[#0a0118] py-20 px-4">
             <div className="max-w-2xl mx-auto">
-                {/* Success Header */}
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center mb-10"
                 >
-                    <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/40">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg ${booking.status === "PENDING" ? "bg-amber-500 shadow-amber-500/40" : "bg-green-500 shadow-green-500/40"}`}>
                         <CheckCircle className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-black text-white mb-2">Booking Confirmed! 🎉</h1>
-                    <p className="text-white/60">Your session at Spin Pin Leicester is all set.</p>
-                    <div className="inline-block mt-4 bg-green-500/10 border border-green-500/30 text-green-400 font-bold px-4 py-2 rounded-full text-sm">
+                    <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
+                        {booking.status === "PENDING" ? "Booking Pending ⏱️" : "Booking Confirmed! 🎉"}
+                    </h1>
+                    <p className="text-white/60">
+                        {booking.status === "PENDING" ? "Complete your payment to secure your session." : "Your session at Spin Pin Leicester is all set."}
+                    </p>
+                    <div className={`inline-block mt-4 border font-bold px-4 py-2 rounded-full text-sm ${booking.status === "PENDING" ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-green-500/10 border-green-500/30 text-green-400"}`}>
                         Booking #: {booking.booking_number}
                     </div>
                 </motion.div>
@@ -129,13 +163,20 @@ export default function BookingConfirmationPage() {
                     className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden mb-6 print:border-gray-300 print:bg-white"
                 >
                     {/* Activity Header */}
-                    <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="text-5xl">{activityEmoji}</div>
-                            <div>
-                                <h2 className="text-2xl font-black text-white">{booking.activity}</h2>
-                                <p className="text-white/80 text-sm">Spin Pin Leicester — Navigation Street</p>
+                    <div className={booking.status === "PENDING" ? "bg-gradient-to-r from-amber-500 to-yellow-600 p-6" : "bg-gradient-to-r from-pink-500 to-purple-600 p-6"}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="text-5xl">{activityEmoji}</div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-white">{booking.activity}</h2>
+                                    <p className="text-white/80 text-sm">Spin Pin Leicester — Navigation Street</p>
+                                </div>
                             </div>
+                            {booking.status === "PENDING" && (
+                                <span className="self-start sm:self-auto bg-white/20 text-white font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider backdrop-blur-sm border border-white/30">
+                                    Payment Pending
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -209,38 +250,51 @@ export default function BookingConfirmationPage() {
                         )}
                     </div>
 
-                    {/* QR Code */}
-                    {qrDataUrl && (
-                        <div className="border-t border-white/10 p-6 flex flex-col items-center gap-3">
-                            <div className="flex items-center gap-2 text-white/60 text-sm font-semibold">
-                                <QrCode className="w-4 h-4" />
-                                Show this at reception
-                            </div>
-                            <div className="bg-white p-4 rounded-2xl">
-                                <img src={qrDataUrl} alt="Booking QR Code" className="w-40 h-40" />
-                            </div>
-                            <p className="text-white/40 text-xs">Scan to verify booking #{booking.booking_number}</p>
+                {/* QR Code */}
+                {qrDataUrl && booking.status !== "PENDING" && (
+                    <div className="border-t border-white/10 p-6 flex flex-col items-center gap-3">
+                        <div className="flex items-center gap-2 text-white/60 text-sm font-semibold">
+                            <QrCode className="w-4 h-4" />
+                            Show this at reception
                         </div>
-                    )}
+                        <div className="bg-white p-4 rounded-2xl">
+                            <img src={qrDataUrl} alt="Booking QR Code" className="w-40 h-40" />
+                        </div>
+                        <p className="text-white/40 text-xs">Scan to verify booking #{booking.booking_number}</p>
+                    </div>
+                )}
                 </motion.div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center justify-center gap-2 px-6 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all"
-                    >
-                        <Download className="w-5 h-5" />
-                        Print
-                    </button>
-                    <button
-                        onClick={handleShare}
-                        className="flex items-center justify-center gap-2 px-6 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all"
-                    >
-                        <Share2 className="w-5 h-5" />
-                        Share
-                    </button>
-                </div>
+                {booking.status === "PENDING" ? (
+                    <div className="mb-8 space-y-4">
+                        <button
+                            onClick={handlePayNow}
+                            disabled={paying}
+                            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-black rounded-2xl hover:scale-[1.02] transition-all text-lg shadow-xl shadow-amber-500/20 disabled:opacity-50"
+                        >
+                            {paying ? "Redirecting to Payment..." : "Complete Payment"}
+                        </button>
+                        {payError && <div className="text-red-400 text-sm text-center font-bold">{payError}</div>}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center justify-center gap-2 px-6 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all"
+                        >
+                            <Download className="w-5 h-5" />
+                            Print
+                        </button>
+                        <button
+                            onClick={handleShare}
+                            className="flex items-center justify-center gap-2 px-6 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all"
+                        >
+                            <Share2 className="w-5 h-5" />
+                            Share
+                        </button>
+                    </div>
+                )}
 
                 {/* Important Info */}
                 <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-6 mb-8">

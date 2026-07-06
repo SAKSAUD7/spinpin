@@ -33,6 +33,11 @@ const nextConfig = {
                 hostname: 'spinpinimages.blob.core.windows.net',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'spinpinmedia.blob.core.windows.net',
+                pathname: '/**',
+            },
             // SpinPin Azure App Service (backend media)
             {
                 protocol: 'https',
