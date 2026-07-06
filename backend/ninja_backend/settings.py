@@ -38,8 +38,9 @@ DEBUG = get_env_bool('DEBUG', False)  # SAFETY: defaults to False; set DEBUG=Tru
 
 # VPS/Local/Azure: Allow all hosts or specific Azure domains
 ALLOWED_HOSTS = ['*']
+CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS = ['https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net', 'https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net']
 
 
 # Application definition
