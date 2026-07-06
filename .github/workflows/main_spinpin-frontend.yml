@@ -25,8 +25,8 @@ jobs:
 
       - name: npm install, build, and test
         run: |
-          cd frontend
           npm install
+          cd frontend
           npm run build --if-present
 
       - name: Upload artifact for deployment job
