@@ -38,12 +38,15 @@ jobs:
           echo "process.env.PORT = PORT;" >> .next/standalone/server.js
           echo "process.env.HOSTNAME = '0.0.0.0';" >> .next/standalone/server.js
           echo "require('./frontend/server.js');" >> .next/standalone/server.js
+          
+          cd .next/standalone
+          zip -r ../../../deployment.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: frontend/.next/standalone/
+          path: deployment.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -71,4 +74,4 @@ jobs:
         with:
           app-name: 'spinpin-frontend'
           slot-name: 'Production'
-          package: .
+          package: deployment.zip
