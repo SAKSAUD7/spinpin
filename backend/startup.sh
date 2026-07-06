@@ -4,12 +4,6 @@ set -e
 # Temporarily bypassed to prevent DB lock hangs during crash loop recovery
 # python manage.py migrate --noinput
 
-echo "Running safe SpinPin seed scripts in background..."
-(
-    python populate_spinpin_content.py || true
-    python full_seed.py || true
-    python cms_seed_spinpin.py || true
-) &
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput

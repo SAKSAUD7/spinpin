@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+import subprocess
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
@@ -14,7 +16,15 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
 
+def seed_database(request):
+    try:
+        subprocess.Popen(["python", "cms_seed_spinpin.py"], cwd=settings.BASE_DIR)
+        return JsonResponse({"status": "Seeding started in background!"})
+    except Exception as e:
+        return JsonResponse({"status": "Error", "message": str(e)})
+
 urlpatterns = [
+    path('api/v1/seed-db/', seed_database),
     path('admin/', admin.site.urls),
     
     # API V1
