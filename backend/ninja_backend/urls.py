@@ -100,10 +100,7 @@ def fix_logo(request):
     """Endpoint to set the correct circular SpinPin logo as active."""
     try:
         from apps.core.models import Logo
-        import urllib.request
-        from django.core.files import File
         import os
-        import tempfile
 
         # Deactivate all existing logos
         Logo.objects.all().update(is_active=False)
@@ -112,33 +109,11 @@ def fix_logo(request):
         # We'll use it directly as the image path stored in media
         logo_image_path = "uploads/20260707_092905_1c2cc2cc_spinpin.webp"
         
-        # Check if a logo with this path already exists
-        existing = Logo.objects.filter(image=logo_image_path).first()
-        if existing:
-            existing.is_active = True
-            existing.name = "SpinPin Logo"
-            existing.save()
-            return JsonResponse({
-                "status": "success",
-                "message": "Activated existing SpinPin logo.",
-                "logo_id": existing.id,
-                "image": str(existing.image)
-            })
-        
-        # Otherwise download and create a fresh logo record
-        backend_base = "https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net"
-        logo_url = f"{backend_base}/media/{logo_image_path}"
-        
-        with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as tmp:
-            tmp_path = tmp.name
-
-        urllib.request.urlretrieve(logo_url, tmp_path)
-
+        # We can just create a new logo that references this path
+        # django-storages will correctly resolve it to Azure Blob storage
         logo = Logo(name="SpinPin Logo", is_active=True)
-        with open(tmp_path, 'rb') as f:
-            logo.image.save("spinpin_circular_logo.webp", File(f), save=True)
-
-        os.unlink(tmp_path)
+        logo.image.name = logo_image_path
+        logo.save()
 
         return JsonResponse({
             "status": "success",
