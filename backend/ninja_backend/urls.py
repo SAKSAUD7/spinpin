@@ -105,12 +105,12 @@ def fix_logo(request):
         # Deactivate all existing logos
         Logo.objects.all().update(is_active=False)
 
-        # The 3rd upload 'spinpin.webp' is the correct circular SpinPin logo
-        # We'll use it directly as the image path stored in media
-        logo_image_path = "uploads/20260707_092905_1c2cc2cc_spinpin.webp"
+        # We'll use a permanent logo that is checked into the git repository
+        # This prevents the 404 error caused by Azure App Service wiping uploaded files on deploy
+        logo_image_path = "logos/spinpin-logo.png"
         
         # We can just create a new logo that references this path
-        # django-storages will correctly resolve it to Azure Blob storage
+        # django-storages will correctly resolve it to Azure Blob storage or local serve
         logo = Logo(name="SpinPin Logo", is_active=True)
         logo.image.name = logo_image_path
         logo.save()
