@@ -162,7 +162,8 @@ export function PaymentStep({
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`${API_URL}/payments/create-order/`, {
+            // Use internal /api/payments/create-order proxy to avoid mixed-content (HTTPS→HTTP) errors
+            const res = await fetch(`/api/payments/create-order`, {
                 method:  "POST",
                 headers: { "Content-Type": "application/json" },
                 body:    JSON.stringify({

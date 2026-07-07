@@ -7,14 +7,12 @@
  *   - roller-skating / arcade → SpinPin Ltd account
  *   - ten-pin-bowling         → Twinkle Town Ltd account
  *
- * Flow:
- *   1. createPaymentOrder() → backend creates SumUp checkout → returns checkout_url
- *   2. Frontend redirects customer to checkout_url (SumUp hosted page)
- *   3. SumUp redirects back to /book/success?checkout_id=xxx&status=PAID|FAILED
- *   4. Success page shows confirmation
+ * Calls through internal Next.js proxy (/api/payments/*) to avoid
+ * mixed-content (HTTPS→HTTP) issues in production on Azure.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+// Internal proxy routes — always relative, always same-origin, always HTTPS
+const PROXY_BASE = "/api/payments";
 
 export interface PaymentOrderData {
     booking_id: number;
@@ -51,7 +49,14 @@ export async function createPaymentOrder(
     data: PaymentOrderData
 ): Promise<PaymentOrderResult> {
     try {
-        const response = await fetch(`${API_URL}/payments/create-order/`, {
+        // Use internal Next.js proxy to avoid mixed-content issues
+        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL
+            || (typeof window !== 'undefined' ? window.location.origin : '');
+        const url = baseUrl
+            ? `${baseUrl}${PROXY_BASE}/create-order`
+            : `${(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:9000/api/v1').replace('localhost', '127.0.0.1')}/payments/create-order/`;
+
+        const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -71,11 +76,6 @@ export async function createPaymentOrder(
                 error: result.error || "Failed to create payment order",
             };
         }
-
-        console.log(
-            `SumUp checkout created via ${result.merchant}:`,
-            result.order_id
-        );
 
         return {
             success:      true,
@@ -104,7 +104,13 @@ export async function createPaymentOrder(
  */
 export async function verifyPayment(data: PaymentVerificationData) {
     try {
-        const response = await fetch(`${API_URL}/payments/verify/`, {
+        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL
+            || (typeof window !== 'undefined' ? window.location.origin : '');
+        const url = baseUrl
+            ? `${baseUrl}${PROXY_BASE}/verify`
+            : `${(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:9000/api/v1').replace('localhost', '127.0.0.1')}/payments/verify/`;
+
+        const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ order_id: data.order_id }),

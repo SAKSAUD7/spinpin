@@ -97,33 +97,58 @@ def reset_admin_password(request):
 
 
 def fix_logo(request):
-    """Temporary endpoint to fix the SpinPin logo in production DB."""
+    """Endpoint to set the correct circular SpinPin logo as active."""
     try:
         from apps.core.models import Logo
         import urllib.request
         from django.core.files import File
         import os
+        import tempfile
 
         # Deactivate all existing logos
         Logo.objects.all().update(is_active=False)
 
-        # Download the correct logo from frontend public folder
-        logo_url = "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net/logo_original.png"
-        tmp_path = "/tmp/spinpin_logo_fix.png"
+        # The 3rd upload 'spinpin.webp' is the correct circular SpinPin logo
+        # We'll use it directly as the image path stored in media
+        logo_image_path = "uploads/20260707_092905_1c2cc2cc_spinpin.webp"
         
-        # Ensure /tmp exists on windows/azure
-        if not os.path.exists('/tmp'):
-            tmp_path = "spinpin_logo_fix.png" # use current directory
+        # Check if a logo with this path already exists
+        existing = Logo.objects.filter(image=logo_image_path).first()
+        if existing:
+            existing.is_active = True
+            existing.name = "SpinPin Logo"
+            existing.save()
+            return JsonResponse({
+                "status": "success",
+                "message": "Activated existing SpinPin logo.",
+                "logo_id": existing.id,
+                "image": str(existing.image)
+            })
+        
+        # Otherwise download and create a fresh logo record
+        backend_base = "https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net"
+        logo_url = f"{backend_base}/media/{logo_image_path}"
+        
+        with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as tmp:
+            tmp_path = tmp.name
 
         urllib.request.urlretrieve(logo_url, tmp_path)
-        
-        logo = Logo(name="Real SpinPin Logo", is_active=True)
+
+        logo = Logo(name="SpinPin Logo", is_active=True)
         with open(tmp_path, 'rb') as f:
-            logo.image.save("spinpin_logo_final.png", File(f), save=True)
-            
-        return JsonResponse({"status": "success", "message": "SpinPin logo successfully updated in database."})
+            logo.image.save("spinpin_circular_logo.webp", File(f), save=True)
+
+        os.unlink(tmp_path)
+
+        return JsonResponse({
+            "status": "success",
+            "message": "SpinPin logo successfully set as active.",
+            "logo_id": logo.id,
+            "image": str(logo.image)
+        })
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
+        import traceback
+        return JsonResponse({"status": "error", "message": str(e), "traceback": traceback.format_exc()})
 
 
 urlpatterns = [
