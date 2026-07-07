@@ -32,27 +32,28 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setSubmitError(null);
 
         try {
             const { createContactMessage } = await import("@/app/actions/contact-messages");
-            const { toast } = await import("sonner");
 
             const result = await createContactMessage(formData);
 
             if (result.success) {
-                const ticketId = result.item?.ticket_id || "generated";
-                toast.success(`Message sent! Your Ticket ID is ${ticketId}.`);
+                const ticketId = result.item?.ticket_id || result.item?.id || "SENT";
                 setFormData({ name: "", email: "", phone: "", message: "" });
-                setSubmittedTicketId(ticketId);
+                setSubmittedTicketId(String(ticketId));
             } else {
-                toast.error(result.error || "Failed to send message");
+                setSubmitError(result.error || "Failed to send message. Please try again.");
             }
         } catch (error) {
             console.error(error);
-            toast.error("Something went wrong. Please try again.");
+            setSubmitError("Something went wrong. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -241,6 +242,11 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
                                         />
                                     </div>
                                         <div className="w-full">
+                                            {submitError && (
+                                                <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm font-medium">
+                                                    ⚠️ {submitError}
+                                                </div>
+                                            )}
                                             <BouncyButton type="submit" variant="primary" className="w-full" size="lg" disabled={isSubmitting}>
                                                 <div className="flex items-center justify-center">
                                                     {isSubmitting ? (

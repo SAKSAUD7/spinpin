@@ -22,6 +22,8 @@ interface Booking {
     kids: number;
     amount: number;
     status: string;
+    booking_status: string;
+    payment_status: string;
     created_at: string;
 }
 

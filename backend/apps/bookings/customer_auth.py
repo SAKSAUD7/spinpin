@@ -245,7 +245,9 @@ def customer_my_bookings(request):
             "adults": b.adults,
             "kids": b.kids,
             "amount": float(b.amount) if b.amount else 0,
-            "status": b.booking_status,
+            "status": b.booking_status or b.status,
+            "booking_status": b.booking_status,
+            "payment_status": b.payment_status,
             "created_at": b.created_at.isoformat(),
         })
 
