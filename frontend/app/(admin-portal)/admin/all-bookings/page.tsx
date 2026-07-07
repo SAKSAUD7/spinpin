@@ -21,6 +21,8 @@ import {
     Filter
 } from "lucide-react";
 import Link from "next/link";
+import { AdminBookingModal } from "@/components/admin/AdminBookingModal";
+import { updateBookingStatus, updatePartyBookingStatus } from "@/app/actions/admin";
 
 export default function AllBookingsPage() {
     const [allBookings, setAllBookings] = useState<any[]>([]);
@@ -30,6 +32,7 @@ export default function AllBookingsPage() {
     const [typeFilter, setTypeFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("all");
+    const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
     useEffect(() => {
         loadBookings();
@@ -100,6 +103,22 @@ export default function AllBookingsPage() {
         setFilteredBookings(filtered);
     }
 
+    async function handleStatusUpdate(id: string, newStatus: string, isPayment: boolean) {
+        const booking = selectedBooking;
+        if (!booking) return;
+        try {
+            if (booking.type === 'PARTY') {
+                await updatePartyBookingStatus(String(id), newStatus);
+            } else {
+                await updateBookingStatus(String(id), newStatus);
+            }
+            // Refresh bookings list
+            await loadBookings();
+        } catch (err) {
+            console.error('Failed to update status:', err);
+        }
+    }
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -110,6 +129,15 @@ export default function AllBookingsPage() {
 
     return (
         <div className="p-8 space-y-6">
+            {/* Booking Detail Popup Modal */}
+            {selectedBooking && (
+                <AdminBookingModal
+                    booking={selectedBooking}
+                    onClose={() => setSelectedBooking(null)}
+                    onUpdateStatus={handleStatusUpdate}
+                />
+            )}
+
             <PageHeader
                 title="All Bookings"
                 description="Unified view of all session and party bookings"
@@ -253,16 +281,16 @@ export default function AllBookingsPage() {
                                             <p className="text-sm font-bold text-slate-900 mt-1">{formatCurrency(booking.amount)}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <StatusBadge status={booking.booking_status || booking.status} />
+                                            <StatusBadge status={(booking.booking_status || booking.status) === 'CANCELLED' ? 'CANCELLED' : (booking.payment_status === 'PENDING' || booking.paymentStatus === 'PENDING' ? 'PENDING' : (booking.booking_status || booking.status))} />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <Link
-                                                href={booking.type === 'SESSION' ? `/admin/bookings/${booking.id}` : `/admin/party-bookings/${booking.id}`}
+                                            <button
+                                                onClick={() => setSelectedBooking(booking)}
                                                 className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
                                             >
                                                 <Eye size={16} />
                                                 View
-                                            </Link>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

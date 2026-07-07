@@ -1204,11 +1204,16 @@ def add_party_participants_view(request, uuid):
     })
 
 @api_view(['GET', 'PATCH', 'DELETE'])
-@permission_classes([IsStaffUser])
+@permission_classes([IsAuthenticated])
 def party_booking_detail_view(request, id):
     """Custom view to get/update/delete party booking details by ID"""
     try:
         party_booking = PartyBooking.objects.get(pk=id)
+        
+        # Check permissions: must be staff or the customer who owns the booking
+        if not request.user.is_staff:
+            if not hasattr(request.user, 'customer') or request.user.customer != party_booking.customer:
+                return Response({'error': 'Not authorized to view this booking'}, status=status.HTTP_403_FORBIDDEN)
         
         if request.method == 'GET':
             data = {
