@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ScrollReveal, BouncyButton } from "@repo/ui";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle, School, Loader2, Utensils } from "lucide-react";
@@ -61,6 +61,10 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
     // 1: Basic Info, 2: Auth Gate (if not logged in), 3: Participants, 4: Payment, 5: Confirmation
     const [step, setStep] = useState(1);
+    const searchParams = useSearchParams();
+    const [selectedPackage, setSelectedPackage] = useState(
+        searchParams.get('package') || 'Skating Party'
+    );
     const [bookingBlocks, setBookingBlocks] = useState<BookingBlock[]>([]);
     const [config, setConfig] = useState<any>(null);
     const [submitted, setSubmitted] = useState(false);
@@ -94,10 +98,11 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
         childAge: "",
         date: "",
         time: "",
-        participants: 10, // Will be validated against config.min_participants
+        participants: 10,
         spectators: 0,
         specialRequests: "",
         dietaryRestrictions: "",
+        packageName: searchParams.get('package') || 'Skating Party',
     });
 
     const [paymentOption, setPaymentOption] = useState<"deposit" | "full">("deposit");

@@ -18,6 +18,7 @@ export async function createPartyBooking(formData: any) {
             childAge,
             specialRequests,
             partyPackage,
+            packageName,
             theme,
             decorations,
             catering,
@@ -101,7 +102,7 @@ export async function createPartyBooking(formData: any) {
 
         const partyBookingPayload = {
             name,
-            package_name: 'SpinPin £250 Party Package',
+            package_name: packageName || 'SpinPin £250 Party Package',
             email,
             phone,
             date,

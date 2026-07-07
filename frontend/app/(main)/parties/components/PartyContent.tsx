@@ -201,7 +201,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                     </ul>
                                 </div>
                                 <div className="p-6 pt-0">
-                                    <Link href="/party-booking">
+                                    <Link href="/party-booking?package=Skating+Party">
                                         <button className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                                             <PartyPopper className="w-4 h-4" /> Book Skating Party
                                         </button>
@@ -236,7 +236,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                     </ul>
                                 </div>
                                 <div className="p-6 pt-0">
-                                    <Link href="/party-booking">
+                                    <Link href="/party-booking?package=Bowling+Party">
                                         <button className="w-full py-3 bg-gradient-to-r from-secondary to-accent text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                                             <PartyPopper className="w-4 h-4" /> Book Bowling Party
                                         </button>
@@ -273,7 +273,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                     </ul>
                                 </div>
                                 <div className="p-6 pt-0 relative z-10">
-                                    <Link href="/party-booking">
+                                    <Link href="/party-booking?package=Ultimate+Party">
                                         <button className="w-full py-3 bg-gradient-to-r from-accent to-primary text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                                             <PartyPopper className="w-4 h-4" /> Book Ultimate Party
                                         </button>
