@@ -63,7 +63,7 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
     // ... existing consts ...
     const email = settings?.contact_email || "info@spinpin.co.uk";
     const address = settings?.address || "Ramdoot House, First Floor - 2/3 Navigation Street, Leicester, LE1 3UR";
-    const mapUrl = settings?.map_url || "https://maps.app.goo.gl/B3hEwR7N2E7A3yQx7";
+    const mapUrl = settings?.map_url || "https://maps.app.goo.gl/VLrQ2vmrHBuAmgkQ6";
     const openingHours = typeof settings?.opening_hours === 'string' ? settings.opening_hours : "Tue–Fri 2PM–10PM | Sat 12PM–11PM | Sun 12PM–10PM";
 
     const contactInfo = [
