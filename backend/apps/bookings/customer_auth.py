@@ -287,6 +287,91 @@ def customer_my_bookings(request):
     })
 
 
+@api_view(["GET", "PATCH"])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def customer_booking_detail(request, booking_type, booking_id):
+    """Get or update a single booking (session or party) for the logged-in customer."""
+    customer = get_customer_from_request(request)
+    if not customer:
+        return Response({"error": "Not authenticated."}, status=401)
+
+    booking = None
+    try:
+        if booking_type == "session":
+            booking = Booking.objects.get(id=booking_id, customer=customer)
+        elif booking_type == "party":
+            booking = PartyBooking.objects.get(id=booking_id, customer=customer)
+        else:
+            return Response({"error": "Invalid booking type."}, status=400)
+    except (Booking.DoesNotExist, PartyBooking.DoesNotExist):
+        # Fallback: look up by email
+        try:
+            if booking_type == "session":
+                booking = Booking.objects.get(id=booking_id, email=customer.email)
+            else:
+                booking = PartyBooking.objects.get(id=booking_id, email=customer.email)
+        except (Booking.DoesNotExist, PartyBooking.DoesNotExist):
+            return Response({"error": "Booking not found."}, status=404)
+
+    if request.method == "PATCH":
+        allowed = ["date", "time", "adults", "kids", "spectators",
+                   "special_requests", "dietary_restrictions", "notes", "payment_type"]
+        for field in allowed:
+            if field in request.data:
+                setattr(booking, field, request.data[field])
+        booking.save()
+
+    if booking_type == "session":
+        b = booking
+        return Response({
+            "id": b.id,
+            "booking_number": b.booking_number,
+            "type": "SESSION",
+            "activity": b.activity,
+            "date": str(b.date),
+            "time": str(b.time) if b.time else None,
+            "duration": b.duration,
+            "adults": b.adults,
+            "kids": b.kids,
+            "spectators": getattr(b, "spectators", 0),
+            "amount": float(b.amount) if b.amount else 0,
+            "paid_amount": float(getattr(b, "paid_amount", 0) or 0),
+            "remaining_balance": float(getattr(b, "remaining_balance", b.amount) or 0),
+            "status": b.booking_status,
+            "booking_status": b.booking_status,
+            "payment_status": getattr(b, "payment_status", "PENDING"),
+            "notes": getattr(b, "notes", "") or "",
+            "created_at": b.created_at.isoformat(),
+        })
+    else:
+        b = booking
+        return Response({
+            "id": b.id,
+            "booking_number": b.booking_number,
+            "type": "PARTY",
+            "package_name": b.package_name,
+            "date": str(b.date),
+            "time": str(b.time) if b.time else None,
+            "adults": b.adults,
+            "kids": b.kids,
+            "spectators": getattr(b, "spectators", 0),
+            "amount": float(b.amount) if b.amount else 0,
+            "paid_amount": float(b.paid_amount) if b.paid_amount else 0,
+            "deposit_amount": float(b.deposit_amount) if b.deposit_amount else 0,
+            "remaining_balance": float(b.remaining_balance) if b.remaining_balance else 0,
+            "payment_type": b.payment_type,
+            "payment_status": b.payment_status,
+            "status": b.status,
+            "booking_status": b.status,
+            "birthday_child_name": b.birthday_child_name,
+            "special_requests": getattr(b, "special_requests", "") or "",
+            "participants": getattr(b, "participants", {}) or {},
+            "waiver_signed": getattr(b, "waiver_signed", False),
+            "created_at": b.created_at.isoformat(),
+        })
+
+
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -296,6 +381,8 @@ def customer_logout(request):
     if customer:
         CustomerToken.objects.filter(customer=customer).delete()
     return Response({"message": "Logged out."})
+
+
 
 
 # ─── ADMIN-ONLY endpoints ─────────────────────────────────────────────────────

@@ -36,9 +36,9 @@ export function CustomerBookingModal({
         const fetchDetails = async () => {
             try {
                 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-                const endpoint = bookingType === "PARTY" 
-                    ? `/bookings/party-bookings/${bookingId}/`
-                    : `/bookings/bookings/${bookingId}/`;
+                // Use customer-auth endpoint — supports CustomerToken (not staff JWT)
+                const type = bookingType === "PARTY" ? "party" : "session";
+                const endpoint = `/bookings/customer-auth/booking/${type}/${bookingId}/`;
                     
                 const res = await fetch(`${API}${endpoint}`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -109,9 +109,8 @@ export function CustomerBookingModal({
         setSaving(true);
         try {
             const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-            const endpoint = bookingType === "PARTY" 
-                ? `/bookings/party-bookings/${bookingId}/`
-                : `/bookings/bookings/${bookingId}/`;
+            const type = bookingType === "PARTY" ? "party" : "session";
+            const endpoint = `/bookings/customer-auth/booking/${type}/${bookingId}/`;
                 
             const res = await fetch(`${API}${endpoint}`, {
                 method: 'PATCH',

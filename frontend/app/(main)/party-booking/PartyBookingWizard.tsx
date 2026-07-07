@@ -104,6 +104,11 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Scroll to top on every step change so new content is visible
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }, [step]);
+
     // Auto-fill customer details if logged in
     useEffect(() => {
         if (customer) {

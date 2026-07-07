@@ -174,7 +174,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                         </p>
                     </ScrollReveal>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                         {gallery.length > 0 ? gallery.map((photo, index) => (
                             <ScrollReveal key={photo.id} animation="fade" delay={index * 0.1}>
                                 <motion.div
