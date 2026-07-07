@@ -96,12 +96,12 @@ class GlobalSettingsViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post', 'get'])
     def fix_db_schema(self, request):
-        """Force run bookings migration manually"""
+        """Force run all migrations manually"""
         from django.core.management import call_command
         try:
-            # Force migration for bookings app
-            call_command('migrate', 'bookings')
-            return Response({'status': 'success', 'message': 'Bookings migration applied successfully'})
+            # Force migration for all apps
+            call_command('migrate')
+            return Response({'status': 'success', 'message': 'All migrations applied successfully'})
         except Exception as e:
             return Response({'status': 'error', 'message': str(e)}, status=500)
 
