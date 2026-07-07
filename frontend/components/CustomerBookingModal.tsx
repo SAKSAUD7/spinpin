@@ -23,7 +23,11 @@ export function CustomerBookingModal({
     const [saveSuccess, setSaveSuccess] = useState(false);
 
     useEffect(() => {
-        if (!token) return;
+        if (!token) {
+            setLoading(false);
+            setError("Authentication required. Please log in.");
+            return;
+        }
         const fetchDetails = async () => {
             try {
                 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
@@ -35,7 +39,11 @@ export function CustomerBookingModal({
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 
-                if (!res.ok) throw new Error("Could not load booking details");
+                if (!res.ok) {
+                    if (res.status === 401) throw new Error("Session expired. Please log in again.");
+                    if (res.status === 404) throw new Error("Booking not found.");
+                    throw new Error(`Could not load booking details (${res.status})`);
+                }
                 setBooking(await res.json());
             } catch (err: any) {
                 setError(err.message);

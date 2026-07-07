@@ -156,21 +156,6 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                 </div>
             </section>
 
-            {/* Image Carousel */}
-            <section className="relative px-4 py-12 bg-background">
-                <div className="max-w-5xl mx-auto">
-                    <ImageCarousel
-                        images={carouselImages && carouselImages.length > 0 ? carouselImages : [
-                            "/images/uploads/img-1.jpg",
-                            "/images/uploads/img-3.jpg",
-                            "/images/uploads/img-5.jpg",
-                            "/images/uploads/img-7.jpg",
-                            "/images/uploads/img-8.jpg"
-                        ]}
-                        className="shadow-2xl border-4 border-white/10"
-                    />
-                </div>
-            </section>
 
 
 

@@ -27,11 +27,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // If mock gateway is active, generate a local success redirect
-        // so the flow doesn't break in development/staging
+        // For SumUp: the backend returns checkout_url pointing to SumUp's hosted payment page
+        // For Mock: generate a local success URL (mock still requires verify step)
         if (data.mock && !data.checkout_url) {
             const frontendBase = process.env.NEXT_PUBLIC_FRONTEND_URL
                 || 'https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net';
+            // Mock: go to a "confirm payment" step, not directly to success
+            // The success page will call verify, which actually marks the booking CONFIRMED
             data.checkout_url = `${frontendBase}/book/success?order_id=${data.order_id}&booking_id=${body.booking_id}&booking_type=${body.booking_type}&mock=true`;
         }
 

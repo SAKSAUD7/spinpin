@@ -64,14 +64,14 @@ class MockPaymentGateway(BasePaymentGateway):
         # Generate fake order ID
         order_id = f"MOCK_ORDER_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:8].upper()}"
         
-        logger.info(f"Creating mock order: {order_id} for ₹{amount}")
+        logger.info(f"Creating mock order: {order_id} for £{amount}")
         
-        # Create Payment record
+        # Create Payment record — status CREATED, booking stays PENDING until verify_payment is called
         payment_data = {
             'provider': self.provider_name,
             'order_id': order_id,
             'amount': amount,
-            'currency': 'INR',
+            'currency': 'GBP',
             'status': 'CREATED',
             'provider_response': {
                 'mock': True,
@@ -88,12 +88,15 @@ class MockPaymentGateway(BasePaymentGateway):
         
         payment = Payment.objects.create(**payment_data)
         
-        logger.info(f"Mock order created: {order_id} (Payment ID: {payment.id})")
+        # DO NOT update booking status here — booking stays PENDING until verify_payment is called
+        # This ensures the booking shows "Payment Pending" until the user actually pays
+        
+        logger.info(f"Mock order created: {order_id} (Payment ID: {payment.id}) — booking remains PENDING")
         
         return {
             'order_id': order_id,
             'amount': float(amount),
-            'currency': 'INR',
+            'currency': 'GBP',
             'provider': self.provider_name,
             'payment_id': payment.id,
             'mock': True,

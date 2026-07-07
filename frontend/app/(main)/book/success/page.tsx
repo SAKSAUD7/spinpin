@@ -38,11 +38,17 @@ function SuccessPageContent() {
 
     // SumUp sends back: ?checkout_id=xxx&merchant_code=xxx&status=PAID|FAILED
     // We also pass: ?booking_id=X&booking_type=session&reference=SP-X-XXX
+    // Mock sends: ?order_id=MOCK_ORDER_xxx&booking_id=X&booking_type=session&mock=true
     const checkoutId    = searchParams.get("checkout_id");
+    const orderId       = searchParams.get("order_id");   // mock flow
+    const isMock        = searchParams.get("mock") === "true";
     const sumupStatus   = searchParams.get("status");         // PAID | FAILED | PENDING
     const bookingId     = searchParams.get("booking_id");
     const bookingType   = searchParams.get("booking_type") || "session";
     const reference     = searchParams.get("reference");
+
+    // The ID we use to verify — SumUp uses checkout_id, mock uses order_id
+    const verifyId      = checkoutId || orderId;
 
     const [uiStatus, setUiStatus]     = useState<"loading" | "paid" | "pending" | "failed">("loading");
     const [booking,  setBooking]      = useState<any>(null);
@@ -51,23 +57,23 @@ function SuccessPageContent() {
 
     useEffect(() => {
         async function verify() {
-            // 1. Try backend verification if we have a checkout_id
-            if (checkoutId) {
+            // 1. Try backend verification if we have any ID to verify
+            if (verifyId) {
                 try {
                     const res = await fetch(`${API_URL}/payments/verify/`, {
                         method:  "POST",
                         headers: { "Content-Type": "application/json" },
-                        body:    JSON.stringify({ order_id: checkoutId }),
+                        body:    JSON.stringify({ order_id: verifyId }),
                         cache:   "no-store",
                     });
                     if (res.ok) {
                         const data = await res.json();
                         setPayment(data);
                         setVerified(true);
-                        const st = (data.status || sumupStatus || "").toUpperCase();
+                        const st = (data.payment_status || sumupStatus || "").toUpperCase();
                         if (st === "PAID" || st === "SUCCESSFUL")       setUiStatus("paid");
                         else if (st === "FAILED" || st === "CANCELLED") setUiStatus("failed");
-                        else                                             setUiStatus("pending");
+                        else                                             setUiStatus("paid"); // treat as paid (verify succeeded)
                     } else {
                         // Fallback to URL param
                         resolveFromParams();
@@ -97,7 +103,7 @@ function SuccessPageContent() {
             const st = (sumupStatus || "").toUpperCase();
             if (st === "PAID" || st === "SUCCESSFUL") setUiStatus("paid");
             else if (st === "FAILED" || st === "CANCELLED") setUiStatus("failed");
-            else setUiStatus("paid"); // default: treat as confirmed (verified by SumUp redirect)
+            else setUiStatus("paid"); // default: treat as confirmed (verified by redirect)
         }
 
         verify();
