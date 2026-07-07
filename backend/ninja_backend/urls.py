@@ -96,10 +96,41 @@ def reset_admin_password(request):
         return JsonResponse({"status": "error", "message": str(e)})
 
 
+def fix_logo(request):
+    """Temporary endpoint to fix the SpinPin logo in production DB."""
+    try:
+        from apps.core.models import Logo
+        import urllib.request
+        from django.core.files import File
+        import os
+
+        # Deactivate all existing logos
+        Logo.objects.all().update(is_active=False)
+
+        # Download the correct logo from frontend public folder
+        logo_url = "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net/logo_original.png"
+        tmp_path = "/tmp/spinpin_logo_fix.png"
+        
+        # Ensure /tmp exists on windows/azure
+        if not os.path.exists('/tmp'):
+            tmp_path = "spinpin_logo_fix.png" # use current directory
+
+        urllib.request.urlretrieve(logo_url, tmp_path)
+        
+        logo = Logo(name="Real SpinPin Logo", is_active=True)
+        with open(tmp_path, 'rb') as f:
+            logo.image.save("spinpin_logo_final.png", File(f), save=True)
+            
+        return JsonResponse({"status": "success", "message": "SpinPin logo successfully updated in database."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+
 urlpatterns = [
     path('', health_check),                         # Root health check
     path('api/v1/seed-db/', seed_database),
     path('api/v1/reset-admin/', reset_admin_password),
+    path('api/v1/fix-logo/', fix_logo),
     path('admin/', admin.site.urls),
 
     # API V1
