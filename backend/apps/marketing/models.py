@@ -11,8 +11,8 @@ class EmailUnsubscribe(models.Model):
     reason = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def __str__(self):
-        return self.email
+    def __str__(self) -> str:
+        return str(self.email)
 
 class EmailTemplate(models.Model):
     """
@@ -34,7 +34,7 @@ class EmailTemplate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} ({self.get_type_display()})"
 
 class MarketingCampaign(models.Model):
@@ -74,8 +74,8 @@ class MarketingCampaign(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
-        return self.title
+    def __str__(self) -> str:
+        return str(self.title)
 
 class BirthdayEmailTracker(models.Model):
     """
@@ -95,7 +95,7 @@ class BirthdayEmailTracker(models.Model):
             models.Index(fields=['email', 'year']),
         ]
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.email} - {self.year}"
 
 class EmailSendLog(models.Model):
@@ -123,7 +123,7 @@ class EmailSendLog(models.Model):
         ]
         ordering = ['-sent_at']
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.recipient_email} - {self.campaign.title}"
 
 class EmailEngagement(models.Model):
@@ -149,5 +149,5 @@ class EmailEngagement(models.Model):
         ]
         ordering = ['-created_at']
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.get_event_type_display()} - {self.send_log.recipient_email}"
