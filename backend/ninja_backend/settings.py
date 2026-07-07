@@ -363,7 +363,7 @@ LOGGING = {
 # ====================================================
 
 # Payment Mode: 'mock' (default, pay at venue) or 'sumup' (live online payments)
-PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'mock')
+PAYMENT_MODE = os.getenv('PAYMENT_MODE', 'sumup')
 
 # ── SumUp: Roller Skating & Arcade ─────────────────────────────────────
 # Account: SpinPin Ltd
