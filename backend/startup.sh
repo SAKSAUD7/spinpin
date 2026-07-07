@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
 
-# Temporarily bypassed to prevent DB lock hangs during crash loop recovery
-# python manage.py migrate --noinput
+echo "Running migrations..."
+python manage.py migrate --noinput
+
+echo "Loading CMS data into Postgres..."
+python manage.py loaddata azure_seed_data.json
 
 
 echo "Collecting static files..."
