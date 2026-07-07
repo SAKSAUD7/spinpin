@@ -47,8 +47,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         queryset = Booking.objects.all()
         
         # If user is authenticated and not staff, only show their own bookings
-        if self.request.user and self.request.user.is_authenticated and getattr(self.request.user, 'role', '') not in ['admin', 'staff']:
-            queryset = queryset.filter(customer=self.request.user)
+        user = self.request.user
+        if user and user.is_authenticated and not (getattr(user, 'is_staff', False) or getattr(user, 'is_superuser', False)):
+            # Fallback if somehow a non-staff Django User accesses this
+            queryset = queryset.filter(email=user.email)
         elif not (self.request.user and self.request.user.is_authenticated):
             # Unauthenticated users get empty list (except for actions that are AllowAny)
             if self.action not in ['create', 'ticket', 'check_duplicate', 'slot_availability']:
@@ -937,8 +939,9 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
         queryset = PartyBooking.objects.all()
         
         # If user is authenticated and not staff, only show their own bookings
-        if self.request.user and self.request.user.is_authenticated and getattr(self.request.user, 'role', '') not in ['admin', 'staff']:
-            queryset = queryset.filter(customer=self.request.user)
+        user = self.request.user
+        if user and user.is_authenticated and not (getattr(user, 'is_staff', False) or getattr(user, 'is_superuser', False)):
+            queryset = queryset.filter(email=user.email)
         elif not (self.request.user and self.request.user.is_authenticated):
             if self.action not in ['create', 'ticket']:
                 return PartyBooking.objects.none()
