@@ -122,6 +122,19 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
+import os
+from ninja_backend.serve_media import serve_media_proxy
+
+if os.environ.get('AZURE_STORAGE_CONNECTION_STRING'):
+    # In production with Azure, proxy media through backend to avoid CORS/Private Container issues
+    from django.urls import re_path
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve_media_proxy, name='media_proxy'),
+    ]
+else:
+    # In local development without Azure
+    if settings.DEBUG:
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1204,7 +1204,7 @@ def add_party_participants_view(request, uuid):
     })
 
 @api_view(['GET', 'PATCH', 'DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def party_booking_detail_view(request, id):
     """Custom view to get/update/delete party booking details by ID"""
     try:

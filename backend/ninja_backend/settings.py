@@ -234,8 +234,20 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5000",
     "http://127.0.0.1:9000",
+    "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net",
+    "https://spinpin.co.uk",
+    "https://www.spinpin.co.uk"
 ]
-CSRF_TRUSTED_ORIGINS = get_env_list('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:5000')
+# Extend with any environment-provided origins
+CORS_ALLOWED_ORIGINS.extend(get_env_list('FRONTEND_URLS', ''))
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net",
+    "https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net",
+    "https://spinpin.co.uk",
+    "https://www.spinpin.co.uk"
+]
+CSRF_TRUSTED_ORIGINS.extend(get_env_list('CORS_ALLOWED_ORIGINS', ''))
 
 # Add any additional domains from environment
 if 'WEBSITE_HOSTNAME' in os.environ:
@@ -256,14 +268,11 @@ if 'AZURE_STORAGE_CONNECTION_STRING' in os.environ:
     DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
     AZURE_CONNECTION_STRING = os.environ['AZURE_STORAGE_CONNECTION_STRING']
     AZURE_CONTAINER = os.environ.get('AZURE_STORAGE_CONTAINER', 'media')
-    
-    # Extract account name from connection string for MEDIA_URL
-    account_name = [p.split('=')[1] for p in AZURE_CONNECTION_STRING.split(';') if p.startswith('AccountName=')][0]
-    MEDIA_URL = f'https://{account_name}.blob.core.windows.net/{AZURE_CONTAINER}/'
-else:
-    # Local fallback
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Always use relative MEDIA_URL to force django-storages to return local paths,
+# which will then be proxied through the backend server.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ====================================================
 # EMAIL CONFIGURATION (SMTP — VPS ready)
