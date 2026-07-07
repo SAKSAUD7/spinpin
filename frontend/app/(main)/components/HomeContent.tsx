@@ -12,6 +12,7 @@ import Link from "next/link";
 import { Stat, GalleryItem, Activity } from "../../../lib/api/types";
 import InstagramReels from "./InstagramReels";
 import { getMediaUrl } from "@/lib/media-utils";
+import { InstallAppSection } from "../../../components/InstallAppSection";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     Zap,
@@ -85,6 +86,11 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                                 );
                             })}
                         </div>
+                    </ScrollReveal>
+                    
+                    {/* App Install Section */}
+                    <ScrollReveal animation="slideUp" delay={0.4}>
+                        <InstallAppSection />
                     </ScrollReveal>
                 </div>
                 <SectionDivider position="bottom" variant="wave" color="fill-background" />
