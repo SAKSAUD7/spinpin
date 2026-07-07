@@ -43,3 +43,6 @@ requests==2.32.3
 
 # QR Code generation (booking QR codes)
 qrcode==8.0
+
+# Azure Communication Services (Email)
+azure-communication-email==1.0.0
