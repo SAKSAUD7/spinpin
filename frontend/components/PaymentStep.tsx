@@ -162,6 +162,22 @@ export function PaymentStep({
         setLoading(true);
         setError(null);
         try {
+            // Sync payment_type for party bookings based on selected amount
+            if (bookingType === "party") {
+                try {
+                    const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+                    await fetch(`${API}/bookings/party-bookings/${bookingId}/`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            payment_type: parseFloat(amountGBP) >= afterDiscount ? "FULL" : "DEPOSIT"
+                        })
+                    });
+                } catch (e) {
+                    console.error("Failed to sync payment_type", e);
+                }
+            }
+            
             // Use internal /api/payments/create-order proxy to avoid mixed-content (HTTPS→HTTP) errors
             const res = await fetch(`/api/payments/create-order`, {
                 method:  "POST",

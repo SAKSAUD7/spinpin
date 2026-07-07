@@ -313,7 +313,7 @@ function BookingCard({
                 <div className="text-right flex-shrink-0">
                     <div className="text-white font-black">£{booking.amount.toFixed(2)}</div>
                     {/* View button — show for all statuses that have actionable detail */}
-                    {!['PENDING', 'EXPIRED', 'CANCELLED'].includes(booking.status) && (
+                    {!['EXPIRED', 'CANCELLED'].includes(booking.status) && (
                         <button
                             onClick={onOpenModal}
                             className={`text-xs flex items-center gap-0.5 mt-1 ml-auto font-bold transition-colors ${booking.type === "PARTY" ? "text-pink-400 hover:text-pink-300" : "text-primary hover:text-primary/80"}`}

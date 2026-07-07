@@ -46,6 +46,14 @@ class BookingViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Booking.objects.all()
         
+        # If user is authenticated and not staff, only show their own bookings
+        if self.request.user and self.request.user.is_authenticated and getattr(self.request.user, 'role', '') not in ['admin', 'staff']:
+            queryset = queryset.filter(customer=self.request.user)
+        elif not (self.request.user and self.request.user.is_authenticated):
+            # Unauthenticated users get empty list (except for actions that are AllowAny)
+            if self.action not in ['create', 'ticket', 'check_duplicate', 'slot_availability']:
+                return Booking.objects.none()
+        
         # Filtering
         booking_type = self.request.query_params.get('type', None)
         if booking_type:
@@ -90,10 +98,12 @@ class BookingViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         # Allow public access ONLY for create and ticket retrieval
-        # List and retrieve require staff authentication to protect customer data
         if self.action in ['create', 'ticket', 'check_duplicate', 'slot_availability']:
             return [permissions.AllowAny()]
-        return [IsStaffUser()]  # Allow employees to access bookings
+        # Allow authenticated customers to view and update their own bookings
+        if self.action in ['retrieve', 'update', 'partial_update', 'list']:
+            return [permissions.IsAuthenticated()]
+        return [IsStaffUser()]  # Allow employees to access other methods
     
     def create(self, request, *args, **kwargs):
         """
@@ -914,8 +924,22 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
     queryset = PartyBooking.objects.all()
     serializer_class = PartyBookingSerializer
     
+    def get_permissions(self):
+        if self.action in ['create', 'ticket']:
+            return [permissions.AllowAny()]
+        if self.action in ['retrieve', 'update', 'partial_update', 'list', 'participants']:
+            return [permissions.IsAuthenticated()]
+        return [IsStaffUser()]
+        
     def get_queryset(self):
         queryset = PartyBooking.objects.all()
+        
+        # If user is authenticated and not staff, only show their own bookings
+        if self.request.user and self.request.user.is_authenticated and getattr(self.request.user, 'role', '') not in ['admin', 'staff']:
+            queryset = queryset.filter(customer=self.request.user)
+        elif not (self.request.user and self.request.user.is_authenticated):
+            if self.action not in ['create', 'ticket']:
+                return PartyBooking.objects.none()
         
         # Status filter
         status = self.request.query_params.get('status', None)
