@@ -109,6 +109,21 @@ def fix_logo(request):
         # This prevents the 404 error caused by Azure App Service wiping uploaded files on deploy
         logo_image_path = "logos/spinpin-logo.png"
         
+        # Ensure the logo file actually exists in the persistent MEDIA_ROOT
+        import shutil
+        from django.conf import settings
+        from pathlib import Path
+        
+        target_dir = Path(settings.MEDIA_ROOT) / 'logos'
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / 'spinpin-logo.png'
+        
+        # Source path is where git put it (relative to BASE_DIR)
+        source_path = settings.BASE_DIR / 'media' / 'logos' / 'spinpin-logo.png'
+        
+        if source_path.exists() and not target_path.exists():
+            shutil.copy2(source_path, target_path)
+
         # We can just create a new logo that references this path
         # django-storages will correctly resolve it to Azure Blob storage or local serve
         logo = Logo(name="SpinPin Logo", is_active=True)

@@ -127,9 +127,26 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500 MB
 
 import dj_database_url
 
+if 'WEBSITE_SITE_NAME' in os.environ:
+    # Running on Azure App Service
+    # Use persistent /home/data directory so zip deployments don't overwrite DB
+    DATA_DIR = BASE_DIR.parent.parent / 'data' if os.environ.get('WEBSITE_SITE_NAME') else BASE_DIR
+    if 'WEBSITE_SITE_NAME' in os.environ:
+        from pathlib import Path
+        DATA_DIR = Path('/home/data')
+        # Ensure the directory exists
+        import os
+        if not os.path.exists(DATA_DIR):
+            try:
+                os.makedirs(DATA_DIR)
+            except Exception:
+                pass
+else:
+    DATA_DIR = BASE_DIR
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        default=os.environ.get('DATABASE_URL', f"sqlite:///{DATA_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -282,7 +299,13 @@ if 'AZURE_STORAGE_CONNECTION_STRING' in os.environ:
 # Always use relative MEDIA_URL to force django-storages to return local paths,
 # which will then be proxied through the backend server.
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+if 'WEBSITE_SITE_NAME' in os.environ:
+    from pathlib import Path
+    MEDIA_ROOT = str(Path('/home/data/media'))
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # ====================================================
 # EMAIL CONFIGURATION (SMTP — VPS ready)
