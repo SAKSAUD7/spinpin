@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, ArrowRight, LogOut, User, ChevronRight, Package2, History, CreditCard, AlertCircle, RefreshCw } from "lucide-react";
+import { Calendar, Clock, Users, ChevronRight, LogOut, User, History, CreditCard, AlertCircle, RefreshCw, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useAccount } from "@/state/account/AccountContext";
 import { createPaymentOrder } from "@/app/actions/payment";
+import { CustomerBookingModal } from "@/components/CustomerBookingModal";
 
 interface Booking {
     id: number;
@@ -37,6 +38,7 @@ export default function AccountBookingsPage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
+    const [selectedModal, setSelectedModal] = useState<{ id: string | number; type: "SESSION" | "PARTY" } | null>(null);
 
     const fetchBookings = () => {
         if (authLoading || !token) return;
@@ -128,25 +130,20 @@ export default function AccountBookingsPage() {
                             <div className="text-white font-bold">Book Another Session</div>
                             <div className="text-white/50 text-sm">Skating, bowling — book your next visit</div>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-pink-400 group-hover:translate-x-1 transition-transform" />
+                        <ChevronRight className="w-5 h-5 text-pink-400 group-hover:translate-x-1 transition-transform" />
                     </div>
                 </Link>
 
-                {/* Upcoming Bookings */}
                 {loading ? (
-                    <div className="text-center py-10 text-white/40">
-                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                        Loading your bookings...
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                        <p className="text-white/60">Loading your bookings...</p>
                     </div>
                 ) : fetchError ? (
                     <div className="text-center py-16">
                         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                        <p className="text-white/60 font-semibold mb-2">Could not load bookings</p>
-                        <p className="text-white/30 text-sm mb-6">{fetchError}</p>
-                        <button
-                            onClick={fetchBookings}
-                            className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl hover:bg-white/15 transition-all mx-auto"
-                        >
+                        <p className="text-white/60 mb-6">{fetchError}</p>
+                        <button onClick={fetchBookings} className="flex items-center gap-2 px-6 py-3 bg-primary/20 border border-primary/30 text-primary rounded-xl hover:bg-primary/30 transition-all font-bold mx-auto">
                             <RefreshCw className="w-4 h-4" /> Try Again
                         </button>
                     </div>
@@ -159,7 +156,12 @@ export default function AccountBookingsPage() {
                                 </h2>
                                 <div className="space-y-3">
                                     {upcoming.map(booking => (
-                                        <BookingCard key={`${booking.type}-${booking.id}`} booking={booking} formattedDate={formattedDate} />
+                                        <BookingCard
+                                            key={`${booking.type}-${booking.id}`}
+                                            booking={booking}
+                                            formattedDate={formattedDate}
+                                            onOpenModal={() => setSelectedModal({ id: booking.id, type: booking.type })}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -172,7 +174,12 @@ export default function AccountBookingsPage() {
                                 </h2>
                                 <div className="space-y-3 opacity-70">
                                     {past.slice(0, 10).map(booking => (
-                                        <BookingCard key={`${booking.type}-${booking.id}`} booking={booking} formattedDate={formattedDate} />
+                                        <BookingCard
+                                            key={`${booking.type}-${booking.id}`}
+                                            booking={booking}
+                                            formattedDate={formattedDate}
+                                            onOpenModal={() => setSelectedModal({ id: booking.id, type: booking.type })}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -183,7 +190,7 @@ export default function AccountBookingsPage() {
                                 <div className="text-5xl mb-4">🎳</div>
                                 <p className="text-white/50 text-lg font-bold">No bookings yet</p>
                                 <p className="text-white/30 text-sm mt-2 mb-8">Book your first session at Spin Pin!</p>
-                                <Link href="/book" className="px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-full hover:scale-105 transition-all">
+                                <Link href="/book" className="px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-full hover:scale-105 transition-all inline-block">
                                     Book Now
                                 </Link>
                             </div>
@@ -191,15 +198,31 @@ export default function AccountBookingsPage() {
                     </>
                 )}
             </div>
+
+            {/* Booking Detail Modal */}
+            {selectedModal && (
+                <CustomerBookingModal
+                    bookingId={selectedModal.id}
+                    bookingType={selectedModal.type}
+                    onClose={() => setSelectedModal(null)}
+                />
+            )}
         </main>
     );
 }
 
 
-function BookingCard({ booking, formattedDate }: { booking: Booking; formattedDate: (d: string) => string }) {
+function BookingCard({
+    booking,
+    formattedDate,
+    onOpenModal
+}: {
+    booking: Booking;
+    formattedDate: (d: string) => string;
+    onOpenModal: () => void;
+}) {
     const statusStyle = STATUS_STYLES[booking.status] || "bg-white/10 text-white/60 border-white/10";
     const [paying, setPaying] = useState(false);
-    const router = useRouter();
 
     const handleCompletePayment = async () => {
         if (paying) return;
@@ -262,15 +285,15 @@ function BookingCard({ booking, formattedDate }: { booking: Booking; formattedDa
                 </div>
                 <div className="text-right flex-shrink-0">
                     <div className="text-white font-black">£{booking.amount.toFixed(2)}</div>
-                    {booking.type === "SESSION" && booking.id && booking.status !== "PENDING" && (
-                        <Link href={`/booking/${booking.id}`} className="text-xs text-primary hover:text-primary/80 flex items-center gap-0.5 mt-1 justify-end">
-                            View <ChevronRight className="w-3 h-3" />
-                        </Link>
-                    )}
-                    {booking.type === "PARTY" && booking.id && (
-                        <Link href={`/party-booking/${booking.id}`} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-0.5 mt-1 justify-end font-bold">
-                            Manage Participants <ChevronRight className="w-3 h-3" />
-                        </Link>
+                    {/* View button opens modal for all non-pending bookings */}
+                    {booking.status !== "PENDING" && (
+                        <button
+                            onClick={onOpenModal}
+                            className={`text-xs flex items-center gap-0.5 mt-1 ml-auto font-bold transition-colors ${booking.type === "PARTY" ? "text-pink-400 hover:text-pink-300" : "text-primary hover:text-primary/80"}`}
+                        >
+                            {booking.type === "PARTY" ? "Manage Guests" : "View Details"}
+                            <ChevronRight className="w-3 h-3" />
+                        </button>
                     )}
                 </div>
             </div>

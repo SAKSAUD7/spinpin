@@ -1,0 +1,201 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { X, Calendar, Clock, Users, Activity, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import ParticipantCollection from "@/components/ParticipantCollection";
+import { useAccount } from "@/state/account/AccountContext";
+
+export function CustomerBookingModal({
+    bookingId,
+    bookingType,
+    onClose,
+}: {
+    bookingId: string | number;
+    bookingType: "SESSION" | "PARTY";
+    onClose: () => void;
+}) {
+    const { token } = useAccount();
+    const [booking, setBooking] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+
+    useEffect(() => {
+        if (!token) return;
+        const fetchDetails = async () => {
+            try {
+                const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+                const endpoint = bookingType === "PARTY" 
+                    ? `/bookings/party-bookings/${bookingId}/`
+                    : `/bookings/bookings/${bookingId}/`;
+                    
+                const res = await fetch(`${API}${endpoint}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                if (!res.ok) throw new Error("Could not load booking details");
+                setBooking(await res.json());
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDetails();
+    }, [bookingId, bookingType, token]);
+
+    const handleParticipantSubmit = async (data: { adults: any[]; minors: any[]; waiverSigned: boolean }) => {
+        setSaving(true);
+        setSaveSuccess(false);
+
+        try {
+            const response = await fetch(`/api/party-bookings/${bookingId}/participants`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({
+                    participants: { adults: data.adults, minors: data.minors },
+                    waiver_signed: data.waiverSigned
+                }),
+                cache: 'no-store',
+            });
+
+            if (response.ok) {
+                setSaveSuccess(true);
+                // Reload fresh data
+                const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+                const res = await fetch(`${API}/bookings/party-bookings/${bookingId}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) setBooking(await res.json());
+                
+                setTimeout(() => setSaveSuccess(false), 5000);
+            } else {
+                throw new Error("Failed to save participants");
+            }
+        } catch (error: any) {
+            alert(error.message || "An error occurred");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6">
+                <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+                    onClick={onClose}
+                />
+                
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative bg-[#0f0422] border border-white/10 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col z-10"
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5 shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-2xl ${bookingType === "PARTY" ? 'bg-pink-500/20 text-pink-400' : 'bg-primary/20 text-primary'}`}>
+                                {bookingType === "PARTY" ? <Users size={24} /> : <Activity size={24} />}
+                            </div>
+                            <div>
+                                <h2 className="text-xl md:text-2xl font-black text-white">
+                                    {bookingType === "PARTY" ? 'Party Booking' : 'Session Booking'}
+                                </h2>
+                                <p className="text-white/50 text-sm font-medium">#{bookingId}</p>
+                            </div>
+                        </div>
+                        <button onClick={onClose} className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    {/* Content Scrollable Area */}
+                    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-white/50">
+                                <Loader2 className="w-10 h-10 animate-spin mb-4 text-primary" />
+                                <p>Loading details...</p>
+                            </div>
+                        ) : error || !booking ? (
+                            <div className="text-center py-20 text-red-400 flex flex-col items-center">
+                                <AlertCircle className="w-12 h-12 mb-4" />
+                                <p className="font-bold">{error || "Booking not found"}</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-8">
+                                {/* Booking Summary */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/5 rounded-2xl p-6 border border-white/10">
+                                    <div>
+                                        <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Calendar size={12}/> Date</p>
+                                        <p className="text-white font-semibold">{new Date(booking.date).toLocaleDateString("en-GB")}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Clock size={12}/> Time</p>
+                                        <p className="text-white font-semibold">{booking.time || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Users size={12}/> Guests</p>
+                                        <p className="text-white font-semibold">{(booking.adults || 0) + (booking.kids || 0)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-white/40 text-xs font-bold uppercase mb-1">Status</p>
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${booking.status === 'PENDING' || booking.booking_status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : booking.status === 'CANCELLED' || booking.booking_status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+                                            {booking.status === 'PENDING' || booking.booking_status === 'PENDING' ? 'Payment Pending' : (booking.status || booking.booking_status)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Party Specific: Manage Participants */}
+                                {bookingType === "PARTY" && (
+                                    <div className="relative">
+                                        {saveSuccess && (
+                                            <div className="bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl mb-6 flex items-center gap-3">
+                                                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                                                <span className="font-bold text-sm">Participants saved successfully!</span>
+                                            </div>
+                                        )}
+                                        
+                                        <ParticipantCollection
+                                            onSubmit={handleParticipantSubmit}
+                                            totalParticipants={(booking.adults || 0) + (booking.kids || 0) + (booking.spectators || 0)}
+                                            title="Manage Guests & Waivers"
+                                            subtitle="Ensure all guests have signed waivers before arrival."
+                                            initialAdults={booking.participants?.adults || []}
+                                            initialMinors={booking.participants?.minors || []}
+                                            initialWaiverSigned={booking.waiver_signed}
+                                        />
+                                        
+                                        {saving && (
+                                            <div className="absolute inset-0 bg-[#0f0422]/80 backdrop-blur-sm flex items-center justify-center rounded-3xl z-10">
+                                                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {/* Session Specific: Ticket Info */}
+                                {bookingType === "SESSION" && (
+                                    <div className="bg-white/5 rounded-2xl p-8 border border-white/10 text-center">
+                                        <div className="text-6xl mb-4 text-primary">🎟️</div>
+                                        <h3 className="text-xl font-bold text-white mb-2">Digital Ticket</h3>
+                                        <p className="text-white/60 text-sm mb-6 max-w-sm mx-auto">
+                                            Your booking is confirmed! Show your booking ID <strong className="text-white">#{booking.booking_number}</strong> at the reception when you arrive.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            </div>
+        </AnimatePresence>
+    );
+}

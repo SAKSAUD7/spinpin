@@ -125,11 +125,23 @@ function StatusBadge({ status }: { status: string }) {
         CANCELLED: "bg-red-100 text-red-700 border-red-300",
         COMPLETED: "bg-blue-100 text-blue-700 border-blue-300",
     };
+    const dotColors: Record<string, string> = {
+        CONFIRMED: "bg-emerald-500",
+        PENDING: "bg-amber-500",
+        CANCELLED: "bg-red-500",
+        COMPLETED: "bg-blue-500",
+    };
+    const labels: Record<string, string> = {
+        PENDING: "Payment Pending",
+        CONFIRMED: "Confirmed",
+        CANCELLED: "Cancelled",
+        COMPLETED: "Completed",
+    };
     const defaultStyle = "bg-slate-100 text-slate-700 border-slate-300";
     return (
         <span className={`px-2.5 py-1 rounded-full text-xs font-bold border shadow-sm ${styles[status] || defaultStyle} inline-flex items-center gap-1.5`}>
-            <span className={`w-2 h-2 rounded-full ${status === 'CONFIRMED' ? 'bg-emerald-500' : status === 'PENDING' ? 'bg-amber-500' : 'bg-slate-400'}`} />
-            {status}
+            <span className={`w-2 h-2 rounded-full ${dotColors[status] || 'bg-slate-400'}`} />
+            {labels[status] || status}
         </span>
     );
 }

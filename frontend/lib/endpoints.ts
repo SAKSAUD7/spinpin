@@ -8,8 +8,8 @@
  * There are TWO API layers in this project:
  *
  *   1. BACKEND_ENDPOINTS — Direct calls to the Django REST API.
- *      Used in: Next.js API proxy routes (app/api/**/route.ts)
- *      and server-side actions (app/actions/**).
+ *      Used in: Next.js API proxy routes (app/api/.../route.ts)
+ *      and server-side actions (app/actions/.../server).
  *      Base URL is controlled by NEXT_PUBLIC_API_URL.
  *
  *   2. PROXY_ENDPOINTS — Calls to the Next.js internal proxy routes
