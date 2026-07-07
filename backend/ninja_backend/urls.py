@@ -163,9 +163,13 @@ if os.environ.get('AZURE_STORAGE_CONNECTION_STRING'):
         re_path(r'^media/(?P<path>.*)$', serve_media_proxy, name='media_proxy'),
     ]
 else:
-    # In local development without Azure
-    if settings.DEBUG:
-        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # In local development or production without Azure Storage
+    # Serve media files using Django's static serve view
+    from django.urls import re_path
+    from django.views.static import serve
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
