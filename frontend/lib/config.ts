@@ -50,6 +50,7 @@ export const footerLinks = [
             { title: "FAQs", href: "/faq" },
             { title: "Privacy Policy", href: "/privacy" },
             { title: "Terms of Service", href: "/guidelines" },
+            { title: "Admin Portal", href: "/admin" },
         ],
     },
 ];

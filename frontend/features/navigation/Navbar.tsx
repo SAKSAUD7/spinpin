@@ -162,11 +162,7 @@ export function Navbar({ settings }: { settings?: any }) {
                         )
                     )}
 
-                    <Link href="/admin">
-                        <BouncyButton size="sm" variant="outline" className="text-white border-white" as="div">
-                            Admin
-                        </BouncyButton>
-                    </Link>
+
                 </nav>
 
                 {/* Mobile right side */}
@@ -273,11 +269,7 @@ export function Navbar({ settings }: { settings?: any }) {
                                                 </Link>
                                             )}
 
-                                            <Link href="/admin" onClick={() => dispatch({ type: "CLOSE_MOBILE_MENU" })}>
-                                                <div className="w-full py-3 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm transition-colors text-center">
-                                                    Admin
-                                                </div>
-                                            </Link>
+
                                         </div>
                                     </nav>
                                 </div>

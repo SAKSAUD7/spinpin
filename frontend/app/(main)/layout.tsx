@@ -3,6 +3,7 @@ import { Navbar } from "../../features/navigation/Navbar";
 import { Footer } from "../../components/Footer";
 import { ToastProvider } from "../../components/ToastProvider";
 import { MobileBottomNav } from "../../components/MobileBottomNav";
+import { InstallAppBanner } from "../../components/InstallAppBanner";
 import { getSettings } from "@/app/actions/settings";
 import { getPublicSocialLinks } from "@/lib/public-api";
 import { AccountProvider } from "@/state/account/AccountContext";
@@ -34,6 +35,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                     </main>
                     <Footer settings={settings} socialLinks={socialLinks} />
                     <MobileBottomNav />
+                    <InstallAppBanner />
                 </div>
             </ToastProvider>
         </AccountProvider>
