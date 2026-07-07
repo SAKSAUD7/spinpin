@@ -19,11 +19,19 @@ export const Footer = ({ settings, socialLinks }: { settings?: any; socialLinks?
         // Fetch dynamic logo on mount
         const fetchLogo = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1'}/core/logos/active/`);
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+                const response = await fetch(`${apiUrl}/core/logos/active/`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.image_url) {
-                        setLogoUrl(data.image_url);
+                        let url: string = data.image_url;
+                        // Resolve relative paths
+                        if (url.startsWith('/')) {
+                            url = apiUrl.replace('/api/v1', '') + url;
+                        }
+                        // Force HTTPS — Azure terminates SSL at the load balancer
+                        url = url.replace(/^http:\/\//i, 'https://');
+                        setLogoUrl(url);
                     }
                 }
             } catch (error) {

@@ -48,8 +48,14 @@ class LogoSerializer(serializers.ModelSerializer):
         if obj.image:
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+                url = request.build_absolute_uri(obj.image.url)
+            else:
+                url = obj.image.url
+            # Always force HTTPS in production (Azure terminates SSL at the load balancer,
+            # so request.scheme may be 'http' internally even though the public URL is https)
+            if url and url.startswith('http://'):
+                url = 'https://' + url[7:]
+            return url
         return None
 
 class NotificationSerializer(serializers.ModelSerializer):

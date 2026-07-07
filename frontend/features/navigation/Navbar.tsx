@@ -37,7 +37,9 @@ export function Navbar({ settings }: { settings?: any }) {
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.image_url && typeof data.image_url === 'string' && data.image_url.trim() !== '') {
-                        const resolvedUrl = data.image_url.startsWith('http') ? data.image_url : `${baseUrl}${data.image_url}`;
+                        let resolvedUrl = data.image_url.startsWith('http') ? data.image_url : `${baseUrl}${data.image_url}`;
+                        // Force HTTPS — Azure terminates SSL at the load balancer so backend URLs can be http://
+                        resolvedUrl = resolvedUrl.replace(/^http:\/\//i, 'https://');
                         setLogoUrl(resolvedUrl);
                     }
                     // If no valid image_url, keep the default '/spinpin-logo.png'
