@@ -10,7 +10,7 @@ Provides REST API endpoints for payment operations:
 
 import logging
 from decimal import Decimal, InvalidOperation
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])  # Frontend needs to create orders
 def create_payment_order(request):
     """
@@ -100,6 +101,7 @@ def create_payment_order(request):
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])  # Frontend needs to verify payments
 def verify_payment(request):
     """
@@ -232,6 +234,7 @@ def process_refund(request):
 
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def get_booking_payment_status(request, booking_id, booking_type):
     """
