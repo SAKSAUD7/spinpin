@@ -258,6 +258,16 @@ CORS_ALLOW_CREDENTIALS = True
 # In production: only CORS_ALLOWED_ORIGINS are permitted
 CORS_ALLOW_ALL_ORIGINS = False
 
+# ====================================================
+# HTTPS / SSL PROXY SETTINGS
+# ====================================================
+# Azure App Service terminates SSL at the load balancer and forwards
+# traffic to the app over HTTP with X-Forwarded-Proto: https.
+# Without this setting, Django builds all absolute URLs with http://
+# which causes Mixed Content errors in the browser.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
 
 # ====================================================
 # STORAGE CONFIGURATION (Azure Blob / Local)

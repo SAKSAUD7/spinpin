@@ -1,4 +1,4 @@
-﻿const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
 
 export interface BookingBlock {
     id: number;
@@ -31,7 +31,11 @@ export const fetchBookingBlocks = async (): Promise<BookingBlock[]> => {
  */
 export const fetchSiteAlerts = async (): Promise<BookingBlock[]> => {
     try {
-        const response = await fetch(`${API_URL}/bookings/site-alerts/`);
+        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL
+            || (typeof window !== 'undefined' ? window.location.origin : '');
+        const url = baseUrl ? `${baseUrl}/api/bookings/site-alerts` : `/api/bookings/site-alerts`;
+
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch alerts');
         return await response.json();
     } catch (error) {
