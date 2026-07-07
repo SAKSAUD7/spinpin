@@ -5,6 +5,7 @@ import { X, Calendar, Clock, Users, Activity, Loader2, CheckCircle2, AlertCircle
 import { motion, AnimatePresence } from "framer-motion";
 import ParticipantCollection from "@/components/ParticipantCollection";
 import { useAccount } from "@/state/account/AccountContext";
+import { createPaymentOrder } from "@/app/actions/payment";
 
 export function CustomerBookingModal({
     bookingId,
@@ -160,6 +161,55 @@ export function CustomerBookingModal({
                                         </span>
                                     </div>
                                 </div>
+                                {/* Party Specific: Balance Payment */}
+                                {bookingType === "PARTY" && booking.remaining_balance > 0 && (
+                                    <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mt-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div>
+                                                <h3 className="text-xl font-bold text-white">Remaining Balance</h3>
+                                                <p className="text-sm text-white/60">Pay your balance before the party begins.</p>
+                                            </div>
+                                            <div className="text-2xl font-black text-primary">
+                                                £{booking.remaining_balance.toFixed(2)}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex justify-between text-sm text-white/50">
+                                                <span>Total Cost</span>
+                                                <span>£{(booking.amount || 0).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm text-white/50">
+                                                <span>Amount Paid</span>
+                                                <span>£{(booking.paid_amount || 0).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                setSaving(true);
+                                                try {
+                                                    const res = await createPaymentOrder({
+                                                        booking_id: booking.id,
+                                                        booking_type: "party",
+                                                        amount: booking.remaining_balance  // GBP amount, not pence
+                                                    });
+                                                    if (res.success && res.checkout_url) {
+                                                        window.location.href = res.checkout_url;
+                                                    } else {
+                                                        alert(res.error || "Failed to initiate payment");
+                                                    }
+                                                } catch (e: any) {
+                                                    alert(e.message || "An error occurred");
+                                                } finally {
+                                                    setSaving(false);
+                                                }
+                                            }}
+                                            disabled={saving}
+                                            className="w-full mt-4 bg-primary hover:bg-primary/90 text-black font-black py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : `Pay £${booking.remaining_balance.toFixed(2)} Now`}
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Party Specific: Manage Participants */}
                                 {bookingType === "PARTY" && (

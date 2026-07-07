@@ -13,6 +13,7 @@
 
 // Internal proxy routes — always relative, always same-origin, always HTTPS
 const PROXY_BASE = "/api/payments";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
 export interface PaymentOrderData {
     booking_id: number;

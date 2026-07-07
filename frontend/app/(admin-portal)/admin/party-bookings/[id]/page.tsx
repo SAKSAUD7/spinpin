@@ -6,10 +6,11 @@ import Link from "next/link";
 import {
     ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle,
     FileSignature, Cake, Share2, CheckCheck, Clock, AlertCircle,
-    RefreshCw, Shield
+    RefreshCw, Shield, Calendar as CalendarIcon
 } from "lucide-react";
 import { PartyBookingPDF } from "../../../../../components/PartyBookingPDF";
 import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
+import { reschedulePartyBooking } from "@/app/actions/admin";
 
 export default function PartyBookingDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -19,6 +20,12 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
     const [copied, setCopied] = useState(false);
     const [resending, setResending] = useState(false);
     const [refreshingWaivers, setRefreshingWaivers] = useState(false);
+
+    // Reschedule state
+    const [isRescheduling, setIsRescheduling] = useState(false);
+    const [newDate, setNewDate] = useState("");
+    const [newTime, setNewTime] = useState("");
+    const [isSubmittingReschedule, setIsSubmittingReschedule] = useState(false);
 
     const loadBookingData = useCallback(async () => {
         try {
@@ -90,6 +97,28 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
             if (response.ok) setBooking(await response.json());
         } catch (error) {
             console.error('Error updating status:', error);
+        }
+    };
+
+    const handleReschedule = async () => {
+        if (!newDate || !newTime) {
+            alert("Please select both date and time");
+            return;
+        }
+        setIsSubmittingReschedule(true);
+        try {
+            const res = await reschedulePartyBooking(params.id, newDate, newTime);
+            if (res.success) {
+                alert(`Successfully rescheduled! ${res.admin_fee_charged > 0 ? `Admin fee charged: £${res.admin_fee_charged}` : 'No admin fee charged.'}`);
+                setIsRescheduling(false);
+                await loadBookingData();
+            } else {
+                alert(res.error || "Failed to reschedule booking");
+            }
+        } catch (error: any) {
+            alert(error.message || "An error occurred");
+        } finally {
+            setIsSubmittingReschedule(false);
         }
     };
 
@@ -187,13 +216,16 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                         </div>
                     </div>
 
-                    {/* Party Details */}
+                    {/* Party Details & Financials */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h2 className="text-lg font-bold text-slate-900 mb-4">Party Details</h2>
-                        <div className="grid grid-cols-2 gap-6">
+                        <h2 className="text-lg font-bold text-slate-900 mb-4">Party Details & Financials</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-semibold">Date</label>
                                 <p className="text-slate-900 font-medium">{booking.date}</p>
+                                {booking.reschedule_count > 0 && (
+                                    <p className="text-[10px] text-amber-600 mt-1">Rescheduled {booking.reschedule_count}x</p>
+                                )}
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-semibold">Time Slot</label>
@@ -204,8 +236,25 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                                 <p className="text-slate-900 font-medium">{booking.package_name || 'N/A'}</p>
                             </div>
                             <div>
+                                <label className="text-xs text-slate-400 uppercase font-semibold">Dietary Needs</label>
+                                <p className="text-slate-900 font-medium text-sm mt-1">{booking.dietary_restrictions || 'None'}</p>
+                            </div>
+                            <div className="md:col-span-4 border-t border-slate-100 my-2 pt-4" />
+                            <div>
                                 <label className="text-xs text-slate-400 uppercase font-semibold">Total Amount</label>
-                                <p className="text-xl font-bold text-green-600">{fmt(booking.amount)}</p>
+                                <p className="text-lg font-bold text-slate-900">{fmt(booking.amount)}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 uppercase font-semibold">Amount Paid</label>
+                                <p className="text-lg font-bold text-blue-600">{fmt(booking.paid_amount)}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 uppercase font-semibold">Balance Due</label>
+                                <p className="text-lg font-bold text-red-600">{fmt(booking.remaining_balance)}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-slate-400 uppercase font-semibold">Admin Fees</label>
+                                <p className="text-lg font-bold text-amber-600">{fmt(booking.admin_fee_charged)}</p>
                             </div>
                         </div>
                     </div>
@@ -468,6 +517,64 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                                 <X size={18} /> Cancel Party
                             </button>
                         </div>
+                    </div>
+
+                    {/* Reschedule Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <CalendarIcon size={20} className="text-purple-600" />
+                                Reschedule
+                            </h2>
+                        </div>
+                        {isRescheduling ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">New Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={newDate} 
+                                        onChange={(e) => setNewDate(e.target.value)} 
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-700 mb-1">New Time</label>
+                                    <input 
+                                        type="time" 
+                                        value={newTime} 
+                                        onChange={(e) => setNewTime(e.target.value)} 
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <button 
+                                        onClick={handleReschedule} 
+                                        disabled={isSubmittingReschedule}
+                                        className="flex-1 bg-purple-600 text-white font-medium py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm disabled:opacity-50"
+                                    >
+                                        {isSubmittingReschedule ? 'Rescheduling...' : 'Confirm'}
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsRescheduling(false)} 
+                                        disabled={isSubmittingReschedule}
+                                        className="flex-1 bg-slate-100 text-slate-700 font-medium py-2 rounded-lg hover:bg-slate-200 transition-colors text-sm disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-slate-500 mt-2 text-center">
+                                    If rescheduled within 14 days of the party, a £50 admin fee will be charged automatically.
+                                </p>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsRescheduling(true)}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-50 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors font-medium"
+                            >
+                                <CalendarIcon size={18} /> Reschedule Party
+                            </button>
+                        )}
                     </div>
 
                     {/* Waiver Summary Card in sidebar */}

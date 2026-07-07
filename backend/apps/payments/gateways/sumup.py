@@ -259,16 +259,28 @@ class SumUpGateway(BasePaymentGateway):
                 payment = Payment.objects.get(order_id=checkout_id)
                 payment.mark_success(payment_id=tx_id, provider_response=data)
 
+                from decimal import Decimal
                 booking = payment.get_booking()
-                booking.paid_amount = payment.amount
+                # Accumulate paid_amount (supports deposit + balance payments)
+                booking.paid_amount = (booking.paid_amount or Decimal("0")) + payment.amount
+
+                is_party = hasattr(booking, 'status') and not hasattr(booking, 'booking_status')
+
                 if booking.paid_amount >= booking.amount:
                     booking.payment_status = "PAID"
+                    if is_party:
+                        booking.status = "CONFIRMED"
+                    else:
+                        booking.booking_status = "CONFIRMED"
                 else:
                     booking.payment_status = "PARTIAL"
-                booking.booking_status = "CONFIRMED"
-                booking.save(
-                    update_fields=["paid_amount", "payment_status", "booking_status"]
-                )
+                    if is_party:
+                        booking.status = "DEPOSIT_PAID"
+
+                if is_party:
+                    booking.save(update_fields=["paid_amount", "payment_status", "status"])
+                else:
+                    booking.save(update_fields=["paid_amount", "payment_status", "booking_status"])
             except Payment.DoesNotExist:
                 logger.warning(f"Payment record not found for checkout {checkout_id}")
 

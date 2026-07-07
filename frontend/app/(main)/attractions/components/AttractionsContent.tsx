@@ -92,7 +92,7 @@ export default function AttractionsContent({ activities, facilities, hero, video
                         </span>
                     </ScrollReveal>
                     <ScrollReveal animation="slideUp" delay={0.2}>
-                        <h1 className="text-5xl md:text-6xl lg:text-8xl font-display font-black mb-6 leading-tight">
+                        <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-display font-black mb-6 leading-tight">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
                                 {heroTitle}
                             </span>

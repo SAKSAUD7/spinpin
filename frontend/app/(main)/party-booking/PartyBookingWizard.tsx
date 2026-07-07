@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ScrollReveal, BouncyButton } from "@repo/ui";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle, School, Loader2 } from "lucide-react";
+import { Calendar, Clock, Users, Mail, Phone, User, Cake, MessageSquare, PartyPopper, CheckCircle, School, Loader2, Utensils } from "lucide-react";
 import { createPartyBooking } from "../../actions/createPartyBooking";
 import ParticipantCollection from "../../../components/ParticipantCollection";
 import { PaymentStep } from "../../../components/PaymentStep";
@@ -97,7 +97,10 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
         participants: 10, // Will be validated against config.min_participants
         spectators: 0,
         specialRequests: "",
+        dietaryRestrictions: "",
     });
+
+    const [paymentOption, setPaymentOption] = useState<"deposit" | "full">("deposit");
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -171,7 +174,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
         try {
             // Create the initial booking
-            const result = await createPartyBooking({ ...formData, customerId: customer?.id });
+            const result = await createPartyBooking({ ...formData, customerId: customer?.id, paymentOption });
 
             if (result.success) {
                 setTempBookingId(result.bookingId);            // UUID string
@@ -256,19 +259,20 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
     };
 
     const calculateTotal = () => {
-        // Prices are GBP decimals (e.g. 15.00 = £15) — NOT pence
-        // DRF returns Decimal fields as strings — always coerce with Number()
-        const participantPrice = Number(config?.participant_price ?? 15);
-        const extraSpectatorPrice = Number(config?.spectator_price ?? 2.95);
-        const freeSpectators = Number(config?.free_spectators ?? 2);
-        const depositPercentage = Number(config?.deposit_percentage ?? 20);
+        // SpinPin UK Party Pricing: £250 base package for up to 10 kids and 10 spectators
+        const basePackagePrice = 250.00;
+        const extraParticipantPrice = 19.95;
+        const extraSpectatorPrice = 2.95;
+        const includedParticipants = 10;
+        const includedSpectators = 10;
+        const depositPercentage = 50; // 50% deposit
 
-        const chargeableSpectators = Math.max(0, formData.spectators - freeSpectators);
+        const chargeableParticipants = Math.max(0, formData.participants - includedParticipants);
+        const chargeableSpectators = Math.max(0, formData.spectators - includedSpectators);
 
-        const participantCost = formData.participants * participantPrice;
+        const participantCost = chargeableParticipants * extraParticipantPrice;
         const spectatorCost = chargeableSpectators * extraSpectatorPrice;
-        const subtotal = participantCost + spectatorCost;
-        // UK — VAT is already included in prices, no extra tax
+        const subtotal = basePackagePrice + participantCost + spectatorCost;
         const total = subtotal;
 
         return {
@@ -611,11 +615,24 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                         Special Requests
                                     </label>
                                     <textarea
-                                        rows={4}
+                                        rows={2}
                                         value={formData.specialRequests}
                                         onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
                                         className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white resize-none"
-                                        placeholder="Any special requirements or dietary restrictions..."
+                                        placeholder="Any special requirements..."
+                                    />
+                                </div>
+                                <div className="mt-4">
+                                    <label className="block text-sm font-bold mb-2 text-white/80">
+                                        <Utensils className="w-4 h-4 inline mr-2" />
+                                        Dietary Restrictions & Allergies
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={formData.dietaryRestrictions}
+                                        onChange={(e) => setFormData({ ...formData, dietaryRestrictions: e.target.value })}
+                                        className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white resize-none"
+                                        placeholder="E.g. 2 Vegetarians, 1 Halal, 1 Peanut Allergy..."
                                     />
                                 </div>
 
@@ -660,13 +677,19 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
 
                                     <div className="space-y-3 mb-6">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-white/70">Guests ({formData.participants} × £{Number(config?.participant_price ?? 15).toFixed(2)})</span>
-                                            <span className="text-white font-bold">£{(formData.participants * Number(config?.participant_price ?? 15)).toFixed(2)}</span>
+                                            <span className="text-white/70">Base Package (Up to 10 Guests & 10 Spectators)</span>
+                                            <span className="text-white font-bold">£250.00</span>
                                         </div>
-                                        {formData.spectators > Number(config?.free_spectators ?? 2) && (
+                                        {formData.participants > 10 && (
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-white/70">Extra Spectators ({formData.spectators - Number(config?.free_spectators ?? 2)} × £{Number(config?.spectator_price ?? 2.95).toFixed(2)})</span>
-                                                <span className="text-white font-bold">£{((formData.spectators - Number(config?.free_spectators ?? 2)) * Number(config?.spectator_price ?? 2.95)).toFixed(2)}</span>
+                                                <span className="text-white/70">Extra Guests ({formData.participants - 10} × £19.95)</span>
+                                                <span className="text-white font-bold">£{((formData.participants - 10) * 19.95).toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {formData.spectators > 10 && (
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-white/70">Extra Spectators ({formData.spectators - 10} × £2.95)</span>
+                                                <span className="text-white font-bold">£{((formData.spectators - 10) * 2.95).toFixed(2)}</span>
                                             </div>
                                         )}
                                         <div className="flex justify-between text-sm text-white/50">
@@ -678,7 +701,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                         </div>
                                         <div className="bg-accent/10 border border-accent/30 rounded-lg p-3">
                                             <p className="text-xs text-white/70">
-                                                <strong className="text-accent">Deposit ({config?.deposit_percentage ?? 20}%):</strong> £{costs.deposit.toFixed(2)} due now
+                                                <strong className="text-accent">Deposit (50%):</strong> £{costs.deposit.toFixed(2)} due now
                                             </p>
                                             <p className="text-xs text-white/50 mt-1">Balance due on the day</p>
                                         </div>
@@ -687,9 +710,9 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                     <div className="bg-background-dark rounded-xl p-4 text-xs text-white/70 space-y-2">
                                         <p className="font-bold text-white text-sm mb-2">Includes:</p>
                                         {(config?.package_inclusions || [
-                                            "75 mins play + 1hr party room",
+                                            "75 mins play + 45 min party room",
                                             "Party feast included",
-                                            "Drinks & mini slush",
+                                            "Unlimited squash drinks",
                                             "10 free spectators"
                                         ]).map((item: string, index: number) => (
                                             <p key={index}>✓ {item}</p>
@@ -749,10 +772,31 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                 {/* STEP 4 — Payment */}
                 {step === 4 && tempBookingIntId && (
                     <ScrollReveal animation="slideUp">
+                        <div className="max-w-4xl mx-auto mb-8 bg-surface-800/50 backdrop-blur-md p-6 rounded-3xl border border-white/10">
+                            <h3 className="text-2xl font-bold text-white mb-4">Payment Options</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setPaymentOption("deposit")}
+                                    className={`p-4 rounded-xl border-2 transition-all text-left ${paymentOption === "deposit" ? 'border-primary bg-primary/10' : 'border-surface-700 bg-background-dark'}`}
+                                >
+                                    <div className="font-bold text-lg text-white">Pay 50% Deposit</div>
+                                    <div className="text-2xl font-black text-primary my-2">£{costs.deposit.toFixed(2)}</div>
+                                    <div className="text-sm text-white/60">Pay the remaining balance on the day of the party.</div>
+                                </button>
+                                <button
+                                    onClick={() => setPaymentOption("full")}
+                                    className={`p-4 rounded-xl border-2 transition-all text-left ${paymentOption === "full" ? 'border-primary bg-primary/10' : 'border-surface-700 bg-background-dark'}`}
+                                >
+                                    <div className="font-bold text-lg text-white">Pay in Full</div>
+                                    <div className="text-2xl font-black text-primary my-2">£{costs.total.toFixed(2)}</div>
+                                    <div className="text-sm text-white/60">Get everything sorted now, nothing to pay later.</div>
+                                </button>
+                            </div>
+                        </div>
                         <PaymentStep
                             bookingId={tempBookingIntId}
                             bookingType="party"
-                            amount={Math.round(costs.total * 100)}
+                            amount={Math.round((paymentOption === "deposit" ? costs.deposit : costs.total) * 100)}
                             bookingDetails={{
                                 date: formData.date,
                                 time: formData.time,
@@ -761,9 +805,11 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                 phone: formData.phone,
                                 adults: formData.spectators,
                                 kids: formData.participants,
-                                adultPrice: Number(config?.spectator_price ?? 2.95),
-                                kidPrice: Number(config?.participant_price ?? 15),
+                                adultPrice: 2.95,
+                                kidPrice: 19.95,
                                 onlineBookingFee: 0,
+                                discount: 0,
+                                totalPaid: paymentOption === "deposit" ? costs.deposit : costs.total,
                             }}
                             onSuccess={() => {
                                 setSubmitted(true);

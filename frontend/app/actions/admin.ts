@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -247,6 +247,23 @@ export async function updatePartyBookingStatus(id: string, status: string) {
         revalidatePath("/admin/party-bookings");
         revalidatePath(`/admin/party-bookings/${id}`);
     }
+}
+
+export async function reschedulePartyBooking(id: string, newDate: string, newTime: string) {
+    const res = await fetchAPI(`/bookings/party-bookings/${id}/reschedule/`, {
+        method: "POST",
+        body: JSON.stringify({ new_date: newDate, new_time: newTime })
+    });
+
+    if (res && res.ok) {
+        revalidatePath("/admin/party-bookings");
+        revalidatePath(`/admin/party-bookings/${id}`);
+        const data = await res.json();
+        return { success: true, message: data.message, admin_fee_charged: data.admin_fee_charged };
+    }
+
+    const errorData = await res?.json().catch(() => ({}));
+    return { success: false, error: errorData?.error || errorData?.detail || "Failed to reschedule booking" };
 }
 
 export async function deletePartyBooking(id: string) {

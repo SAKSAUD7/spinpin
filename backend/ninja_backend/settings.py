@@ -334,6 +334,13 @@ EMAIL_SENDER_NAME = os.getenv('EMAIL_SENDER_NAME', 'Spin Pin Leicester')
 EMAIL_MAX_RETRIES = int(os.getenv('EMAIL_MAX_RETRIES', '3'))
 EMAIL_RETRY_DELAY_MINUTES = int(os.getenv('EMAIL_RETRY_DELAY_MINUTES', '1'))
 
+# ====================================================
+# AZURE COMMUNICATION SERVICES (Email)
+# ====================================================
+AZURE_COMMUNICATION_CONNECTION_STRING = os.getenv('AZURE_COMMUNICATION_CONNECTION_STRING', '')
+AZURE_EMAIL_SENDER_ADDRESS = os.getenv('AZURE_EMAIL_SENDER_ADDRESS', 'info@spinpin.co.uk')
+AZURE_EMAIL_SENDER_NAME = os.getenv('AZURE_EMAIL_SENDER_NAME', 'Spin Pin')
+
 # Logging
 LOGGING = {
     'version': 1,

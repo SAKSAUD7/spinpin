@@ -9,15 +9,72 @@ class EmailLog(models.Model):
     """
     
     EMAIL_TYPE_CHOICES = [
+        # Bookings
         ('BOOKING_CONFIRMATION', 'Booking Confirmation'),
-        ('PARTY_BOOKING_CONFIRMATION', 'Party Booking Confirmation'),
-        ('PAYMENT_CONFIRMATION', 'Payment Confirmation'),
         ('BOOKING_REMINDER', 'Booking Reminder'),
-        ('WAIVER_REMINDER', 'Waiver Reminder'),
         ('BOOKING_CANCELLED', 'Booking Cancelled'),
-        ('ADMIN_NEW_BOOKING', 'Admin: New Booking'),
-        ('ADMIN_CONTACT_MESSAGE', 'Admin: Contact Message'),
+        ('BOOKING_RESCHEDULED', 'Booking Rescheduled'),
+        
+        # Party Bookings
+        ('PARTY_BOOKING_CONFIRMATION', 'Party Booking Confirmation'),
+        ('PARTY_DEPOSIT_PAID', 'Party Deposit Paid'),
+        ('PARTY_FULL_PAID', 'Party Full Paid'),
+        ('PARTY_BALANCE_DUE', 'Party Balance Due'),
+        ('PARTY_REMINDER', 'Party Reminder'),
+        ('PARTY_RESCHEDULED', 'Party Rescheduled'),
+        ('PARTY_CANCELLED', 'Party Cancelled'),
+        ('PARTY_COMPLETED', 'Party Completed'),
+        
+        # Payments
+        ('PAYMENT_CONFIRMATION', 'Payment Confirmation'),
+        ('PAYMENT_RECEIPT', 'Payment Receipt'),
+        ('PAYMENT_INVOICE', 'Payment Invoice'),
+        ('PAYMENT_FAILED', 'Payment Failed'),
+        ('PAYMENT_REFUNDED', 'Payment Refunded'),
+        ('BALANCE_PAID', 'Balance Paid'),
+        
+        # Waivers
         ('WAIVER_CONFIRMATION', 'Waiver Confirmation'),
+        ('WAIVER_REMINDER', 'Waiver Reminder'),
+        ('WAIVER_SECURE_LINK', 'Waiver Secure Link'),
+        ('ADMIN_WAIVER_NOTIFICATION', 'Admin: Waiver Notification'),
+        
+        # Vouchers & Memberships
+        ('VOUCHER_PURCHASED', 'Voucher Purchased'),
+        ('VOUCHER_REDEEMED', 'Voucher Redeemed'),
+        ('VOUCHER_EXPIRY_REMINDER', 'Voucher Expiry Reminder'),
+        ('GIFT_VOUCHER', 'Gift Voucher'),
+        ('MEMBERSHIP_PURCHASED', 'Membership Purchased'),
+        ('MEMBERSHIP_RENEWAL', 'Membership Renewal Reminder'),
+        ('MEMBERSHIP_EXPIRED', 'Membership Expired'),
+        ('MEMBERSHIP_CANCELLED', 'Membership Cancelled'),
+        ('MEMBERSHIP_UPDATED', 'Membership Updated'),
+        ('MEMBERSHIP_WELCOME', 'Membership Welcome'),
+        
+        # Accounts
+        ('ACCOUNT_WELCOME', 'Account Welcome'),
+        ('ACCOUNT_PASSWORD_RESET', 'Account Password Reset'),
+        ('ACCOUNT_EMAIL_VERIFICATION', 'Account Email Verification'),
+        ('ACCOUNT_EMAIL_CHANGED', 'Account Email Changed'),
+        ('ACCOUNT_PROFILE_UPDATED', 'Account Profile Updated'),
+        ('ACCOUNT_DELETED', 'Account Deleted'),
+        
+        # Free Entry & CMS
+        ('FREE_ENTRY_CONFIRMATION', 'Free Entry Confirmation'),
+        ('ADMIN_FREE_ENTRY', 'Admin: Free Entry'),
+        ('ADMIN_CONTACT_MESSAGE', 'Admin: Contact Message'),
+        ('CONTACT_CONFIRMATION', 'Contact Message Confirmation'),
+        
+        # Admin Notifications
+        ('ADMIN_NEW_BOOKING', 'Admin: New Booking'),
+        ('ADMIN_PARTY_BOOKING', 'Admin: Party Booking'),
+        ('ADMIN_MEMBERSHIP_PURCHASE', 'Admin: Membership Purchase'),
+        ('ADMIN_LARGE_BOOKING', 'Admin: Large Booking'),
+        ('ADMIN_REFUND_REQUEST', 'Admin: Refund Request'),
+        ('ADMIN_PAYMENT_FAILURE', 'Admin: Payment Failure'),
+        ('ADMIN_SYSTEM_ERROR', 'Admin: System Error'),
+        
+        # Marketing
         ('MARKETING_CAMPAIGN', 'Marketing Campaign'),
         ('BIRTHDAY_MARKETING', 'Birthday Automation'),
     ]
@@ -106,6 +163,20 @@ class EmailLog(models.Model):
         blank=True,
         related_name='email_logs',
         help_text="Related contact message (if any)"
+    )
+    
+    # Generic reference for items without explicit ForeignKeys (Vouchers, Memberships, Customers)
+    reference_id = models.CharField(
+        max_length=100, 
+        null=True, 
+        blank=True,
+        help_text="ID of the related object if no ForeignKey exists"
+    )
+    reference_type = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Type of the related object (e.g. Voucher, Customer)"
     )
     
     # Timestamps

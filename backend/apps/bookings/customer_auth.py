@@ -263,9 +263,16 @@ def customer_my_bookings(request):
             "adults": b.adults,
             "kids": b.kids,
             "amount": float(b.amount) if b.amount else 0,
+            "paid_amount": float(b.paid_amount) if b.paid_amount else 0,
+            "deposit_amount": float(b.deposit_amount) if b.deposit_amount else 0,
+            "remaining_balance": float(b.remaining_balance) if b.remaining_balance else 0,
+            "payment_type": b.payment_type,
+            "payment_status": b.payment_status,
             "status": b.status,
             "birthday_child_name": b.birthday_child_name,
             "created_at": b.created_at.isoformat(),
+            "reschedule_count": b.reschedule_count,
+            "admin_fee_charged": float(b.admin_fee_charged) if b.admin_fee_charged else 0,
         })
 
     all_bookings = sorted(

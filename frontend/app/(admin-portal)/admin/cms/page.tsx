@@ -42,6 +42,9 @@ export default async function CmsDashboard() {
         // Booking Wizards
         { name: 'Book Page Content', href: '/admin/cms/session-booking', icon: 'FileText', description: 'Edit /book page info, sessions, rules' },
         { name: 'Party Booking', href: '/admin/cms/party-booking', icon: 'Calendar', description: 'Party wizard steps' },
+        
+        // Account Config
+        { name: 'Customer Account Page', href: '/admin/cms/account-config', icon: 'User', description: 'Edit /account/bookings page text' },
 
         // Moved from Pages
         { name: 'Facilities Page', href: '/admin/cms/facilities', icon: 'Layout', description: 'Facilities page content' },

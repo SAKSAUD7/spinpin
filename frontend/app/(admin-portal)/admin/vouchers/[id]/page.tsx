@@ -12,6 +12,7 @@ export default function EditVoucherPage() {
     const params = useParams();
     const [loading, setLoading] = useState(false);
     const [voucher, setVoucher] = useState<any>(null);
+    const formRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
         loadVoucher();

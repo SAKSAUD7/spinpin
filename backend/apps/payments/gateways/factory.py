@@ -11,27 +11,16 @@ Set PAYMENT_MODE=sumup in .env when SumUp API keys are configured.
 import logging
 from django.conf import settings
 from .base import BasePaymentGateway
-from .mock import MockPaymentGateway
+from .sumup import SumUpGateway
 
 logger = logging.getLogger(__name__)
 
-
 def get_payment_gateway() -> BasePaymentGateway:
     """
-    Get the configured payment gateway based on PAYMENT_MODE setting.
-
-    Returns:
-        SumUpGateway if PAYMENT_MODE=sumup, else MockPaymentGateway
+    Get the SumUp payment gateway.
     """
-    mode = getattr(settings, "PAYMENT_MODE", "mock").lower()
-
-    if mode == "sumup":
-        from .sumup import SumUpGateway
-        logger.info("Payment gateway: SumUp (live online payments)")
-        return SumUpGateway()
-
-    logger.info("Payment gateway: Mock (pay at venue)")
-    return MockPaymentGateway()
+    logger.info("Payment gateway: SumUp (live online payments)")
+    return SumUpGateway()
 
 
 # Singleton instance for reuse

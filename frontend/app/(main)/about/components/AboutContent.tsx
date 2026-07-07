@@ -39,7 +39,7 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                         </span>
                     </ScrollReveal>
                     <ScrollReveal animation="slideUp" delay={0.2}>
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-black mb-6 leading-tight">
+                        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-display font-black mb-6 leading-tight">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
                                 {heroTitle}
                             </span>
@@ -134,6 +134,9 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                                     src={story?.image || "/images/spinpin/unnamed (11).webp"}
                                     alt="Kids having fun at Spin Pin Leicester"
                                     className="w-full h-full object-cover rounded-3xl"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "/images/spinpin/unnamed (11).webp";
+                                    }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
                             </div>

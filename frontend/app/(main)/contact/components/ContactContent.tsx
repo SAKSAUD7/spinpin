@@ -30,9 +30,9 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
-        // ... existing submit logic ...
         e.preventDefault();
         setIsSubmitting(true);
 
@@ -43,24 +43,26 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
             const result = await createContactMessage(formData);
 
             if (result.success) {
-                toast.success("Message sent! We'll get back to you soon.");
+                const ticketId = result.item?.ticket_id || "generated";
+                toast.success(`Message sent! Your Ticket ID is ${ticketId}.`);
                 setFormData({ name: "", email: "", phone: "", message: "" });
+                setSubmittedTicketId(ticketId);
             } else {
                 toast.error(result.error || "Failed to send message");
             }
         } catch (error) {
             console.error(error);
-            alert("Something went wrong. Please try again.");
+            toast.error("Something went wrong. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const phone = settings?.contact_phone || defaultConfig?.contact?.phone || "07349 110865";
+    const phone = settings?.contact_phone || "07349 110865";
     // ... existing consts ...
-    const email = settings?.contact_email || defaultConfig?.contact?.email || "info@spinpin.co.uk";
-    const address = settings?.address || defaultConfig?.contact?.address || "Ramdoot House, First Floor - 2/3 Navigation Street, Leicester, LE1 3UR";
-    const mapUrl = settings?.map_url || defaultConfig?.contact?.mapUrl || "https://goo.gl/maps/xyz";
+    const email = settings?.contact_email || "info@spinpin.co.uk";
+    const address = settings?.address || "Ramdoot House, First Floor - 2/3 Navigation Street, Leicester, LE1 3UR";
+    const mapUrl = settings?.map_url || "https://maps.app.goo.gl/B3hEwR7N2E7A3yQx7";
     const openingHours = typeof settings?.opening_hours === 'string' ? settings.opening_hours : "Tue–Fri 2PM–10PM | Sat 12PM–11PM | Sun 12PM–10PM";
 
     const contactInfo = [
@@ -118,7 +120,7 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
                         </span>
                     </ScrollReveal>
                     <ScrollReveal animation="slideUp" delay={0.2}>
-                        <h1 className="text-5xl md:text-6xl lg:text-8xl font-display font-black mb-6 leading-tight">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-black mb-6 leading-tight">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
                                 {heroTitle}
                             </span>
@@ -163,14 +165,34 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
                                     {formTitle}
                                 </h2>
                                 {formSubtitle && (
-                                    <p className="text-white/70 mb-6">{formSubtitle}</p>
+                                    <p className="text-white/70 mb-8">{formSubtitle}</p>
                                 )}
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    {/* ... existing form inputs ... */}
-                                    <div>
-                                        <label className="block text-sm font-bold mb-2 text-white/80">
-                                            Your Name
-                                        </label>
+
+                                {submittedTicketId ? (
+                                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-8 text-center">
+                                        <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Send className="w-8 h-8 text-emerald-400" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-white mb-2">Message Sent Successfully!</h3>
+                                        <p className="text-white/70 mb-6">
+                                            Thank you for reaching out. We have received your message and will get back to you as soon as possible.
+                                        </p>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-4 inline-block mb-8">
+                                            <p className="text-sm text-white/50 mb-1 uppercase tracking-wider font-bold">Your Support Ticket ID</p>
+                                            <p className="text-xl font-mono text-primary font-bold">{submittedTicketId}</p>
+                                        </div>
+                                        <div className="w-full">
+                                            <BouncyButton onClick={() => setSubmittedTicketId(null)} variant="primary" className="w-full">
+                                                Send Another Message
+                                            </BouncyButton>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSubmit} className="space-y-6">
+                                        <div>
+                                            <label className="block text-sm font-bold mb-2 text-white/80">
+                                                Full Name
+                                            </label>
                                         <input
                                             type="text"
                                             value={formData.name}
@@ -218,21 +240,22 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
                                             required
                                         />
                                     </div>
-                                    <div className="w-full">
-                                        <BouncyButton type="submit" variant="primary" className="w-full" size="lg" disabled={isSubmitting}>
-                                            <div className="flex items-center justify-center">
-                                                {isSubmitting ? (
-                                                    <span>Sending...</span>
-                                                ) : (
-                                                    <>
-                                                        <Send className="w-5 h-5 mr-2" />
-                                                        Send Message
-                                                    </>
-                                                )}
-                                            </div>
-                                        </BouncyButton>
-                                    </div>
-                                </form>
+                                        <div className="w-full">
+                                            <BouncyButton type="submit" variant="primary" className="w-full" size="lg" disabled={isSubmitting}>
+                                                <div className="flex items-center justify-center">
+                                                    {isSubmitting ? (
+                                                        <span>Sending...</span>
+                                                    ) : (
+                                                        <>
+                                                            <Send className="w-5 h-5 mr-2" />
+                                                            Send Message
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </BouncyButton>
+                                        </div>
+                                    </form>
+                                )}
                             </div>
                         </ScrollReveal>
 
@@ -240,7 +263,7 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
                         <div className="space-y-8">
                             {/* Map Placeholder */}
                             <ScrollReveal animation="slideRight">
-                                <div className="bg-surface-800/50 backdrop-blur-md p-8 rounded-3xl border border-accent/30 h-64 flex items-center justify-center">
+                                <div className="bg-surface-800/50 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-accent/30 h-48 md:h-64 flex items-center justify-center">
                                     <div className="text-center">
                                         <MapPin className="w-12 h-12 text-accent mx-auto mb-3" />
                                         <p className="text-white/70">Find us easily</p>
@@ -282,7 +305,7 @@ export default function ContactContent({ settings, hero, form, defaultConfig }: 
             <section className="relative py-16 md:py-32 px-4 pb-32 md:pb-40 bg-background-light">
                 <div className="max-w-4xl mx-auto text-center">
                     <ScrollReveal animation="scale">
-                        <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-black mb-6">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-black mb-6">
                             Ready to Visit?
                         </h2>
                         <p className="text-base md:text-xl text-white/70 mb-10">

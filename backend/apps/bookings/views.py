@@ -873,8 +873,13 @@ def create_party_booking_view(request):
                 kids=int(data.get('kids', 0)),
                 adults=int(data.get('adults', 0)),
                 amount=float(data.get('amount', 0)),
+                package_price=float(data.get('package_price', 250.0)),
+                deposit_amount=float(data.get('deposit_amount', 0)),
+                payment_type=data.get('payment_type', 'FULL'),
                 birthday_child_name=data.get('birthday_child_name'),
                 birthday_child_age=int(data.get('birthday_child_age')) if data.get('birthday_child_age') else None,
+                special_requests=data.get('special_requests'),
+                dietary_restrictions=data.get('dietary_restrictions'),
                 status=data.get('status', 'PENDING'),
                 customer=customer,
                 waiver_signed=data.get('waiver_signed', False),
@@ -1121,6 +1126,57 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
             'message': f'Party Booking #{party_booking.id} marked as not arrived',
             'booking': serializer.data
         })
+
+    @action(detail=True, methods=['post'], permission_classes=[IsStaffUser])
+    def reschedule(self, request, pk=None):
+        """Reschedule a party booking and apply 14-day rule admin fee if applicable"""
+        from datetime import datetime
+        from decimal import Decimal
+        party_booking = self.get_object()
+        
+        # Accept both 'new_date'/'new_time' (from admin portal) and 'date'/'time'
+        new_date = request.data.get('new_date') or request.data.get('date')
+        new_time = request.data.get('new_time') or request.data.get('time')
+        
+        if not new_date or not new_time:
+            return Response({'error': 'date/new_date and time/new_time are required'}, status=400)
+            
+        try:
+            # Check 14-day rule
+            current_party_date = party_booking.date
+            if isinstance(current_party_date, str):
+                current_party_date = datetime.strptime(current_party_date, '%Y-%m-%d').date()
+            today = timezone.now().date()
+            
+            # If rescheduling within 14 days of the original party date, apply fee
+            days_until_party = (current_party_date - today).days
+            
+            # Save original date if not already recorded
+            if not party_booking.original_date:
+                party_booking.original_date = party_booking.date
+                
+            fee_applied = Decimal('0')
+            if days_until_party <= 14:
+                fee_applied = Decimal('50.00')  # £50 Admin Fee
+                party_booking.admin_fee_charged = (party_booking.admin_fee_charged or Decimal('0')) + fee_applied
+                party_booking.amount = (party_booking.amount or Decimal('0')) + fee_applied
+                
+            party_booking.date = new_date
+            party_booking.time = new_time
+            party_booking.reschedule_count = (party_booking.reschedule_count or 0) + 1
+            party_booking.status = 'RESCHEDULED'
+            party_booking.save()
+            
+            serializer = self.get_serializer(party_booking)
+            return Response({
+                'success': True,
+                'message': f'Party rescheduled to {new_date} at {new_time}. {"£50 admin fee applied." if fee_applied else "No admin fee charged."}',
+                'admin_fee_charged': float(fee_applied),
+                'booking': serializer.data
+            })
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
 
 
 @api_view(['POST'])

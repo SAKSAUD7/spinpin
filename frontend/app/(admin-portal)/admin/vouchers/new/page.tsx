@@ -10,6 +10,7 @@ import Link from "next/link";
 export default function NewVoucherPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const formRef = useRef<HTMLFormElement>(null);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

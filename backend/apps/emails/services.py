@@ -30,8 +30,8 @@ class EmailService:
         self.enabled = getattr(settings, 'EMAIL_ENABLED', False)
         self.debug_mode = getattr(settings, 'EMAIL_DEBUG_MODE', True)
         self.connection_string = getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', '')
-        self.sender_address = getattr(settings, 'AZURE_EMAIL_SENDER_ADDRESS', '')
-        self.sender_name = getattr(settings, 'AZURE_EMAIL_SENDER_NAME', 'Ninja Inflatable Park')
+        self.sender_address = getattr(settings, 'AZURE_EMAIL_SENDER_ADDRESS', 'info@spinpin.co.uk')
+        self.sender_name = getattr(settings, 'AZURE_EMAIL_SENDER_NAME', 'Spin Pin')
     
     def send_email(
         self,
@@ -294,14 +294,14 @@ class EmailService:
         return email_log
 
 
-    def send_contact_message_confirmation(self, contact_message):
+    def send_admin_contact_notification(self, contact_message):
         """
         Send admin notification for new contact message.
         
         Args:
             contact_message: ContactMessage instance
         """
-        logger.info(f"Preparing to send contact message notification for ID {contact_message.id}")
+        logger.info(f"Preparing to send admin contact notification for ID {contact_message.id}")
         
         context = {
             'contact_message': contact_message,
@@ -309,15 +309,38 @@ class EmailService:
             'subject': contact_message.subject,
         }
         
-        # Hardcoded admin email as per requirements
-        admin_email = "info@ninjainflatablepark.com"
+        admin_email = "info@spinpin.co.uk"
         
         email_log = self.send_email(
             email_type='ADMIN_CONTACT_MESSAGE',
             recipient_email=admin_email,
-            recipient_name="Ninja Park Admin",
+            recipient_name="Spin Pin Admin",
             subject=f'New Contact Message - {contact_message.subject}',
             template_name='emails/admin/contact_message.html',
+            context=context,
+            contact_message=contact_message
+        )
+        
+        return email_log
+        
+    def send_contact_customer_confirmation(self, contact_message):
+        """
+        Send confirmation to customer that their message was received.
+        """
+        logger.info(f"Preparing to send contact confirmation to customer {contact_message.email}")
+        
+        context = {
+            'contact_message': contact_message,
+            'customer_name': contact_message.name,
+            'reference': f"SP-CT-{contact_message.id}",
+        }
+        
+        email_log = self.send_email(
+            email_type='CONTACT_CONFIRMATION',
+            recipient_email=contact_message.email,
+            recipient_name=contact_message.name,
+            subject='We have received your enquiry - Spin Pin',
+            template_name='emails/contact_confirmation.html',
             context=context,
             contact_message=contact_message
         )
@@ -352,7 +375,7 @@ class EmailService:
             email_type='WAIVER_CONFIRMATION',
             recipient_email=waiver.email,
             recipient_name=waiver.name,
-            subject=f'Waiver Confirmation - Ninja Inflatable Park',
+            subject=f'Waiver Confirmation - Spin Pin',
             template_name='emails/waiver_confirmation.html',
             context=context,
         )

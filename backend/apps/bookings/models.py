@@ -152,10 +152,16 @@ class Booking(models.Model):
 class PartyBooking(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
+        ('DRAFT', 'Draft'),
+        ('PENDING_PAYMENT', 'Pending Payment'),
+        ('DEPOSIT_PAID', 'Deposit Paid'),
+        ('PARTIALLY_PAID', 'Partially Paid'),
+        ('FULLY_PAID', 'Fully Paid'),
         ('CONFIRMED', 'Confirmed'),
-        ('CANCELLED', 'Cancelled'),
         ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
+        ('RESCHEDULED', 'Rescheduled'),
+        ('EXPIRED', 'Expired'),
     ]
     PAYMENT_STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -176,6 +182,14 @@ class PartyBooking(models.Model):
     spectators = models.IntegerField(default=0, help_text="Non-participating spectators")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Total amount paid so far")
+    
+    package_price = models.DecimalField(max_digits=10, decimal_places=2, default=250.00, help_text="Base package price")
+    deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Deposit amount required/paid")
+    payment_type = models.CharField(max_length=20, default='FULL', choices=[('DEPOSIT', 'Deposit (50%)'), ('FULL', 'Full Payment (100%)')])
+    
+    reschedule_count = models.IntegerField(default=0, help_text="Number of times this party was rescheduled")
+    original_date = models.DateField(null=True, blank=True, help_text="Original date before reschedule")
+    admin_fee_charged = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Admin fees charged for rescheduling")
 
     birthday_child_name = models.CharField(max_length=255, null=True, blank=True)
     birthday_child_age = models.IntegerField(null=True, blank=True)

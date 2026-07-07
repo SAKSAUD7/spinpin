@@ -31,13 +31,12 @@ class SimpleBookingSerializer(serializers.ModelSerializer):
                   'payment_status', 'waiver_status', 'type', 'created_at', 'updated_at']
 
 class WaiverSerializer(serializers.ModelSerializer):
-    # booking_details = SimpleBookingSerializer(source='booking', read_only=True)  # Temporarily disabled
-    # party_booking_details = serializers.SerializerMethodField()  # Temporarily disabled
+    booking_details = SimpleBookingSerializer(source='booking', read_only=True)
+    party_booking_details = serializers.SerializerMethodField()
     booking_type = serializers.SerializerMethodField(read_only=True)
     booking_reference = serializers.SerializerMethodField(read_only=True)
     arrived = serializers.SerializerMethodField(read_only=True)
     arrived_at = serializers.SerializerMethodField(read_only=True)
-    # Forced reload for serializer update
     
     class Meta:
         model = Waiver
@@ -180,7 +179,8 @@ class PartyBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartyBooking
         fields = ['id', 'uuid', 'booking_number', 'name', 'email', 'phone', 'date', 'time', 'package_name',
-                  'kids', 'adults', 'spectators', 'amount', 'paid_amount',
+                  'kids', 'adults', 'spectators', 'amount', 'paid_amount', 'package_price', 'deposit_amount',
+                  'payment_type', 'reschedule_count', 'original_date', 'admin_fee_charged', 'remaining_balance',
                   'birthday_child_name', 'birthday_child_age',
                   'special_requests', 'dietary_restrictions',
                   'participants', 'waiver_signed', 'waiver_signed_at', 'waiver_ip_address',

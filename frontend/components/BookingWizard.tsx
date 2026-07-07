@@ -958,7 +958,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                             transition={{ duration: 0.25 }}
 
-                            className="p-6 md:p-10">
+                            className="p-4 md:p-10">
 
 
 
@@ -988,7 +988,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
                                         {ACTIVITIES.map(act => (
 
@@ -1072,7 +1072,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                         </div>
 
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                        <div className="grid grid-cols-2 gap-3 text-center">
 
                                             {[
 

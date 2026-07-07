@@ -319,9 +319,9 @@ class PaymentService:
             # Send booking confirmation email after successful payment
             if isinstance(booking, PartyBooking):
                 # Party booking confirmation
-                from apps.emails.tasks import send_party_confirmation_email
+                from apps.emails.tasks import send_party_booking_confirmation_email
                 logger.info(f"Sending party booking confirmation email for booking {booking.id}")
-                send_party_confirmation_email(booking.id)
+                send_party_booking_confirmation_email(booking.id)
             else:
                 # Session booking confirmation
                 from apps.emails.tasks import send_booking_confirmation_email

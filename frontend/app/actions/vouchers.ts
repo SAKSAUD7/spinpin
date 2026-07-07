@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { fetchAPI } from "../lib/server-api";
 import { getAdminSession } from "../lib/admin-auth";
@@ -9,20 +9,38 @@ export async function getVouchers(): Promise<any[]> {
     const session = await getAdminSession();
     if (!session) throw new Error("Unauthorized");
 
-    const res = await fetchAPI("/shop/vouchers/");
-    if (!res || !res.ok) return [];
-    const data = await res.json();
-    return data.map(transformCmsItem);
+    try {
+        const res = await fetchAPI("/shop/vouchers/");
+        if (!res || !res.ok) return [];
+        const data = await res.json();
+        
+        if (Array.isArray(data)) {
+            return data.map(transformCmsItem);
+        } else if (data && Array.isArray(data.results)) {
+            return data.results.map(transformCmsItem);
+        }
+        
+        console.warn("[getVouchers] Unexpected data format:", data);
+        return [];
+    } catch (error) {
+        console.error("[getVouchers] Error fetching vouchers:", error);
+        return [];
+    }
 }
 
 export async function getVoucher(id: string) {
     const session = await getAdminSession();
     if (!session) throw new Error("Unauthorized");
 
-    const res = await fetchAPI(`/shop/vouchers/${id}/`);
-    if (!res || !res.ok) return null;
-    const data = await res.json();
-    return transformCmsItem(data);
+    try {
+        const res = await fetchAPI(`/shop/vouchers/${id}/`);
+        if (!res || !res.ok) return null;
+        const data = await res.json();
+        return transformCmsItem(data);
+    } catch (error) {
+        console.error(`[getVoucher] Error fetching voucher ${id}:`, error);
+        return null;
+    }
 }
 
 export async function createVoucher(data: {

@@ -276,19 +276,32 @@ class MarketingService:
         Returns list of (email, name) tuples based on recipient_type.
         """
         Waiver = apps.get_model('bookings', 'Waiver')
+        Booking = apps.get_model('bookings', 'Booking')
+        PartyBooking = apps.get_model('bookings', 'PartyBooking')
         recipients = set()
         
         if campaign.recipient_type == 'ALL_ADULTS':
-            # Participants who are adults
+            # Participants who are adults (from waivers)
             waivers = Waiver.objects.filter(participant_type='ADULT').exclude(email__isnull=True).values_list('email', 'name')
             for email, name in waivers:
                 if email: recipients.add((email, name))
                 
         elif campaign.recipient_type == 'ALL_GUARDIANS':
-            # Minors have guardian email in 'email' field or linked account
-            # In our Waiver model, 'email' field is the contact email (guardian for minors)
+            # Guardian emails from waivers
             waivers = Waiver.objects.exclude(email__isnull=True).values_list('email', 'name')
             for email, name in waivers:
+                if email: recipients.add((email, name))
+
+        elif campaign.recipient_type == 'ALL_BOOKING_CUSTOMERS':
+            # Everyone who has ever made a session booking
+            bookings = Booking.objects.exclude(email__isnull=True).exclude(email='').values_list('email', 'name')
+            for email, name in bookings:
+                if email: recipients.add((email, name))
+
+        elif campaign.recipient_type == 'ALL_PARTY_CUSTOMERS':
+            # Everyone who has ever made a party booking
+            party_bookings = PartyBooking.objects.exclude(email__isnull=True).exclude(email='').values_list('email', 'name')
+            for email, name in party_bookings:
                 if email: recipients.add((email, name))
                 
         elif campaign.recipient_type == 'CUSTOM_LIST':
@@ -298,7 +311,6 @@ class MarketingService:
                 for raw in raw_emails:
                     e = raw.strip()
                     if e:
-                        # Use email as name if unknown
                         recipients.add((e, "Valued Customer"))
         
         return list(recipients)

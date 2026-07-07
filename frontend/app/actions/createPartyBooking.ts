@@ -25,21 +25,25 @@ export async function createPartyBooking(formData: any) {
             photographer,
             partyFavors,
             dietaryRestrictions,
+            paymentOption, // 'deposit' | 'full'
         } = formData;
 
-        // SpinPin UK Party Pricing (GBP decimals — NOT pence)
-        // These are fallback values; real values come from PartyBookingConfig in the DB
-        const participantPrice = 15.00;   // £15.00 per guest
-        const extraSpectatorPrice = 2.95; // £2.95 per extra spectator
-        const freeSpectators = 2;         // First 2 spectators free (from DB config)
-        const gstRate = 0;                // UK: VAT is inclusive, no separate GST
+        // SpinPin UK Party Pricing: £250 base package for up to 10 kids and 10 spectators
+        const basePackagePrice = 250.00;
+        const extraParticipantPrice = 19.95;
+        const extraSpectatorPrice = 2.95;
+        const includedParticipants = 10;
+        const includedSpectators = 10;
+        const depositPercentage = 0.50; // 50% deposit
 
-        const chargeableSpectators = Math.max(0, (spectators || 0) - freeSpectators);
+        const chargeableParticipants = Math.max(0, (participants || 0) - includedParticipants);
+        const chargeableSpectators = Math.max(0, (spectators || 0) - includedSpectators);
 
-        const participantCost = (participants || 0) * participantPrice;
+        const participantCost = chargeableParticipants * extraParticipantPrice;
         const spectatorCost = chargeableSpectators * extraSpectatorPrice;
-        const subtotal = participantCost + spectatorCost;
+        const subtotal = basePackagePrice + participantCost + spectatorCost;
         // No GST for UK — price is VAT-inclusive
+        const gstRate = 0;
         const gst = subtotal * (gstRate / 100);
         let totalAmount = subtotal + gst;
         let discountAmount = 0;
@@ -97,6 +101,7 @@ export async function createPartyBooking(formData: any) {
 
         const partyBookingPayload = {
             name,
+            package_name: 'SpinPin £250 Party Package',
             email,
             phone,
             date,
@@ -118,6 +123,9 @@ export async function createPartyBooking(formData: any) {
             dietary_restrictions: dietaryRestrictions || null,
             subtotal,
             amount: totalAmount,
+            package_price: basePackagePrice,
+            deposit_amount: totalAmount * depositPercentage,
+            payment_type: paymentOption === 'full' ? 'FULL' : 'DEPOSIT',
             discount_amount: discountAmount,
             booking_status: "PENDING",
             payment_status: "PENDING",
@@ -148,7 +156,8 @@ export async function createPartyBooking(formData: any) {
             bookingIntId: booking.id,
             booking,
             amount: totalAmount,
-            depositAmount: totalAmount * 0.2 // 20% deposit (from DB config)
+            depositAmount: totalAmount * depositPercentage // 50% deposit
+
         };
     } catch (error) {
         console.error("Failed to create party booking:", error);

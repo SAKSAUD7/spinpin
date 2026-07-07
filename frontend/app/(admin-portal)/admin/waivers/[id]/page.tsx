@@ -242,23 +242,19 @@ export default function WaiverDetailsPage({ params }: { params: { id: string } }
                         <div>
                             <label className="text-xs font-medium text-slate-500 uppercase">Date</label>
                             <p className="text-sm font-medium text-slate-900 mt-1">
-                                {typeof waiver.booking === 'object' ? waiver.booking?.date :
-                                    typeof waiver.party_booking === 'object' ? waiver.party_booking?.date : 'N/A'}
+                                {waiver.booking_details?.date || waiver.party_booking_details?.date || 'N/A'}
                             </p>
                         </div>
                         <div>
                             <label className="text-xs font-medium text-slate-500 uppercase">Time</label>
                             <p className="text-sm font-medium text-slate-900 mt-1">
-                                {typeof waiver.booking === 'object' ? waiver.booking?.time :
-                                    typeof waiver.party_booking === 'object' ? waiver.party_booking?.time : 'N/A'}
+                                {waiver.booking_details?.time || waiver.party_booking_details?.time || 'N/A'}
                             </p>
                         </div>
                         <div>
                             <label className="text-xs font-medium text-slate-500 uppercase">Booking ID</label>
                             <p className="text-sm font-medium text-slate-900 mt-1">
-                                #{typeof waiver.booking === 'object' ? waiver.booking?.id :
-                                    typeof waiver.party_booking === 'object' ? waiver.party_booking?.id :
-                                        waiver.booking || waiver.party_booking}
+                                #{waiver.booking_details?.id || waiver.party_booking_details?.id || waiver.booking || waiver.party_booking}
                             </p>
                         </div>
                     </div>

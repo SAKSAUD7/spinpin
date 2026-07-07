@@ -27,9 +27,12 @@ export default async function BookingPage() {
                     </p>
                 </div>
 
-                {/* Session Information Section */}
+                {/* Booking Wizard First */}
+                <BookingWizard onSubmit={createBooking} cmsContent={cmsContent} />
+
+                {/* Session Information Section Below */}
                 {sessionInfo && (
-                    <div className="mb-12 bg-surface-800/50 backdrop-blur-md rounded-2xl border border-white/10 p-6 md:p-8">
+                    <div className="mb-12 mt-12 bg-surface-800/50 backdrop-blur-md rounded-2xl border border-white/10 p-6 md:p-8">
                         <h2 className="text-2xl md:text-3xl font-bold mb-2 text-white">{sessionInfo.title}</h2>
                         {sessionInfo.subtitle && (
                             <p className="text-secondary font-semibold mb-6">{sessionInfo.subtitle}</p>
@@ -81,8 +84,6 @@ export default async function BookingPage() {
                         )}
                     </div>
                 )}
-
-                <BookingWizard onSubmit={createBooking} cmsContent={cmsContent} />
             </div>
         </main>
     );

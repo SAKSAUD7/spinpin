@@ -26,10 +26,16 @@ interface Booking {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-    CONFIRMED: "bg-green-500/20 text-green-400 border-green-500/30",
-    PENDING: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    CANCELLED: "bg-red-500/20 text-red-400 border-red-500/30",
-    COMPLETED: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    CONFIRMED:      "bg-green-500/20 text-green-400 border-green-500/30",
+    PENDING:        "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    PENDING_PAYMENT:"bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    DEPOSIT_PAID:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    PARTIALLY_PAID: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    FULLY_PAID:     "bg-green-500/20 text-green-400 border-green-500/30",
+    RESCHEDULED:    "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    CANCELLED:      "bg-red-500/20 text-red-400 border-red-500/30",
+    COMPLETED:      "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    EXPIRED:        "bg-red-500/20 text-red-400 border-red-500/30",
 };
 
 export default function AccountBookingsPage() {
@@ -39,6 +45,20 @@ export default function AccountBookingsPage() {
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [selectedModal, setSelectedModal] = useState<{ id: string | number; type: "SESSION" | "PARTY" } | null>(null);
+    const [pageConfig, setPageConfig] = useState<any>(null);
+
+    const fetchConfig = async () => {
+        try {
+            const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+            const res = await fetch(`${API}/cms/customer-account-config/1/`);
+            if (res.ok) {
+                const data = await res.json();
+                setPageConfig(data);
+            }
+        } catch (e) {
+            console.error("Failed to load page config", e);
+        }
+    };
 
     const fetchBookings = () => {
         if (authLoading || !token) return;
@@ -65,6 +85,7 @@ export default function AccountBookingsPage() {
     }, [authLoading, customer, router]);
 
     useEffect(() => {
+        fetchConfig();
         fetchBookings();
     }, [token, authLoading]);
 
@@ -93,7 +114,7 @@ export default function AccountBookingsPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-black text-white">
-                            Hi, {customer.name.split(" ")[0]}! 👋
+                            {pageConfig?.header_title?.replace("{name}", customer.name.split(" ")[0]) || `Hi, ${customer.name.split(" ")[0]}! 👋`}
                         </h1>
                         <p className="text-white/50 text-sm mt-1">{customer.email}</p>
                     </div>
@@ -108,27 +129,27 @@ export default function AccountBookingsPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-8">
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                        <div className="text-3xl font-black text-primary">{bookings.length}</div>
-                        <div className="text-white/50 text-xs mt-1">Total Bookings</div>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl font-black text-primary">{bookings.length}</div>
+                        <div className="text-white/50 text-[10px] sm:text-xs mt-1">Total Bookings</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                        <div className="text-3xl font-black text-green-400">{upcoming.length}</div>
-                        <div className="text-white/50 text-xs mt-1">Upcoming</div>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl font-black text-green-400">{upcoming.length}</div>
+                        <div className="text-white/50 text-[10px] sm:text-xs mt-1">Upcoming</div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                        <div className="text-3xl font-black text-blue-400">£{bookings.reduce((s, b) => s + b.amount, 0).toFixed(0)}</div>
-                        <div className="text-white/50 text-xs mt-1">Total Spent</div>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl font-black text-blue-400">£{bookings.reduce((s, b) => s + b.amount, 0).toFixed(0)}</div>
+                        <div className="text-white/50 text-[10px] sm:text-xs mt-1">Total Spent</div>
                     </div>
                 </div>
 
                 {/* Book Again CTA */}
-                <Link href="/book" className="block mb-8 bg-gradient-to-r from-pink-500/20 to-purple-600/20 border border-pink-500/30 rounded-2xl p-5 hover:from-pink-500/30 hover:to-purple-600/30 transition-all group">
+                <Link href={pageConfig?.cta_link || "/book"} className="block mb-8 bg-gradient-to-r from-pink-500/20 to-purple-600/20 border border-pink-500/30 rounded-2xl p-5 hover:from-pink-500/30 hover:to-purple-600/30 transition-all group">
                     <div className="flex items-center justify-between">
                         <div>
-                            <div className="text-white font-bold">Book Another Session</div>
-                            <div className="text-white/50 text-sm">Skating, bowling — book your next visit</div>
+                            <div className="text-white font-bold">{pageConfig?.cta_title || "Book Another Session"}</div>
+                            <div className="text-white/50 text-sm">{pageConfig?.cta_subtitle || "Skating, bowling — book your next visit"}</div>
                         </div>
                         <ChevronRight className="w-5 h-5 text-pink-400 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -188,10 +209,10 @@ export default function AccountBookingsPage() {
                         {bookings.length === 0 && (
                             <div className="text-center py-20">
                                 <div className="text-5xl mb-4">🎳</div>
-                                <p className="text-white/50 text-lg font-bold">No bookings yet</p>
-                                <p className="text-white/30 text-sm mt-2 mb-8">Book your first session at Spin Pin!</p>
-                                <Link href="/book" className="px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-full hover:scale-105 transition-all inline-block">
-                                    Book Now
+                                <p className="text-white/50 text-lg font-bold">{pageConfig?.empty_state_title || "No bookings yet"}</p>
+                                <p className="text-white/30 text-sm mt-2 mb-8">{pageConfig?.empty_state_subtitle || "Book your first session at Spin Pin!"}</p>
+                                <Link href={pageConfig?.cta_link || "/book"} className="px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-full hover:scale-105 transition-all inline-block">
+                                    {pageConfig?.empty_state_button_text || "Book Now"}
                                 </Link>
                             </div>
                         )}
@@ -257,7 +278,13 @@ function BookingCard({
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-white font-bold">{booking.package_name || booking.activity}</span>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${statusStyle}`}>
-                            {booking.status === "PENDING" ? "Payment Pending" : booking.status}
+                            {booking.status === "PENDING" ? "Payment Pending"
+                            : booking.status === "DEPOSIT_PAID" ? "Deposit Paid"
+                            : booking.status === "PARTIALLY_PAID" ? "Partially Paid"
+                            : booking.status === "FULLY_PAID" ? "Fully Paid"
+                            : booking.status === "RESCHEDULED" ? "Rescheduled"
+                            : booking.status === "PENDING_PAYMENT" ? "Payment Pending"
+                            : booking.status}
                         </span>
                     </div>
                     <div className="flex items-center gap-4 text-white/50 text-sm flex-wrap">
@@ -285,15 +312,19 @@ function BookingCard({
                 </div>
                 <div className="text-right flex-shrink-0">
                     <div className="text-white font-black">£{booking.amount.toFixed(2)}</div>
-                    {/* View button opens modal for all non-pending bookings */}
-                    {booking.status !== "PENDING" && (
+                    {/* View button — show for all statuses that have actionable detail */}
+                    {!['PENDING', 'EXPIRED', 'CANCELLED'].includes(booking.status) && (
                         <button
                             onClick={onOpenModal}
                             className={`text-xs flex items-center gap-0.5 mt-1 ml-auto font-bold transition-colors ${booking.type === "PARTY" ? "text-pink-400 hover:text-pink-300" : "text-primary hover:text-primary/80"}`}
                         >
-                            {booking.type === "PARTY" ? "Manage Guests" : "View Details"}
+                            {booking.type === "PARTY" ? "Manage Party" : "View Details"}
                             <ChevronRight className="w-3 h-3" />
                         </button>
+                    )}
+                    {/* Party balance due banner */}
+                    {booking.type === "PARTY" && booking.status === "DEPOSIT_PAID" && (
+                        <p className="text-blue-400/70 text-[10px] mt-1 text-right">Balance due</p>
                     )}
                 </div>
             </div>

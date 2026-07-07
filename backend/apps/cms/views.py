@@ -10,7 +10,7 @@ from .models import (
     StatCard, InstagramReel, MenuSection, GroupPackage, GuidelineCategory, LegalDocument,
     PageSection, PricingPlan, ContactInfo, PartyPackage, TimelineItem, ValueItem, FacilityItem,
     Page, ContactMessage, FreeEntry, SessionBookingConfig, PartyBookingConfig, PricingCarouselImage,
-    BookingInformation, TimingCard
+    BookingInformation, TimingCard, CustomerAccountConfig
 )
 from .serializers import (
     BannerSerializer, ActivitySerializer, FaqSerializer, 
@@ -20,7 +20,7 @@ from .serializers import (
     PageSectionSerializer, PricingPlanSerializer, ContactInfoSerializer, PartyPackageSerializer,
     TimelineItemSerializer, ValueItemSerializer, FacilityItemSerializer,
     PageSerializer, ContactMessageSerializer, FreeEntrySerializer, SessionBookingConfigSerializer, PartyBookingConfigSerializer,
-    PricingCarouselImageSerializer, BookingInformationSerializer, TimingCardSerializer
+    PricingCarouselImageSerializer, BookingInformationSerializer, TimingCardSerializer, CustomerAccountConfigSerializer
 )
 
 class BaseCmsViewSet(viewsets.ModelViewSet):
@@ -210,7 +210,8 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         # Trigger email notification
         try:
             from apps.emails.services import email_service
-            email_service.send_contact_message_confirmation(instance)
+            email_service.send_admin_contact_notification(instance)
+            email_service.send_contact_customer_confirmation(instance)
         except Exception as e:
             # IMPORTANT: Log error but DO NOT break the contact form flow
             import logging
@@ -262,6 +263,23 @@ class PartyBookingConfigViewSet(BaseCmsViewSet):
     def retrieve(self, request, *args, **kwargs):
         """Always return the singleton config regardless of ID"""
         config = PartyBookingConfig.get_config()
+        serializer = self.get_serializer(config)
+        return Response(serializer.data)
+
+class CustomerAccountConfigViewSet(BaseCmsViewSet):
+    """Singleton viewset for customer account configuration"""
+    queryset = CustomerAccountConfig.objects.all()
+    serializer_class = CustomerAccountConfigSerializer
+    
+    def list(self, request, *args, **kwargs):
+        """Return the singleton config"""
+        config = CustomerAccountConfig.get_config()
+        serializer = self.get_serializer(config)
+        return Response(serializer.data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        """Always return the singleton config regardless of ID"""
+        config = CustomerAccountConfig.get_config()
         serializer = self.get_serializer(config)
         return Response(serializer.data)
 

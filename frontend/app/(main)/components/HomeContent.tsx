@@ -99,7 +99,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                                 <span className="inline-block py-1 px-3 rounded-full bg-secondary text-black font-bold text-sm mb-6 tracking-wider uppercase">
                                     About Us
                                 </span>
-                                <h2 className="text-5xl md:text-6xl font-display font-black mb-6">
+                                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-black mb-6">
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary">
                                         {aboutTitle}
                                     </span>
@@ -214,7 +214,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
             <section className="relative py-16 md:py-32 px-4 bg-background-light">
                 <div className="max-w-4xl mx-auto text-center">
                     <ScrollReveal animation="scale">
-                        <h2 className="text-5xl md:text-6xl lg:text-8xl font-display font-black mb-6 leading-tight">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-8xl font-display font-black mb-6 leading-tight">
                             Ready to
                             <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-primary to-secondary">

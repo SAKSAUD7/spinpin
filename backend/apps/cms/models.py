@@ -417,6 +417,7 @@ class GroupBenefit(models.Model):
 
 class ContactMessage(models.Model):
     """Messages from the contact form"""
+    ticket_id = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique ticket reference for support")
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=20, null=True, blank=True)
@@ -427,8 +428,18 @@ class ContactMessage(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    def save(self, *args, **kwargs):
+        if not self.ticket_id:
+            import uuid
+            import datetime
+            # Format: TKT-YYYYMMDD-XXXX
+            date_str = datetime.datetime.now().strftime('%Y%m%d')
+            unique_str = str(uuid.uuid4())[:4].upper()
+            self.ticket_id = f"TKT-{date_str}-{unique_str}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.name} - {self.email}"
+        return f"{self.ticket_id} | {self.name} - {self.email}"
 
 
 class FreeEntry(models.Model):
@@ -706,3 +717,40 @@ class TimingCard(models.Model):
 
     def __str__(self):
         return f"{self.day_label}: {self.open_time} – {self.close_time}"
+
+
+class CustomerAccountConfig(models.Model):
+    """Singleton model for the Customer Account / Bookings page text"""
+    
+    # Header Section
+    header_title = models.CharField(max_length=255, default="Hi, {name}! 👋", help_text="Use {name} as a placeholder for the customer's first name")
+    
+    # Book Again CTA
+    cta_title = models.CharField(max_length=255, default="Book Another Session")
+    cta_subtitle = models.CharField(max_length=255, default="Skating, bowling — book your next visit")
+    cta_link = models.CharField(max_length=255, default="/book")
+    
+    # Empty State
+    empty_state_title = models.CharField(max_length=255, default="No bookings yet")
+    empty_state_subtitle = models.CharField(max_length=255, default="Book your first session at Spin Pin!")
+    empty_state_button_text = models.CharField(max_length=100, default="Book Now")
+    
+    # Additional Support / Contact logic can be added here
+    
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Customer Account Config"
+        verbose_name_plural = "Customer Account Config"
+        
+    def __str__(self):
+        return "Account Page Configuration"
+        
+    @classmethod
+    def get_config(cls):
+        config, created = cls.objects.get_or_create(id=1)
+        if created:
+            config.save()
+        return config

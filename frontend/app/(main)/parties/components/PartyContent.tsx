@@ -73,85 +73,89 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
             {/* Timing Cards — below hero */}
             <TimingCardsClient />
 
-            {/* Dynamic Packages */}
+            {/* Official Party Package */}
             <section className="relative px-4 py-12 bg-background">
-                <div className="max-w-7xl mx-auto">
-                    <div className={`grid grid-cols-1 ${packages.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-1 max-w-md mx-auto'} gap-8`}>
-                        {packages.length > 0 ? (
-                            packages.map((pkg, index) => (
-                                <ScrollReveal key={pkg.id} animation="scale" delay={index * 0.1}>
-                                    <motion.div
-                                        whileHover={{ y: -3 }}
-                                        className="relative p-6 rounded-2xl border-2 border-primary bg-gradient-to-br from-surface-800/80 to-surface-900/80 backdrop-blur-sm flex flex-col h-full"
-                                    >
-                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-black font-black py-1 px-6 rounded-full text-sm shadow-lg whitespace-nowrap">
-                                            {pkg.name}
-                                        </div>
+                <div className="max-w-4xl mx-auto">
+                    <ScrollReveal animation="slideUp">
+                        <div className="text-center mb-10">
+                            <h2 className="text-3xl md:text-4xl font-display font-black mb-4">
+                                Our £250 Party Package
+                            </h2>
+                            <p className="text-lg text-white/70 max-w-2xl mx-auto">
+                                Looking for a fun way to celebrate? Our £250 Party Package is the perfect choice for UNDER 14s. 
+                                This package includes everything you need for a great time: 2 hours of play and party time, roller skate rentals, a dedicated party area, and much more!
+                            </p>
+                        </div>
+                    </ScrollReveal>
 
-                                        <div className="mt-6 mb-6 text-center">
-                                            <div>
-                                                <span className="text-4xl font-black text-white">£{pkg.price}</span>
-                                                <span className="text-white/60 text-sm ml-1">/person</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2 justify-center text-xs mt-2">
-                                                {pkg.min_pax && <span className="px-3 py-1 bg-white/10 rounded-full">Min. {pkg.min_pax}</span>}
-                                                {pkg.duration_minutes && <span className="px-3 py-1 bg-white/10 rounded-full">{pkg.duration_minutes} Mins</span>}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-grow mb-6">
-                                            <div className="grid grid-cols-1 gap-y-2 text-sm">
-                                                {/* Handle both features (frontend prop) and includes (backend model field) */}
-                                                {(() => {
-                                                    const items = pkg.features || pkg.includes || [];
-                                                    const displayItems = Array.isArray(items) ? items : [];
-
-                                                    if (displayItems.length === 0) {
-                                                        return <p className="text-white/60 italic text-center">Contact for details</p>;
-                                                    }
-
-                                                    return displayItems.map((feature: string, idx: number) => (
-                                                        <div key={idx} className="flex items-center gap-2 text-white/80">
-                                                            <Check className="w-4 h-4 text-primary shrink-0" />
-                                                            <span>{feature}</span>
-                                                        </div>
-                                                    ));
-                                                })()}
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
-                                            <Link href="/party-booking" className="w-full">
-                                                <BouncyButton size="md" variant="primary" className="w-full">
-                                                    <PartyPopper className="w-4 h-4 mr-2" />
-                                                    Book Now
-                                                </BouncyButton>
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                </ScrollReveal>
-                            ))
-                        ) : (
-                            <div className="text-center text-white/60 col-span-full">
-                                No party packages available currently.
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Package Includes */}
+                        <ScrollReveal animation="slideUp" delay={0.1}>
+                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-primary">
+                                <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-primary">
+                                    <PartyPopper className="w-6 h-6" />
+                                    Package Includes
+                                </h3>
+                                <ul className="space-y-3 text-white/80">
+                                    {[
+                                        "Entry for 10 participants (Under 14s)",
+                                        "Entry for 10 spectators (Non Skaters)",
+                                        "Each additional participant £19.95",
+                                        "Each additional spectator £2.95",
+                                        "Free roller skate hire for paid participants",
+                                        "75 Minutes of roller skating",
+                                        "45 Minutes use of Party Room",
+                                        "Party Food & unlimited squash",
+                                        "Online Party Invitations",
+                                        "Discount for other activities on the day (Bowling, VR, Pool Tables, etc.)"
+                                    ].map((item, idx) => (
+                                        <li key={idx} className="flex gap-2 items-start">
+                                            <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        )}
+                        </ScrollReveal>
+
+                        {/* Party Feast Includes */}
+                        <ScrollReveal animation="slideUp" delay={0.2}>
+                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-secondary">
+                                <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-secondary">
+                                    <Utensils className="w-6 h-6" />
+                                    Party Feast Includes
+                                </h3>
+                                <ul className="space-y-3 text-white/80">
+                                    {[
+                                        "Pizza",
+                                        "Chicken Nuggets",
+                                        "Onion Rings",
+                                        "Garlic Bread",
+                                        "Curly Fries",
+                                        "Chips",
+                                        "Slush",
+                                        "Unlimited Squash",
+                                    ].map((item, idx) => (
+                                        <li key={idx} className="flex gap-2 items-start">
+                                            <Check className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="mt-4 pt-4 border-t border-white/10 text-sm font-bold text-accent">
+                                    We cater Vegetarian and Halal food options.
+                                </div>
+                            </div>
+                        </ScrollReveal>
                     </div>
 
-                    {/* View Menu Button */}
-                    <div className="mt-8 flex justify-center">
-                        <ScrollReveal animation="scale">
-                            <button
-                                onClick={() => setIsMenuOpen(true)}
-                                className="group relative px-8 py-4 bg-gradient-to-r from-primary via-secondary to-accent rounded-xl font-bold text-black text-lg shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Eye className="w-5 h-5" />
-                                    <span>View Full Menu</span>
-                                    <Utensils className="w-5 h-5" />
-                                </div>
-                            </button>
-                        </ScrollReveal>
+                    <div className="mt-10 flex justify-center">
+                        <Link href="/party-booking" className="w-full md:w-auto">
+                            <BouncyButton size="lg" variant="primary" className="w-full">
+                                <PartyPopper className="w-5 h-5 mr-2" />
+                                Book Your Party
+                            </BouncyButton>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -189,21 +193,21 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                         <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border border-white/10">
                             <h2 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 justify-center">
                                 <AlertCircle className="w-6 h-6 text-secondary" />
-                                Important Terms
+                                Party T&C
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                                 {terms ? (
                                     <div className="col-span-2 prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: terms }} />
                                 ) : (
                                     [
-                                        "50% deposit required to confirm",
-                                        "Minimum 10 participants",
-                                        "Balance due before party starts",
-                                        "Free rescheduling (2+ weeks notice)",
-                                        "Late reschedule: £50 fee",
-                                        "Extra time: £5 per 15 mins",
-                                        "All guests must sign waiver",
-                                        "No sparkler candles or confetti"
+                                        "50% non-refundable deposit is required to confirm booking",
+                                        "Minimum 10 participants (Under 14s)",
+                                        "Remaining balance due before party starts",
+                                        "Free rescheduling (14+ days notice)",
+                                        "Late reschedule (under 14 days): £50 admin fee applies",
+                                        "All guests must sign waiver prior to arrival",
+                                        "No sparkler candles or confetti allowed",
+                                        "Please arrive 15 minutes before party start time"
                                     ].map((term, index) => (
                                         <div key={index} className="flex gap-2 items-start text-white/80">
                                             <CheckCircle className="w-3 h-3 text-secondary shrink-0 mt-0.5" />

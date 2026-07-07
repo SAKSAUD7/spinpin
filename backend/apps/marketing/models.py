@@ -42,8 +42,10 @@ class MarketingCampaign(models.Model):
     Admin-controlled marketing campaigns.
     """
     RECIPIENT_CHOICES = [
-        ('ALL_ADULTS', 'All Adult Participants'),
-        ('ALL_GUARDIANS', 'All Guardians'),
+        ('ALL_ADULTS', 'All Adult Waiver Participants'),
+        ('ALL_GUARDIANS', 'All Guardians (Waiver)'),
+        ('ALL_BOOKING_CUSTOMERS', 'All Session Booking Customers'),
+        ('ALL_PARTY_CUSTOMERS', 'All Party Booking Customers'),
         ('CUSTOM_LIST', 'Custom Email List'),
     ]
     
@@ -58,7 +60,7 @@ class MarketingCampaign(models.Model):
     subject = models.CharField(max_length=255)
     template = models.ForeignKey(EmailTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     content = models.TextField(help_text="Campaign specific content to inject into template")
-    recipient_type = models.CharField(max_length=20, choices=RECIPIENT_CHOICES, default='ALL_ADULTS')
+    recipient_type = models.CharField(max_length=30, choices=RECIPIENT_CHOICES, default='ALL_ADULTS')
     custom_email_list = models.TextField(blank=True, null=True, help_text="Comma-separated list of emails for CUSTOM_LIST recipient type")
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')

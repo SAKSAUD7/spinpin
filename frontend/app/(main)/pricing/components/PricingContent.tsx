@@ -91,7 +91,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         <ScrollReveal animation="scale" delay={0}>
                             <motion.div
                                 whileHover={{ y: -10 }}
-                                className="relative p-8 rounded-3xl border-2 border-primary bg-surface-800/80 backdrop-blur-sm h-full flex flex-col"
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-primary bg-surface-800/80 backdrop-blur-sm h-full flex flex-col"
                             >
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-black font-bold py-1 px-4 rounded-full text-sm">
                                     MOST POPULAR
@@ -136,7 +136,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         <ScrollReveal animation="scale" delay={0.1}>
                             <motion.div
                                 whileHover={{ y: -10 }}
-                                className="relative p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
                                 <h3 className="text-2xl font-display font-bold mb-2 text-secondary">
                                     Roller Skate Hire
@@ -174,7 +174,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         <ScrollReveal animation="scale" delay={0.2}>
                             <motion.div
                                 whileHover={{ y: -10 }}
-                                className="relative p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
                                 <h3 className="text-2xl font-display font-bold mb-2 text-accent">
                                     Spectators (Age 4+)
@@ -212,7 +212,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         <ScrollReveal animation="scale" delay={0.3}>
                             <motion.div
                                 whileHover={{ y: -10 }}
-                                className="relative p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-bold py-1 px-4 rounded-full text-sm">
                                     FREE
@@ -252,7 +252,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         <ScrollReveal animation="scale" delay={0.4}>
                             <motion.div
                                 whileHover={{ y: -10 }}
-                                className="relative p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
                                 <h3 className="text-2xl font-display font-bold mb-2 text-secondary">
                                     Parking
@@ -288,7 +288,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         <ScrollReveal animation="scale" delay={0.5}>
                             <motion.div
                                 whileHover={{ y: -10 }}
-                                className="relative p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
                                 <h3 className="text-2xl font-display font-bold mb-2 text-accent">
                                     Locker Hire
