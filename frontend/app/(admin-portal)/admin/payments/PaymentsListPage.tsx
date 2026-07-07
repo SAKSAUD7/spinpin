@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Payments List Page — Redesigned
+ * Payments List Page
  *
  * Admin portal page for viewing and managing all payments.
- * Premium dark glassmorphism theme matching SpinPin brand.
+ * Themed to match SpinPin admin portal (light mode).
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -16,6 +16,7 @@ import {
     ShieldCheck, AlertCircle, FileText
 } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Payment {
     id: number;
@@ -38,16 +39,16 @@ type SortKey = "id" | "amount" | "created_at" | "status";
 type SortDir = "asc" | "desc";
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string; dot: string; icon: React.ReactNode }> = {
-    SUCCESS:  { label: "Success",  cls: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30", dot: "bg-emerald-400", icon: <CheckCircle className="w-3.5 h-3.5" /> },
-    FAILED:   { label: "Failed",   cls: "text-red-400 bg-red-400/10 border-red-400/30",            dot: "bg-red-400",     icon: <XCircle className="w-3.5 h-3.5" />     },
-    CREATED:  { label: "Pending",  cls: "text-amber-400 bg-amber-400/10 border-amber-400/30",       dot: "bg-amber-400",   icon: <Clock className="w-3.5 h-3.5" />       },
-    REFUNDED: { label: "Refunded", cls: "text-purple-400 bg-purple-400/10 border-purple-400/30",    dot: "bg-purple-400",  icon: <ArrowDownRight className="w-3.5 h-3.5" />},
+    SUCCESS:  { label: "Success",  cls: "text-emerald-700 bg-emerald-100 border-emerald-200", dot: "bg-emerald-500", icon: <CheckCircle className="w-3.5 h-3.5" /> },
+    FAILED:   { label: "Failed",   cls: "text-red-700 bg-red-100 border-red-200",            dot: "bg-red-500",     icon: <XCircle className="w-3.5 h-3.5" />     },
+    CREATED:  { label: "Pending",  cls: "text-amber-700 bg-amber-100 border-amber-200",       dot: "bg-amber-500",   icon: <Clock className="w-3.5 h-3.5" />       },
+    REFUNDED: { label: "Refunded", cls: "text-purple-700 bg-purple-100 border-purple-200",    dot: "bg-purple-500",  icon: <ArrowDownRight className="w-3.5 h-3.5" />},
 };
 
 const PROVIDER_CONFIG: Record<string, { label: string; cls: string }> = {
-    MOCK:     { label: "Mock",     cls: "text-sky-400 bg-sky-400/10 border-sky-400/30"         },
-    RAZORPAY: { label: "Razorpay", cls: "text-violet-400 bg-violet-400/10 border-violet-400/30"},
-    STRIPE:   { label: "Stripe",   cls: "text-indigo-400 bg-indigo-400/10 border-indigo-400/30"},
+    MOCK:     { label: "Mock",     cls: "text-sky-700 bg-sky-100 border-sky-200"         },
+    RAZORPAY: { label: "Razorpay", cls: "text-violet-700 bg-violet-100 border-violet-200"},
+    STRIPE:   { label: "Stripe",   cls: "text-indigo-700 bg-indigo-100 border-indigo-200"},
 };
 
 function StatCard({ label, value, sub, color, icon }: {
@@ -57,18 +58,16 @@ function StatCard({ label, value, sub, color, icon }: {
         <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`relative overflow-hidden rounded-2xl border p-5 backdrop-blur-sm flex flex-col gap-3 ${color}`}
+            className={`relative overflow-hidden rounded-xl border p-5 bg-white shadow-sm flex flex-col gap-3 ${color}`}
         >
             <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-widest opacity-70">{label}</p>
-                <div className="opacity-60">{icon}</div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{label}</p>
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 shadow-sm">{icon}</div>
             </div>
             <div>
-                <p className="text-3xl font-black tracking-tight">{value}</p>
-                {sub && <p className="text-xs mt-1 opacity-60">{sub}</p>}
+                <p className="text-3xl font-black tracking-tight text-slate-900">{value}</p>
+                {sub && <p className="text-xs mt-1 text-slate-500">{sub}</p>}
             </div>
-            {/* subtle glow blob */}
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-20 bg-current" />
         </motion.div>
     );
 }
@@ -79,10 +78,10 @@ function SortBtn({ col, sort, dir }: { col: SortKey; sort: SortKey; dir: SortDir
         <span className="flex items-center gap-1 group select-none">
             {active ? (
                 dir === "asc"
-                    ? <ChevronUp className="w-3.5 h-3.5 text-primary" />
-                    : <ChevronDown className="w-3.5 h-3.5 text-primary" />
+                    ? <ChevronUp className="w-3.5 h-3.5 text-blue-600" />
+                    : <ChevronDown className="w-3.5 h-3.5 text-blue-600" />
             ) : (
-                <ChevronUp className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity" />
+                <ChevronUp className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity text-slate-400" />
             )}
         </span>
     );
@@ -169,129 +168,128 @@ export default function PaymentsListPage() {
     const StatusBadge = ({ status }: { status: string }) => {
         const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG["CREATED"];
         return (
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${cfg.cls}`}>
-                {cfg.icon}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border shadow-sm ${cfg.cls}`}>
+                <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
                 {cfg.label}
             </span>
         );
     };
 
     return (
-        <div className="p-6 space-y-6 min-h-screen bg-[#0a0118]">
+        <div className="p-8 space-y-6">
 
             {/* ── Header ── */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                            <CreditCard className="w-6 h-6 text-primary" />
-                        </div>
-                        <h1 className="text-2xl font-black text-white">Payments</h1>
-                    </div>
-                    <p className="text-white/40 text-sm ml-14">
-                        {loading ? "Loading..." : `${stats.total} transactions total`}
-                    </p>
-                </div>
-                <button
-                    onClick={fetchPayments}
-                    disabled={loading}
-                    className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-all text-sm font-semibold disabled:opacity-50"
-                >
-                    <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                    Refresh
-                </button>
-            </div>
+            <PageHeader
+                title="Payments"
+                description={`${stats.total} transactions total`}
+                breadcrumbs={[
+                    { label: "Dashboard", href: "/admin" },
+                    { label: "Payments" },
+                ]}
+                actions={
+                    <button
+                        onClick={fetchPayments}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white border border-slate-300 shadow-sm hover:bg-slate-50 text-slate-700 transition-all text-sm font-semibold disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                        Refresh
+                    </button>
+                }
+            />
 
             {/* ── Stats Row ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatCard
                     label="Total"
                     value={stats.total}
-                    color="text-white bg-white/5 border-white/10"
-                    icon={<FileText className="w-5 h-5" />}
+                    color="border-slate-200"
+                    icon={<FileText className="w-5 h-5 text-slate-500" />}
                 />
                 <StatCard
                     label="Revenue"
                     value={`£${stats.revenue.toLocaleString("en-GB")}`}
                     sub={`${stats.success} successful`}
-                    color="text-primary bg-primary/10 border-primary/20"
-                    icon={<TrendingUp className="w-5 h-5" />}
+                    color="border-emerald-200 ring-1 ring-emerald-50"
+                    icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
                 />
                 <StatCard
                     label="Success"
                     value={stats.success}
                     sub={stats.total ? `${Math.round((stats.success / stats.total) * 100)}% rate` : "—"}
-                    color="text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
-                    icon={<CheckCircle className="w-5 h-5" />}
+                    color="border-slate-200"
+                    icon={<CheckCircle className="w-5 h-5 text-emerald-500" />}
                 />
                 <StatCard
                     label="Pending"
                     value={stats.pending}
-                    color="text-amber-400 bg-amber-400/10 border-amber-400/20"
-                    icon={<Clock className="w-5 h-5" />}
+                    color="border-slate-200"
+                    icon={<Clock className="w-5 h-5 text-amber-500" />}
                 />
                 <StatCard
                     label="Failed"
                     value={stats.failed}
-                    color="text-red-400 bg-red-400/10 border-red-400/20"
-                    icon={<AlertCircle className="w-5 h-5" />}
+                    color="border-slate-200"
+                    icon={<AlertCircle className="w-5 h-5 text-red-500" />}
                 />
             </div>
 
             {/* ── Filters ── */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 {/* Search */}
-                <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                <div className="relative flex-1 w-full">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                         type="text"
                         placeholder="Search by name, email, order ID…"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 focus:outline-none text-sm transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-slate-900 placeholder:text-slate-400 transition-all text-sm"
                     />
                 </div>
 
-                {/* Status filter */}
-                <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-                    <select
-                        value={filterStatus}
-                        onChange={e => setFilterStatus(e.target.value)}
-                        className="pl-9 pr-8 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:border-primary/50 focus:outline-none text-sm appearance-none cursor-pointer transition-all min-w-[140px]"
-                    >
-                        <option value="all" className="bg-[#1a0b2e]">All Status</option>
-                        <option value="SUCCESS"  className="bg-[#1a0b2e]">Success</option>
-                        <option value="CREATED"  className="bg-[#1a0b2e]">Pending</option>
-                        <option value="FAILED"   className="bg-[#1a0b2e]">Failed</option>
-                        <option value="REFUNDED" className="bg-[#1a0b2e]">Refunded</option>
-                    </select>
-                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                    {/* Status filter */}
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <select
+                            value={filterStatus}
+                            onChange={e => setFilterStatus(e.target.value)}
+                            className="pl-9 pr-8 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm appearance-none cursor-pointer transition-all min-w-[140px]"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="SUCCESS">Success</option>
+                            <option value="CREATED">Pending</option>
+                            <option value="FAILED">Failed</option>
+                            <option value="REFUNDED">Refunded</option>
+                        </select>
+                    </div>
 
-                {/* Provider filter */}
-                <div className="relative">
-                    <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-                    <select
-                        value={filterProvider}
-                        onChange={e => setFilterProvider(e.target.value)}
-                        className="pl-9 pr-8 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:border-primary/50 focus:outline-none text-sm appearance-none cursor-pointer transition-all min-w-[150px]"
-                    >
-                        <option value="all"      className="bg-[#1a0b2e]">All Providers</option>
-                        <option value="MOCK"     className="bg-[#1a0b2e]">Mock</option>
-                        <option value="RAZORPAY" className="bg-[#1a0b2e]">Razorpay</option>
-                        <option value="STRIPE"   className="bg-[#1a0b2e]">Stripe</option>
-                    </select>
+                    {/* Provider filter */}
+                    <div className="relative">
+                        <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <select
+                            value={filterProvider}
+                            onChange={e => setFilterProvider(e.target.value)}
+                            className="pl-9 pr-8 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm appearance-none cursor-pointer transition-all min-w-[150px]"
+                        >
+                            <option value="all">All Providers</option>
+                            <option value="MOCK">Mock</option>
+                            <option value="RAZORPAY">Razorpay</option>
+                            <option value="STRIPE">Stripe</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             {/* ── Table ── */}
-            <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.03] backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
 
                 {/* Table head */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-white/10 bg-white/[0.04]">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-100 border-b-2 border-slate-200">
+                            <tr>
                                 {[
                                     { label: "#ID",      key: "id"         as SortKey, w: "w-16" },
                                     { label: "Customer", key: null,                    w: "min-w-[180px]" },
@@ -302,9 +300,9 @@ export default function PaymentsListPage() {
                                     { label: "Date",     key: "created_at" as SortKey, w: "w-36" },
                                     { label: "",         key: null,                    w: "w-20" },
                                 ].map(({ label, key, w }) => (
-                                    <th key={label} className={`px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-widest text-white/40 ${w}`}>
+                                    <th key={label} className={`px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider ${w}`}>
                                         {key ? (
-                                            <button onClick={() => toggleSort(key)} className="flex items-center gap-1.5 hover:text-white/70 transition-colors">
+                                            <button onClick={() => toggleSort(key)} className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
                                                 {label}
                                                 <SortBtn col={key} sort={sort} dir={dir} />
                                             </button>
@@ -314,13 +312,13 @@ export default function PaymentsListPage() {
                             </tr>
                         </thead>
 
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100">
                             {/* Loading skeleton */}
                             {loading && Array.from({ length: 6 }).map((_, i) => (
-                                <tr key={i} className="border-b border-white/5">
+                                <tr key={i} className="border-b border-slate-100">
                                     {Array.from({ length: 8 }).map((_, j) => (
-                                        <td key={j} className="px-5 py-4">
-                                            <div className="h-4 rounded-md bg-white/5 animate-pulse" style={{ width: `${[40, 120, 70, 60, 50, 60, 80, 50][j]}px` }} />
+                                        <td key={j} className="px-6 py-4">
+                                            <div className="h-4 rounded-md bg-slate-100 animate-pulse" style={{ width: `${[40, 120, 70, 60, 50, 60, 80, 50][j]}px` }} />
                                         </td>
                                     ))}
                                 </tr>
@@ -330,9 +328,9 @@ export default function PaymentsListPage() {
                             {!loading && filtered.length === 0 && (
                                 <tr>
                                     <td colSpan={8} className="px-6 py-20 text-center">
-                                        <CreditCard className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                                        <p className="text-white/30 font-medium">No payments found</p>
-                                        <p className="text-white/20 text-xs mt-1">Try adjusting your filters</p>
+                                        <CreditCard className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                                        <p className="text-slate-500 font-medium">No payments found</p>
+                                        <p className="text-slate-400 text-xs mt-1">Try adjusting your filters</p>
                                     </td>
                                 </tr>
                             )}
@@ -341,7 +339,7 @@ export default function PaymentsListPage() {
                             <AnimatePresence>
                                 {!loading && filtered.map((payment, i) => {
                                     const statusCfg = STATUS_CONFIG[payment.status] ?? STATUS_CONFIG["CREATED"];
-                                    const providerCfg = PROVIDER_CONFIG[payment.provider] ?? { label: payment.provider, cls: "text-white/50 bg-white/5 border-white/10" };
+                                    const providerCfg = PROVIDER_CONFIG[payment.provider] ?? { label: payment.provider, cls: "text-slate-700 bg-slate-100 border-slate-200" };
                                     const isNegative = payment.amount < 0;
 
                                     return (
@@ -350,84 +348,81 @@ export default function PaymentsListPage() {
                                             initial={{ opacity: 0, x: -6 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: i * 0.02 }}
-                                            className="border-b border-white/5 hover:bg-white/[0.04] transition-colors group"
+                                            className="hover:bg-blue-50/30 transition-colors group"
                                         >
                                             {/* ID */}
-                                            <td className="px-5 py-4">
-                                                <span className="font-mono text-xs text-white/40">#{payment.id}</span>
+                                            <td className="px-6 py-4">
+                                                <span className="font-mono text-xs text-slate-500 font-medium">#{payment.id}</span>
                                             </td>
 
                                             {/* Customer */}
-                                            <td className="px-5 py-4">
+                                            <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-black shrink-0">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
                                                         {(payment.customer_name || "?").charAt(0).toUpperCase()}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-white font-semibold text-sm truncate">{payment.customer_name || "—"}</p>
-                                                        <p className="text-white/35 text-xs truncate">{payment.customer_email || ""}</p>
+                                                        <p className="text-slate-900 font-semibold text-sm truncate">{payment.customer_name || "—"}</p>
+                                                        <p className="text-slate-500 text-xs truncate">{payment.customer_email || ""}</p>
                                                     </div>
                                                 </div>
                                             </td>
 
                                             {/* Booking */}
-                                            <td className="px-5 py-4">
+                                            <td className="px-6 py-4">
                                                 {payment.booking_id ? (
                                                     <Link href={`/admin/session-bookings/${payment.booking_id}`}
-                                                        className="text-primary hover:text-primary/80 font-mono text-xs font-bold hover:underline transition-colors">
+                                                        className="text-blue-600 hover:text-blue-700 font-mono text-xs font-bold hover:underline transition-colors bg-blue-50 px-2 py-1 rounded">
                                                         {payment.booking_number || `#${payment.booking_id}`}
                                                     </Link>
                                                 ) : payment.party_booking_id ? (
                                                     <Link href={`/admin/party-bookings/${payment.party_booking_id}`}
-                                                        className="text-violet-400 hover:text-violet-300 font-mono text-xs font-bold hover:underline transition-colors">
+                                                        className="text-purple-600 hover:text-purple-700 font-mono text-xs font-bold hover:underline transition-colors bg-purple-50 px-2 py-1 rounded">
                                                         {payment.booking_number || `P#${payment.party_booking_id}`}
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-white/20 text-xs">—</span>
+                                                    <span className="text-slate-300 text-xs">—</span>
                                                 )}
                                             </td>
 
                                             {/* Provider */}
-                                            <td className="px-5 py-4">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold border ${providerCfg.cls}`}>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${providerCfg.cls}`}>
                                                     {providerCfg.label}
                                                 </span>
                                             </td>
 
                                             {/* Amount */}
-                                            <td className="px-5 py-4">
+                                            <td className="px-6 py-4">
                                                 <div className="flex items-center gap-1">
                                                     {isNegative
-                                                        ? <ArrowDownRight className="w-3.5 h-3.5 text-red-400" />
-                                                        : <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
+                                                        ? <ArrowDownRight className="w-3.5 h-3.5 text-red-500" />
+                                                        : <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
                                                     }
-                                                    <span className={`font-black text-sm ${isNegative ? "text-red-400" : "text-white"}`}>
+                                                    <span className={`font-bold text-sm ${isNegative ? "text-red-600" : "text-slate-900"}`}>
                                                         {isNegative ? "-" : ""}£{Math.abs(payment.amount).toLocaleString("en-GB")}
                                                     </span>
                                                 </div>
                                             </td>
 
                                             {/* Status */}
-                                            <td className="px-5 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${statusCfg.cls}`}>
-                                                    {statusCfg.icon}
-                                                    {statusCfg.label}
-                                                </span>
+                                            <td className="px-6 py-4">
+                                                <StatusBadge status={payment.status} />
                                             </td>
 
                                             {/* Date */}
-                                            <td className="px-5 py-4">
-                                                <p className="text-white/60 text-xs font-medium">{fmt(payment.created_at)}</p>
-                                                <p className="text-white/30 text-[11px]">{fmtTime(payment.created_at)}</p>
+                                            <td className="px-6 py-4">
+                                                <p className="text-slate-700 text-sm font-medium">{fmt(payment.created_at)}</p>
+                                                <p className="text-slate-500 text-xs">{fmtTime(payment.created_at)}</p>
                                             </td>
 
                                             {/* Action */}
-                                            <td className="px-5 py-4">
+                                            <td className="px-6 py-4 text-right">
                                                 <Link
                                                     href={`/admin/payments/${payment.id}`}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/0 hover:bg-primary/10 border border-white/0 hover:border-primary/30 text-white/40 hover:text-primary text-xs font-semibold transition-all group-hover:border-white/10"
+                                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
                                                 >
-                                                    <Eye className="w-3.5 h-3.5" />
+                                                    <Eye className="w-4 h-4" />
                                                     View
                                                 </Link>
                                             </td>
@@ -441,14 +436,14 @@ export default function PaymentsListPage() {
 
                 {/* Footer */}
                 {!loading && filtered.length > 0 && (
-                    <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
-                        <p className="text-xs text-white/30">
-                            Showing <span className="text-white/50 font-semibold">{filtered.length}</span> of{" "}
-                            <span className="text-white/50 font-semibold">{payments.length}</span> payments
+                    <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                        <p className="text-sm text-slate-600">
+                            Showing <span className="font-semibold text-slate-900">{filtered.length}</span> of{" "}
+                            <span className="font-semibold text-slate-900">{payments.length}</span> payments
                         </p>
-                        <div className="flex items-center gap-1.5">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400/60" />
-                            <span className="text-xs text-white/20">Transactions secured</span>
+                        <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200 text-xs font-medium">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Transactions secured</span>
                         </div>
                     </div>
                 )}

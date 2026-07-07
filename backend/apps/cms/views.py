@@ -351,7 +351,13 @@ class UploadView(APIView):
             # Generate absolute URL
             try:
                 relative_url = default_storage.url(path)
-                full_url = request.build_absolute_uri(relative_url)
+                # If the storage returns an absolute URL (Azure Blob Storage),
+                # use it directly — don't wrap with build_absolute_uri which
+                # would produce a malformed double-URL.
+                if relative_url.startswith('http://') or relative_url.startswith('https://'):
+                    full_url = relative_url
+                else:
+                    full_url = request.build_absolute_uri(relative_url)
             except Exception as url_error:
                 logger.error(f"URL generation error: {str(url_error)}")
                 # Even if URL generation fails, we can still return the path

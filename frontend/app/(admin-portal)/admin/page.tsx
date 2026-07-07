@@ -1,4 +1,4 @@
-﻿import { getDashboardStats } from "@/app/actions/admin";
+import { getDashboardStats } from "@/app/actions/admin";
 import { getMarketingStats } from "@/app/actions/marketing";
 import { getAdminSession, requirePermission } from "../../lib/admin-auth";
 import { redirect } from "next/navigation";
@@ -408,7 +408,7 @@ export default async function AdminDashboard() {
                                             £{booking.amount}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <StatusBadge status={booking.status} />
+                                            <StatusBadge status={booking.booking_status || booking.status} />
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Link href={booking.type === 'PARTY' ? `/admin/party-bookings/${booking.id}` : `/admin/bookings/${booking.id}`} className="text-slate-400 hover:text-blue-600 transition-all duration-200 inline-block hover:translate-x-1">

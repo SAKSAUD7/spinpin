@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Customer, Booking, Waiver, Transaction, BookingBlock, PartyBooking, SessionBookingHistory, PartyBookingHistory
@@ -814,6 +814,7 @@ class PublicSiteAlertViewSet(viewsets.ReadOnlyModelViewSet):
 
 # Custom function-based view for party booking creation (bypasses serializer bug)
 @api_view(['POST', 'GET'])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def create_party_booking_view(request):
     """Custom view to create party bookings without using ModelSerializer"""
@@ -1123,6 +1124,7 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def add_party_participants_view(request, uuid):
     """

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -123,7 +123,7 @@ export default function AdminWaivers() {
     const flattenedWaivers = useMemo(() => {
         return waivers.map((waiver: any) => ({
             ...waiver,
-            isPrimary: true,
+            isPrimary: waiver.isPrimarySigner !== undefined ? waiver.isPrimarySigner : true,
             uniqueId: waiver.id
         }));
     }, [waivers]);

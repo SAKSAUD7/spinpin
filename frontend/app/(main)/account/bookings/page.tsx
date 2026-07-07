@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, ArrowRight, LogOut, User, ChevronRight, Package2, History } from "lucide-react";
+import { Calendar, Clock, Users, ArrowRight, LogOut, User, ChevronRight, Package2, History, CreditCard, AlertCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useAccount } from "@/state/account/AccountContext";
+import { createPaymentOrder } from "@/app/actions/payment";
 
 interface Booking {
     id: number;
@@ -35,6 +36,25 @@ export default function AccountBookingsPage() {
     const router = useRouter();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
+    const fetchBookings = () => {
+        if (authLoading || !token) return;
+        setLoading(true);
+        setFetchError(null);
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+        fetch(`${API}/bookings/customer-auth/my-bookings/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Server error: ${r.status}`)))
+            .then(data => setBookings(data.bookings || []))
+            .catch((err) => {
+                console.error('[Account] Failed to load bookings:', err);
+                setFetchError("Could not load your bookings. Please check your connection and try again.");
+                setBookings([]);
+            })
+            .finally(() => setLoading(false));
+    };
 
     useEffect(() => {
         if (!authLoading && !customer) {
@@ -43,16 +63,8 @@ export default function AccountBookingsPage() {
     }, [authLoading, customer, router]);
 
     useEffect(() => {
-        if (authLoading || !token) return;
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-        fetch(`${API}/bookings/customer-auth/my-bookings/`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(r => r.ok ? r.json() : { bookings: [] })
-            .then(data => setBookings(data.bookings || []))
-            .catch(() => setBookings([]))
-            .finally(() => setLoading(false));
-    }, [token]);
+        fetchBookings();
+    }, [token, authLoading]);
 
     if (authLoading || !customer) {
         return (
@@ -122,7 +134,22 @@ export default function AccountBookingsPage() {
 
                 {/* Upcoming Bookings */}
                 {loading ? (
-                    <div className="text-center py-10 text-white/40">Loading your bookings...</div>
+                    <div className="text-center py-10 text-white/40">
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                        Loading your bookings...
+                    </div>
+                ) : fetchError ? (
+                    <div className="text-center py-16">
+                        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                        <p className="text-white/60 font-semibold mb-2">Could not load bookings</p>
+                        <p className="text-white/30 text-sm mb-6">{fetchError}</p>
+                        <button
+                            onClick={fetchBookings}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl hover:bg-white/15 transition-all mx-auto"
+                        >
+                            <RefreshCw className="w-4 h-4" /> Try Again
+                        </button>
+                    </div>
                 ) : (
                     <>
                         {upcoming.length > 0 && (
@@ -168,14 +195,38 @@ export default function AccountBookingsPage() {
     );
 }
 
+
 function BookingCard({ booking, formattedDate }: { booking: Booking; formattedDate: (d: string) => string }) {
     const statusStyle = STATUS_STYLES[booking.status] || "bg-white/10 text-white/60 border-white/10";
+    const [paying, setPaying] = useState(false);
+    const router = useRouter();
+
+    const handleCompletePayment = async () => {
+        if (paying) return;
+        setPaying(true);
+        try {
+            const result = await createPaymentOrder({
+                booking_id: booking.id,
+                booking_type: booking.type === "SESSION" ? "session" : "party",
+                amount: booking.amount,
+            });
+            if (result.success && result.checkout_url) {
+                window.location.href = result.checkout_url;
+            } else {
+                alert(result.error || "Could not initiate payment. Please try again.");
+            }
+        } catch (e) {
+            alert("Payment error. Please try again.");
+        } finally {
+            setPaying(false);
+        }
+    };
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all"
+            className={`border rounded-2xl p-5 transition-all ${booking.status === "PENDING" ? "border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"}`}
         >
             <div className="flex items-start gap-4">
                 <div className="text-3xl flex-shrink-0">{booking.activity_emoji}</div>
@@ -183,7 +234,7 @@ function BookingCard({ booking, formattedDate }: { booking: Booking; formattedDa
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-white font-bold">{booking.package_name || booking.activity}</span>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${statusStyle}`}>
-                            {booking.status}
+                            {booking.status === "PENDING" ? "Payment Pending" : booking.status}
                         </span>
                     </div>
                     <div className="flex items-center gap-4 text-white/50 text-sm flex-wrap">
@@ -194,10 +245,24 @@ function BookingCard({ booking, formattedDate }: { booking: Booking; formattedDa
                     {booking.booking_number && (
                         <p className="text-white/30 text-xs mt-1">#{booking.booking_number}</p>
                     )}
+                    {/* PENDING payment CTA */}
+                    {booking.status === "PENDING" && (
+                        <div className="mt-3">
+                            <button
+                                onClick={handleCompletePayment}
+                                disabled={paying}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold text-xs rounded-xl hover:from-yellow-400 hover:to-orange-400 transition-all disabled:opacity-60 shadow-md"
+                            >
+                                <CreditCard className="w-3.5 h-3.5" />
+                                {paying ? "Processing..." : "Complete Payment"}
+                            </button>
+                            <p className="text-yellow-500/60 text-[10px] mt-1">Payment required to confirm your booking</p>
+                        </div>
+                    )}
                 </div>
                 <div className="text-right flex-shrink-0">
                     <div className="text-white font-black">£{booking.amount.toFixed(2)}</div>
-                    {booking.type === "SESSION" && booking.id && (
+                    {booking.type === "SESSION" && booking.id && booking.status !== "PENDING" && (
                         <Link href={`/booking/${booking.id}`} className="text-xs text-primary hover:text-primary/80 flex items-center gap-0.5 mt-1 justify-end">
                             View <ChevronRight className="w-3 h-3" />
                         </Link>

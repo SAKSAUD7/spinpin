@@ -90,7 +90,7 @@ export default function AllBookingsPage() {
         // Status filter
         if (statusFilter) {
             filtered = filtered.filter(booking =>
-                booking.booking_status?.toUpperCase() === statusFilter.toUpperCase()
+                (booking.booking_status || booking.status)?.toUpperCase() === statusFilter.toUpperCase()
             );
         }
 
@@ -253,7 +253,7 @@ export default function AllBookingsPage() {
                                             <p className="text-sm font-bold text-slate-900 mt-1">{formatCurrency(booking.amount)}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <StatusBadge status={booking.booking_status} />
+                                            <StatusBadge status={booking.booking_status || booking.status} />
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Link

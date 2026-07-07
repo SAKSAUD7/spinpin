@@ -36,9 +36,11 @@ export function Navbar({ settings }: { settings?: any }) {
                 const response = await fetch(`${apiUrl}/core/logos/active/`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.image_url) {
-                        setLogoUrl(data.image_url.startsWith('http') ? data.image_url : `${baseUrl}${data.image_url}`);
+                    if (data && data.image_url && typeof data.image_url === 'string' && data.image_url.trim() !== '') {
+                        const resolvedUrl = data.image_url.startsWith('http') ? data.image_url : `${baseUrl}${data.image_url}`;
+                        setLogoUrl(resolvedUrl);
                     }
+                    // If no valid image_url, keep the default '/spinpin-logo.png'
                 }
             } catch { }
         };
@@ -82,6 +84,12 @@ export function Navbar({ settings }: { settings?: any }) {
                         alt="Spin Pin"
                         className="h-10 md:h-12 w-auto object-contain transition-transform duration-300 hover:scale-105"
                         style={{ background: 'transparent' }}
+                        onError={(e) => {
+                            // Fall back to default logo if the fetched URL fails to load
+                            if (e.currentTarget.src !== '/spinpin-logo.png') {
+                                e.currentTarget.src = '/spinpin-logo.png';
+                            }
+                        }}
                     />
                 </Link>
 
