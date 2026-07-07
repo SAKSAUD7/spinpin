@@ -1,9 +1,16 @@
-﻿import React from 'react';
+import React from 'react';
 import { getPageSections } from '@/app/actions/page-sections';
 import { getGuidelineCategories } from '@/app/actions/guideline-categories';
 import { getLegalDocuments } from '@/app/actions/legal-documents';
 import { getFaqs } from '@/app/actions/faqs';
 import GuidelinesContent from "./components/GuidelinesContent";
+import { getMetadata } from "@/seo/seo.config";
+
+export const metadata = getMetadata(
+    "Roller Skating Guidelines | Information",
+    "Spin Pin is Leicester's go-to destination for fun and entertainment, offering rollerskating, bowling, party bookings and more.",
+    true
+);
 
 export default async function GuidelinesPage() {
     // Fetch all data in parallel

@@ -1,8 +1,16 @@
-﻿import React from 'react';
+import React from 'react';
 import PricingContent from "./components/PricingContent";
 import { getPricingPlans } from "../../actions/pricing-plans";
 import { getSettings } from "../../actions/settings";
 import { getPublicPageSections, getPublicPricingCarouselImages } from "@/lib/public-api";
+
+import { getMetadata } from "@/seo/seo.config";
+
+export const metadata = getMetadata(
+    "Our Prices | Information",
+    "Spin Pin is Leicester's go-to destination for fun and entertainment, offering rollerskating, bowling, party bookings and more. CALL US: 07349110865.",
+    true
+);
 
 export default async function Pricing() {
     const [

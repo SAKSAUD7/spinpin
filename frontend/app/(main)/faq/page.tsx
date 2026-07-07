@@ -1,7 +1,14 @@
-﻿import React from 'react';
+import React from 'react';
 import { getFaqs } from '@/app/actions/faqs';
 import FAQContent from './FAQContent';
 import { getPageSections } from '@/app/actions/page-sections';
+import { getMetadata } from "@/seo/seo.config";
+
+export const metadata = getMetadata(
+    "FAQs | Frequently Asked Questions",
+    "Spin Pin is Leicester's go-to destination for fun and entertainment, offering rollerskating, bowling, party bookings and more.",
+    true
+);
 
 export default async function FAQPage() {
     const [faqs, sections] = await Promise.all([

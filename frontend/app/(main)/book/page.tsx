@@ -2,6 +2,13 @@ import { BookingWizard } from "../../../components/BookingWizard";
 import { createBooking } from "../../actions/createBooking";
 import { getPageSections } from "../../actions/page-sections";
 import { getBookingInformation } from "../../actions/booking-information";
+import { getMetadata } from "@/seo/seo.config";
+
+export const metadata = getMetadata(
+    "Spin Pin Session Booking",
+    "CALL US: 07349110865. Open to all ages and ability - Thursday 3 pm to 8 pm Friday 3 pm to 8 pm Saturday and Sunday 12 pm to 8 pm",
+    true
+);
 
 export default async function BookingPage() {
     const cmsContent = await getPageSections('booking-session');

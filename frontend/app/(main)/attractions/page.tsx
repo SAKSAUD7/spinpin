@@ -1,9 +1,16 @@
-﻿import React from 'react';
+import React from 'react';
 import AttractionsContent from "./components/AttractionsContent";
 import { getActivities } from "../../actions/activities";
 import { getFacilityItems } from "../../actions/facility-items";
 import { getPageSections } from "../../actions/page-sections";
 import { getAttractionVideo } from "../../actions/attraction-video";
+import { getMetadata } from "@/seo/seo.config";
+
+export const metadata = getMetadata(
+    "Ten Pin Bowling, Roller Skating & Arcade Games Leicester",
+    "Enjoy ten pin bowling, Leicester's first roller skating rink, and the best arcade games at Spin Pin Leicester! Play on top lanes, compete with friends, and experience the best entertainment in Leicester city centre.",
+    true
+);
 
 export default async function AttractionsPage() {
     const [

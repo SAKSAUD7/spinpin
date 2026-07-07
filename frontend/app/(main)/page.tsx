@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import HomeContent from "./components/HomeContent";
 import {
     getPublicBanners,
@@ -11,10 +11,7 @@ import {
 } from "@/lib/public-api";
 
 
-export const metadata = {
-    title: "Spin Pin - Bowling, Roller Skating & Arcade in Leicester",
-    description: "Experience the ultimate fun at Spin Pin Leicester! Enjoy ten pin bowling, roller skating on Leicester's first roller rink, and exciting arcade games. Perfect for birthday parties, family entertainment, and group events.",
-};
+
 
 export default async function Home() {
     // Fetch all data in parallel using public APIs

@@ -81,8 +81,8 @@ export const SEO_KEYWORDS = [
 
 export const SEO_CONFIG = {
   siteName: "Spin Pin",
-  title: "Spin Pin | Bowling, Roller Skating & Arcade in Leicester",
-  description: "Experience the ultimate fun at Spin Pin Leicester! Enjoy ten pin bowling, roller skating on Leicester's first roller rink, and exciting arcade games. Perfect for birthday parties, family entertainment, and group events. Book your session now!",
+  title: "Spin Pin: Skating, Bowling & Arcade Fun – All in One Place",
+  description: "Experience fun for all ages at Spin Pin in Leicester. Your go-to destination for rollerskating, arcade games, bowling, and VR.",
   baseUrl: "https://www.spinpin.uk",
   keywords: SEO_KEYWORDS,
   openGraph: {
@@ -104,10 +104,11 @@ export const SEO_CONFIG = {
 export function getMetadata(
   title?: string,
   description?: string,
+  exactTitle: boolean = false,
   icons?: Metadata['icons']
 ): Metadata {
   const metaTitle = title
-    ? `${title} | ${SEO_CONFIG.siteName}`
+    ? (exactTitle ? title : `${title} | ${SEO_CONFIG.siteName}`)
     : SEO_CONFIG.title;
 
   const metaDescription = description || SEO_CONFIG.description;

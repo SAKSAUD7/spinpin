@@ -1,8 +1,15 @@
-﻿import React from 'react';
+import React from 'react';
 import ContactContent from "./components/ContactContent";
 import { getSettings } from "../../actions/settings";
 import { siteConfig } from "@repo/config";
 import { getPageSections } from "../../actions/page-sections";
+import { getMetadata } from "@/seo/seo.config";
+
+export const metadata = getMetadata(
+    "Contact Us",
+    "Spin Pin is Leicester's go-to destination for fun and entertainment, offering rollerskating, bowling, party bookings and more. CALL US: 07349110865 EMAIL us today.",
+    true
+);
 
 export default async function ContactPage() {
     const [settings, sections] = await Promise.all([

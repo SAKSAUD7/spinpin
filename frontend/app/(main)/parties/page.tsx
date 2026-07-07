@@ -1,11 +1,17 @@
-﻿import React from 'react';
+import React from 'react';
 import PartyContent from "./components/PartyContent";
 import { getPartyPackages } from "../../actions/party-packages";
 import { getMenuSections } from "../../actions/menu-sections";
 import { getPageSections } from "../../actions/page-sections";
 import { getSettings } from "../../actions/settings";
 import { getGalleryItems } from "../../actions/gallery";
+import { getMetadata } from "@/seo/seo.config";
 
+export const metadata = getMetadata(
+    "Spin Pin Party Booking",
+    "Book your ultimate birthday party or group event at Spin Pin Leicester. We offer amazing packages including entry for 10 participants, food, drinks, and dedicated party hosts.",
+    true
+);
 
 export default async function Parties() {
     // Fetch data
