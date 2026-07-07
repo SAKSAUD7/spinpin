@@ -266,24 +266,25 @@ function BookingCard({
         }
     };
 
+    const isPendingPayment = booking.payment_status === "PENDING" || booking.status === "PENDING" || booking.booking_status === "PENDING";
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`border rounded-2xl p-5 transition-all ${booking.status === "PENDING" ? "border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"}`}
+            className={`border rounded-2xl p-5 transition-all ${isPendingPayment ? "border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-500/50" : "bg-white/5 border-white/10 hover:border-white/20"}`}
         >
             <div className="flex items-start gap-4">
                 <div className="text-3xl flex-shrink-0">{booking.activity_emoji}</div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-white font-bold">{booking.package_name || booking.activity}</span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${statusStyle}`}>
-                            {booking.status === "PENDING" ? "Payment Pending"
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${isPendingPayment ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30" : statusStyle}`}>
+                            {isPendingPayment ? "Payment Pending"
                             : booking.status === "DEPOSIT_PAID" ? "Deposit Paid"
                             : booking.status === "PARTIALLY_PAID" ? "Partially Paid"
                             : booking.status === "FULLY_PAID" ? "Fully Paid"
                             : booking.status === "RESCHEDULED" ? "Rescheduled"
-                            : booking.status === "PENDING_PAYMENT" ? "Payment Pending"
                             : booking.status}
                         </span>
                     </div>
@@ -296,7 +297,7 @@ function BookingCard({
                         <p className="text-white/30 text-xs mt-1">#{booking.booking_number}</p>
                     )}
                     {/* PENDING payment CTA */}
-                    {booking.status === "PENDING" && (
+                    {isPendingPayment && (
                         <div className="mt-3">
                             <button
                                 onClick={handleCompletePayment}

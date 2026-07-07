@@ -186,7 +186,7 @@ export function CustomerBookingModal({
                                 <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="font-bold text-white/80">Booking Details</h3>
-                                        {(booking.status === 'PENDING' || booking.booking_status === 'PENDING') && (
+                                        {(booking.payment_status === 'PENDING' || booking.status === 'PENDING' || booking.booking_status === 'PENDING') && (
                                             <button 
                                                 onClick={() => isEditing ? handleUpdateBooking() : setIsEditing(true)}
                                                 disabled={saving}
@@ -226,15 +226,15 @@ export function CustomerBookingModal({
                                         </div>
                                         <div>
                                             <p className="text-white/40 text-xs font-bold uppercase mb-1">Status</p>
-                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${booking.status === 'PENDING' || booking.booking_status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : booking.status === 'CANCELLED' || booking.booking_status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
-                                                {booking.status === 'PENDING' || booking.booking_status === 'PENDING' ? 'Payment Pending' : (booking.status || booking.booking_status)}
+                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${booking.payment_status === 'PENDING' || booking.status === 'PENDING' || booking.booking_status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : booking.status === 'CANCELLED' || booking.booking_status === 'CANCELLED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+                                                {booking.payment_status === 'PENDING' || booking.status === 'PENDING' || booking.booking_status === 'PENDING' ? 'Payment Pending' : (booking.status || booking.booking_status)}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 {/* Complete Payment CTA for Pending Bookings */}
-                                {(booking.status === 'PENDING' || booking.booking_status === 'PENDING') && !isEditing && (
+                                {(booking.payment_status === 'PENDING' || booking.status === 'PENDING' || booking.booking_status === 'PENDING') && !isEditing && (
                                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 mt-6">
                                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                                             <div>
@@ -351,7 +351,7 @@ export function CustomerBookingModal({
                                 )}
                                 
                                 {/* Session Specific: Ticket Info */}
-                                {bookingType === "SESSION" && (
+                                {bookingType === "SESSION" && booking.payment_status !== 'PENDING' && booking.status !== 'PENDING' && booking.booking_status !== 'PENDING' && (
                                     <div className="bg-white/5 rounded-2xl p-8 border border-white/10 text-center">
                                         <div className="text-6xl mb-4 text-primary">🎟️</div>
                                         <h3 className="text-xl font-bold text-white mb-2">Digital Ticket</h3>
