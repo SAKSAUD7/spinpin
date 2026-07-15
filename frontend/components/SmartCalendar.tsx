@@ -91,7 +91,7 @@ export function SmartCalendar({ value, onChange, bookingBlocks = [], minDate, ma
 
     const todayStr = toYMD(today.getFullYear(), today.getMonth(), today.getDate());
     const minStr = minDate || todayStr;
-    const maxStr = maxDate || toYMD(today.getFullYear(), today.getMonth() + 3, today.getDate());
+    const maxStr = maxDate || toYMD(today.getFullYear(), today.getMonth() + 12, today.getDate());
 
     // Build grid
     const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
@@ -153,7 +153,7 @@ export function SmartCalendar({ value, onChange, bookingBlocks = [], minDate, ma
                     if (isPast || isFuture) {
                         return (
                             <div key={dateStr}
-                                className="h-9 flex items-center justify-center text-xs text-white/15 rounded-lg">
+                                className="h-9 flex items-center justify-center text-xs text-white/30 rounded-lg cursor-not-allowed">
                                 {parseInt(dateStr.split("-")[2])}
                             </div>
                         );
