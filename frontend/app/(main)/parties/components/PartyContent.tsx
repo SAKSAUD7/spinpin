@@ -73,86 +73,6 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
             {/* Timing Cards — below hero */}
             <TimingCardsClient />
 
-            {/* Official Party Package */}
-            <section className="relative px-4 py-12 bg-background">
-                <div className="max-w-4xl mx-auto">
-                    <ScrollReveal animation="slideUp">
-                        <div className="text-center mb-10">
-                            <h2 className="text-3xl md:text-4xl font-display font-black mb-4">
-                                Our £250 Party Package
-                            </h2>
-                            <p className="text-lg text-white/70 max-w-2xl mx-auto">
-                                Looking for a fun way to celebrate? Our £250 Party Package is the perfect choice for UNDER 14s. 
-                                This package includes everything you need for a great time: 2 hours of play and party time, roller skate rentals, a dedicated party area, and much more!
-                            </p>
-                        </div>
-                    </ScrollReveal>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Package Includes */}
-                        <ScrollReveal animation="slideUp" delay={0.1}>
-                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-primary">
-                                <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-primary">
-                                    <PartyPopper className="w-6 h-6" />
-                                    Package Includes
-                                </h3>
-                                <ul className="space-y-3 text-white/80">
-                                    {[
-                                        "Entry for 10 participants (Under 14s)",
-                                        "Entry for 10 spectators (Non Skaters)",
-                                        "Each additional participant £19.95",
-                                        "Each additional spectator £2.95",
-                                        "Free roller skate hire for paid participants",
-                                        "75 Minutes of roller skating",
-                                        "45 Minutes use of Party Room",
-                                        "Party Food & unlimited squash",
-                                        "Online Party Invitations",
-                                        "Discount for other activities on the day (Bowling, VR, Pool Tables, etc.)"
-                                    ].map((item, idx) => (
-                                        <li key={idx} className="flex gap-2 items-start">
-                                            <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </ScrollReveal>
-
-                        {/* Party Feast Includes */}
-                        <ScrollReveal animation="slideUp" delay={0.2}>
-                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-secondary h-full flex flex-col">
-                                <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-secondary">
-                                    <Utensils className="w-6 h-6" />
-                                    Party Feast Includes
-                                </h3>
-                                <p className="text-white/80 mb-6 flex-1">
-                                    Our delicious party feast features a full spread of kids' favorites including pizza, chicken nuggets, and more! 
-                                </p>
-                                <button 
-                                    onClick={() => setIsMenuOpen(true)}
-                                    className="w-full py-3 bg-secondary/20 hover:bg-secondary/30 border border-secondary text-secondary font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Eye className="w-5 h-5" />
-                                    View Full Menu
-                                </button>
-                                <div className="mt-4 pt-4 border-t border-white/10 text-sm font-bold text-accent text-center">
-                                    We cater Vegetarian and Halal food options.
-                                </div>
-                            </div>
-                        </ScrollReveal>
-                    </div>
-
-                    <div className="mt-10 flex justify-center">
-                        <Link href="/party-booking" className="w-full md:w-auto">
-                            <BouncyButton size="lg" variant="primary" className="w-full">
-                                <PartyPopper className="w-5 h-5 mr-2" />
-                                Book Your Party
-                            </BouncyButton>
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
             {/* Party Package Category Cards */}
             <section className="relative px-4 py-14 bg-background-light">
                 <div className="max-w-6xl mx-auto">
@@ -279,6 +199,86 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                     <p className="text-center text-white/40 text-sm mt-6">
                         All packages start at £250. Extra participants £19.95 each. Extra spectators £2.95 each.
                     </p>
+                </div>
+            </section>
+
+            {/* Official Party Package */}
+            <section className="relative px-4 py-12 bg-background">
+                <div className="max-w-4xl mx-auto">
+                    <ScrollReveal animation="slideUp">
+                        <div className="text-center mb-10">
+                            <h2 className="text-3xl md:text-4xl font-display font-black mb-4">
+                                Our £250 Party Package
+                            </h2>
+                            <p className="text-lg text-white/70 max-w-2xl mx-auto">
+                                Looking for a fun way to celebrate? Our £250 Party Package is the perfect choice for UNDER 14s. 
+                                This package includes everything you need for a great time: 2 hours of play and party time, roller skate rentals, a dedicated party area, and much more!
+                            </p>
+                        </div>
+                    </ScrollReveal>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Package Includes */}
+                        <ScrollReveal animation="slideUp" delay={0.1}>
+                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-primary">
+                                <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-primary">
+                                    <PartyPopper className="w-6 h-6" />
+                                    Package Includes
+                                </h3>
+                                <ul className="space-y-3 text-white/80">
+                                    {[
+                                        "Entry for 10 participants (Under 14s)",
+                                        "Entry for 10 spectators (Non Skaters)",
+                                        "Each additional participant £19.95",
+                                        "Each additional spectator £2.95",
+                                        "Free roller skate hire for paid participants",
+                                        "75 Minutes of roller skating",
+                                        "45 Minutes use of Party Room",
+                                        "Party Food & unlimited squash",
+                                        "Online Party Invitations",
+                                        "Discount for other activities on the day (Bowling, VR, Pool Tables, etc.)"
+                                    ].map((item, idx) => (
+                                        <li key={idx} className="flex gap-2 items-start">
+                                            <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </ScrollReveal>
+
+                        {/* Party Feast Includes */}
+                        <ScrollReveal animation="slideUp" delay={0.2}>
+                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-secondary h-full flex flex-col">
+                                <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-secondary">
+                                    <Utensils className="w-6 h-6" />
+                                    Party Feast Includes
+                                </h3>
+                                <p className="text-white/80 mb-6 flex-1">
+                                    Our delicious party feast features a full spread of kids' favorites including pizza, chicken nuggets, and more! 
+                                </p>
+                                <button 
+                                    onClick={() => setIsMenuOpen(true)}
+                                    className="w-full py-3 bg-secondary/20 hover:bg-secondary/30 border border-secondary text-secondary font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Eye className="w-5 h-5" />
+                                    View Full Menu
+                                </button>
+                                <div className="mt-4 pt-4 border-t border-white/10 text-sm font-bold text-accent text-center">
+                                    We cater Vegetarian and Halal food options.
+                                </div>
+                            </div>
+                        </ScrollReveal>
+                    </div>
+
+                    <div className="mt-10 flex justify-center">
+                        <Link href="/party-booking" className="w-full md:w-auto">
+                            <BouncyButton size="lg" variant="primary" className="w-full">
+                                <PartyPopper className="w-5 h-5 mr-2" />
+                                Book Your Party
+                            </BouncyButton>
+                        </Link>
+                    </div>
                 </div>
             </section>
 
