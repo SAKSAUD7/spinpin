@@ -54,11 +54,11 @@ export const Navbar = () => {
                         {/* Contact Info */}
                         <div className="flex items-center space-x-4 pl-4 border-l-2 border-white/20">
                             <a
-                                href="tel:+919876543210"
+                                href="tel:07349110865"
                                 className="flex items-center space-x-2 text-white/80 hover:text-secondary transition-colors"
                             >
                                 <Phone className="w-4 h-4" />
-                                <span className="font-bold text-sm">98765 43210</span>
+                                <span className="font-bold text-sm">07349110865</span>
                             </a>
                         </div>
 
@@ -89,7 +89,7 @@ export const Navbar = () => {
 
                     {/* Mobile Menu Button */}
                     <div className="lg:hidden flex items-center space-x-4">
-                        <a href="tel:+919876543210" className="text-primary">
+                        <a href="tel:07349110865" className="text-primary">
                             <Phone className="w-5 h-5" />
                         </a>
                         <button

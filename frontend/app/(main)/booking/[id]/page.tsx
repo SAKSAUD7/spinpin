@@ -312,8 +312,8 @@ export default function BookingConfirmationPage() {
                 <div className="text-center text-white/60 text-sm space-y-2">
                     <p>Questions? Contact us:</p>
                     <div className="flex justify-center gap-6">
-                        <a href="tel:01162020101" className="flex items-center gap-1.5 hover:text-white transition-colors">
-                            <Phone className="w-4 h-4" /> 0116 202 0101
+                        <a href="tel:07349110865" className="flex items-center gap-1.5 hover:text-white transition-colors">
+                            <Phone className="w-4 h-4" /> 07349110865
                         </a>
                         <a href="mailto:info@spinpin.co.uk" className="flex items-center gap-1.5 hover:text-white transition-colors">
                             <Mail className="w-4 h-4" /> info@spinpin.co.uk
