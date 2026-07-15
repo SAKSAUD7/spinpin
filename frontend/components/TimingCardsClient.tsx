@@ -58,7 +58,7 @@ export function TimingCardsClient() {
     });
 
     return (
-        <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-y border-white/10 py-3 px-3">
+        <div className="relative z-20 w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-y border-white/10 py-3 px-3">
             <div className="max-w-7xl mx-auto">
                 {/* Mobile-scrollable row */}
                 <div className="overflow-x-auto scrollbar-hide">
