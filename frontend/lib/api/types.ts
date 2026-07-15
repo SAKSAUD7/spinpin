@@ -21,7 +21,7 @@ const SCHOOL_HOLIDAY_RANGES: Array<[string, string]> = [
     ["2027-02-15", "2027-02-19"], // Spring half-term (Feb 15 - 19)
     ["2027-03-22", "2027-04-02"], // Easter holidays (Mar 22 - Apr 2)
     ["2027-05-31", "2027-06-04"], // Summer half-term
-    ["2027-07-22", "2027-08-31"], // Summer holiday 2027
+    ["2027-07-12", "2027-08-20"], // Summer holiday 2027 (Starts July 12)
 ];
 
 // ─── UK Public Holidays (Red dates on LCC calendar) ──────────────────────────
