@@ -161,15 +161,20 @@ class SumUpGateway(BasePaymentGateway):
             f"&reference={reference}"
         )
 
+        import os
+        webhook_base = f"https://{os.environ.get('WEBSITE_HOSTNAME')}" if os.environ.get('WEBSITE_HOSTNAME') else "https://spinpin-backend-cfgcejczfpgyabd7.centralus-01.azurewebsites.net"
+        webhook_url = f"{webhook_base}/api/v1/payments/sumup-webhook/"
+
         payload = {
             "checkout_reference": reference,
             "amount":            float(amount),
             "currency":          "GBP",
             "merchant_code":     merchant_code,
             "description":       description,
+            "return_url":        webhook_url, # Webhook sent here
             "hosted_checkout": {
                 "enabled": True,
-                "redirect_url": return_url_str
+                "redirect_url": return_url_str # User redirected here
             }
         }
 
