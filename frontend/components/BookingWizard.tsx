@@ -54,7 +54,7 @@ const ACTIVITIES = [
 
         description: "Glide around our spectacular indoor roller skating rink in the heart of Leicester city centre. Perfect for all ages and groups.",
 
-        highlights: ["60-min session (extendable)", "Skate hire available \u00A32.95", "All levels welcome", "Music & disco lighting"],
+        highlights: ["90-min session", "Skate hire available \u00A32.95", "All levels welcome", "Music & disco lighting"],
 
         color: "from-pink-500 to-rose-600",
 
@@ -1209,25 +1209,6 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                                         <AlertCircle className="w-3 h-3" /> We are closed on Mondays — please pick another date.
 
                                                     </p>
-
-                                                );
-
-                                            }
-
-                                            // School / public holiday banner for other weekdays
-                                            const isWeekday = dow >= 2 && dow <= 5;
-
-                                            if (isWeekday && isHoliday) {
-
-                                                return (
-
-                                                    <div className="flex items-start gap-2.5 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-300 text-sm">
-
-                                                        <School className="w-4 h-4 mt-0.5 flex-shrink-0" />
-
-                                                        <span><strong>School holiday!</strong> We're open today 🎉 Book from <strong>12:00 PM</strong>. Perfect for families!</span>
-
-                                                    </div>
 
                                                 );
 

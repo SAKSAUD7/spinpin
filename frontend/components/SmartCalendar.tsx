@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { isSchoolHoliday } from "@/lib/api/types";
+import { isSchoolHoliday, isHolidayOpen } from "@/lib/api/types";
 import type { BookingBlock } from "@/lib/api/booking-blocks";
 
 interface SmartCalendarProps {
@@ -28,21 +28,21 @@ function getDayType(
     const date = new Date(dateStr + "T12:00:00");
     const dow = date.getDay(); // 0=Sun,1=Mon,...6=Sat
 
-    // Monday always closed
-    if (dow === 1) return "closed";
-
-    // Check booking blocks
+    // Check booking blocks first (manual closures override everything)
     for (const block of bookingBlocks) {
         const start = block.start_date.split("T")[0];
         const end = block.end_date.split("T")[0];
         if (dateStr >= start && dateStr <= end) return "blocked";
     }
 
+    // Monday: CLOSED unless it's a school holiday or public holiday
+    if (dow === 1 && !isHolidayOpen(dateStr)) return "closed";
+
     // Weekend
     if (dow === 0 || dow === 6) return "weekend";
 
-    // School holiday weekday
-    if (isSchoolHoliday(dateStr)) return "school-holiday";
+    // School holiday weekday (incl. holiday Mondays)
+    if (isHolidayOpen(dateStr)) return "school-holiday";
 
     return "normal";
 }
@@ -70,7 +70,7 @@ const TYPE_STYLES: Record<string, { cell: string; dot: string; label: string }> 
     "school-holiday": {
         cell: "hover:bg-emerald-500/20 cursor-pointer",
         dot: "bg-emerald-400",
-        label: "Extended hours",
+        label: "Open (12pm+)",
     },
     weekend: {
         cell: "hover:bg-primary/20 cursor-pointer",
@@ -185,8 +185,8 @@ export function SmartCalendar({ value, onChange, bookingBlocks = [], minDate, ma
             <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
                 {[
                     { dot: "bg-red-500", label: "Closed" },
-                    { dot: "bg-yellow-400", label: "Term-time (2pm+)" },
-                    { dot: "bg-emerald-400", label: "School holiday (10am+)" },
+                    { dot: "bg-yellow-400", label: "Term-time (12pm+)" },
+                    { dot: "bg-emerald-400", label: "School holiday (12pm+)" },
                     { dot: "bg-primary", label: "Weekend (12pm+)" },
                 ].map(l => (
                     <div key={l.label} className="flex items-center gap-1">

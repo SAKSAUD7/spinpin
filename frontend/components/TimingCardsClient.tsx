@@ -1,61 +1,61 @@
 "use client";
 
 /**
- * TimingCardsClient
+ * TimingCardsClient — Dynamic Opening Hours Bar
  *
- * Client-side version of TimingCards that fetches its own data via useEffect.
- * Use this inside client components (e.g. HomeContent, PartyContent) so the
- * timing bar can be injected directly below the hero section.
+ * Computes the schedule from the same holiday logic used in the booking wizard.
+ * No backend CMS required — stays automatically in sync with the booking calendar.
+ *
+ * Rules:
+ *   Mon–Sun (exc. Mon): 12:00 – 22:00
+ *   Saturday:           12:00 – 23:00
+ *   Monday:             CLOSED — unless today is a school holiday or public holiday → 12:00 – 22:00
  */
 
-import { useEffect, useState } from "react";
-import { Clock, Sun, Moon, Calendar, Timer, AlarmClock } from "lucide-react";
+import { Clock } from "lucide-react";
+import { isHolidayOpen } from "../lib/api/types";
 
-const iconMap: Record<string, React.ElementType> = {
-    Clock,
-    Sun,
-    Moon,
-    Calendar,
-    Timer,
-    AlarmClock,
-};
+// Standard weekly schedule (index = day-of-week: 0=Sun ... 6=Sat)
+// Display order: Mon → Tue → Wed → Thu → Fri → Sat → Sun
+const WEEKLY_SCHEDULE = [
+    { dow: 1, label: "Monday",    open: null,    close: null    }, // CLOSED unless holiday
+    { dow: 2, label: "Tuesday",   open: "12:00", close: "22:00" },
+    { dow: 3, label: "Wednesday", open: "12:00", close: "22:00" },
+    { dow: 4, label: "Thursday",  open: "12:00", close: "22:00" },
+    { dow: 5, label: "Friday",    open: "12:00", close: "22:00" },
+    { dow: 6, label: "Saturday",  open: "12:00", close: "23:00" },
+    { dow: 0, label: "Sunday",    open: "12:00", close: "22:00" },
+];
 
-const colorMap: Record<string, { border: string; iconBg: string; iconText: string; badge: string }> = {
-    primary: {
-        border: "border-blue-400/40",
-        iconBg: "bg-blue-500/20",
-        iconText: "text-blue-300",
-        badge: "bg-blue-500/20 text-blue-200",
-    },
-    secondary: {
-        border: "border-purple-400/40",
-        iconBg: "bg-purple-500/20",
-        iconText: "text-purple-300",
-        badge: "bg-purple-500/20 text-purple-200",
-    },
-    accent: {
-        border: "border-yellow-400/40",
-        iconBg: "bg-yellow-500/20",
-        iconText: "text-yellow-300",
-        badge: "bg-yellow-500/20 text-yellow-200",
-    },
-};
+function getLocalDateString(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
 
 export function TimingCardsClient() {
-    const [cards, setCards] = useState<any[]>([]);
+    const today = getLocalDateString();
+    const todayDow = new Date().getDay();
 
-    useEffect(() => {
-        fetch('/api/timing-cards')
-            .then((r) => r.json())
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    setCards(data.filter((c: any) => c.active));
-                }
-            })
-            .catch(() => {/* silently fail */ });
-    }, []);
+    // Is Monday a holiday today? If so, override Monday to open.
+    const mondayHolidayToday = todayDow === 1 && isHolidayOpen(today);
 
-    if (cards.length === 0) return null;
+    const cards = WEEKLY_SCHEDULE.map((day) => {
+        const isToday = day.dow === todayDow;
+        const isMonday = day.dow === 1;
+
+        // Monday: open only if today AND it's a holiday
+        const open = isMonday
+            ? (isToday && mondayHolidayToday ? "12:00" : null)
+            : day.open;
+        const close = isMonday
+            ? (isToday && mondayHolidayToday ? "22:00" : null)
+            : day.close;
+
+        return { ...day, open, close, isToday, isHolidayOverride: isMonday && isToday && mondayHolidayToday };
+    });
 
     return (
         <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-y border-white/10 py-3 px-3">
@@ -63,6 +63,7 @@ export function TimingCardsClient() {
                 {/* Mobile-scrollable row */}
                 <div className="overflow-x-auto scrollbar-hide">
                     <div className="flex items-center gap-2 md:gap-4 min-w-max md:min-w-0 md:flex-wrap md:justify-center px-1">
+
                         {/* Label */}
                         <div className="flex items-center gap-1.5 text-white/60 text-xs font-semibold uppercase tracking-widest shrink-0">
                             <Clock className="w-3.5 h-3.5" />
@@ -72,36 +73,42 @@ export function TimingCardsClient() {
 
                         <div className="w-px h-4 bg-white/20 shrink-0" />
 
-                        {/* Cards */}
-                        {cards.map((card: any) => {
-                            const IconComp = iconMap[card.icon] || Clock;
-                            const colors = colorMap[card.color] || colorMap.primary;
+                        {/* Day cards */}
+                        {cards.map((card) => {
+                            const isClosed = !card.open;
+
+                            const cardBorder = card.isToday
+                                ? isClosed
+                                    ? "border-red-500/50 bg-red-500/10"
+                                    : "border-primary/60 bg-primary/10"
+                                : "border-white/10 bg-white/5";
+
+                            const labelClass = card.isToday ? "text-white font-bold" : "text-white/70 font-semibold";
+
+                            const badgeClass = isClosed
+                                ? "bg-red-500/20 text-red-300"
+                                : card.isToday
+                                    ? "bg-primary/30 text-primary font-black"
+                                    : "bg-white/10 text-white/60 font-bold";
+
                             return (
                                 <div
-                                    key={card.id}
-                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${colors.border} bg-white/5 backdrop-blur-sm shrink-0`}
+                                    key={card.dow}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${cardBorder} backdrop-blur-sm shrink-0 transition-all`}
                                 >
-                                    <div className={`p-1 rounded-full ${colors.iconBg}`}>
-                                        <IconComp className={`w-3 h-3 ${colors.iconText}`} />
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-white/80 text-xs font-semibold whitespace-nowrap">
-                                            {card.day_label}
-                                        </span>
-                                        {card.open_time !== "CLOSED" && (
-                                            <>
-                                                <span className="text-white/40 text-xs">·</span>
-                                                <span className={`text-xs font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${colors.badge}`}>
-                                                    {card.open_time}{card.close_time ? ` – ${card.close_time}` : ""}
-                                                </span>
-                                            </>
+                                    <span className={`text-xs whitespace-nowrap ${labelClass}`}>
+                                        {card.label}
+                                        {card.isToday && (
+                                            <span className="ml-1 text-[9px] opacity-50 font-normal">(today)</span>
                                         )}
-                                        {card.open_time === "CLOSED" && (
-                                            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 whitespace-nowrap">
-                                                CLOSED
-                                            </span>
+                                        {card.isHolidayOverride && (
+                                            <span className="ml-1 text-[9px] text-emerald-400 font-bold">HOLIDAY</span>
                                         )}
-                                    </div>
+                                    </span>
+
+                                    <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${badgeClass}`}>
+                                        {isClosed ? "CLOSED" : `${card.open} – ${card.close}`}
+                                    </span>
                                 </div>
                             );
                         })}
