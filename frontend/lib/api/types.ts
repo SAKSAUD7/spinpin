@@ -14,12 +14,12 @@ const SCHOOL_HOLIDAY_RANGES: Array<[string, string]> = [
     ["2026-02-16", "2026-02-20"], // Spring half-term
     ["2026-03-30", "2026-04-10"], // Easter holidays
     ["2026-05-25", "2026-05-29"], // Summer half-term
-    // 2026-27 council year (from official LCC 2026-27 PDF)
-    ["2026-07-22", "2026-09-04"], // Summer holiday 2026
-    ["2026-10-26", "2026-10-30"], // Autumn half-term
-    ["2026-12-21", "2027-01-04"], // Christmas & New Year
-    ["2027-02-15", "2027-02-19"], // Spring half-term
-    ["2027-03-29", "2027-04-16"], // Easter holidays
+    // 2026-27 council year (from official LCC 2026-27 calendar)
+    ["2026-07-22", "2026-08-21"], // Summer holiday 2026 ends Aug 21
+    ["2026-10-19", "2026-10-23"], // Autumn half-term (Oct 19 - 23)
+    ["2026-12-21", "2027-01-01"], // Christmas & New Year (Dec 21 - Jan 1)
+    ["2027-02-15", "2027-02-19"], // Spring half-term (Feb 15 - 19)
+    ["2027-03-22", "2027-04-02"], // Easter holidays (Mar 22 - Apr 2)
     ["2027-05-31", "2027-06-04"], // Summer half-term
     ["2027-07-22", "2027-08-31"], // Summer holiday 2027
 ];
@@ -39,8 +39,8 @@ const UK_PUBLIC_HOLIDAYS: string[] = [
     "2026-12-28", // Boxing Day substitute
     // 2027
     "2027-01-01", // New Year's Day
-    "2027-04-02", // Good Friday
-    "2027-04-05", // Easter Monday
+    "2027-03-26", // Good Friday (Mar 26)
+    "2027-03-29", // Easter Monday (Mar 29)
     "2027-05-03", // Early May Bank Holiday
     "2027-05-31", // Spring Bank Holiday
     "2027-08-30", // Summer Bank Holiday
