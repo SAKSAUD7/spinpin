@@ -45,7 +45,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
     const aboutText = about?.content || settings?.aboutText || "Spin Pin was founded with one mission in mind – to bring people together through fun and engaging experiences. We've created Leicester's premier entertainment venue with bowling, roller skating, and arcade games.";
     const aboutTitle = about?.title || "Leicester's Premier Entertainment Venue";
     const aboutImage = about?.image || "/images/spinpin/unnamed (4).webp";
-    const phone = settings?.contactPhone || "07700 900000";
+    const phone = "07349110865";
 
     return (
         <main className="bg-background text-white">

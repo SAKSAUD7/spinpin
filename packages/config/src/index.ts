@@ -9,7 +9,7 @@ export const siteConfig = {
         facebook: "https://facebook.com/ninjainflatablepark",
     },
     contact: {
-        phone: "+91 9845471611",
+        phone: "07349110865",
         email: "info@ninjainflatablepark.com",
         address: "No. 35/11, Hennur Bagalur Main Road, Chagalatti Village, Jala Hobli, Karnataka 562149",
         mapUrl: "https://maps.google.com/?q=Ninja+Inflatable+Park+Bangalore",
