@@ -30,11 +30,11 @@ export default function AdminWaivers() {
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("ALL");
     const [bookingTypeFilter, setBookingTypeFilter] = useState("ALL");
-
+    const [statusTab, setStatusTab] = useState<"PENDING" | "HISTORY">("PENDING");
 
     useEffect(() => {
         loadWaivers();
-    }, [bookingParam, partyBookingParam]);
+    }, [bookingParam, partyBookingParam, statusTab]);
 
     async function loadWaivers() {
         setLoading(true);
@@ -43,8 +43,9 @@ export default function AdminWaivers() {
             // Pass booking params for server-side filtering
             const validBookingParam = bookingParam || undefined;
             const validPartyBookingParam = partyBookingParam || undefined;
+            const isVerified = statusTab === "HISTORY";
 
-            const data = await getWaivers(undefined, validBookingParam, validPartyBookingParam);
+            const data = await getWaivers(undefined, validBookingParam, validPartyBookingParam, isVerified);
 
             if (Array.isArray(data)) {
                 setWaivers(data);
@@ -63,7 +64,8 @@ export default function AdminWaivers() {
 
     async function handleExportCSV() {
         try {
-            const response = await fetch('/api/waivers/export', {
+            const isVerified = statusTab === "HISTORY";
+            const response = await fetch(`/api/waivers/export?is_verified=${isVerified}`, {
                 credentials: 'include',
                 cache: 'no-store',
             });
@@ -181,6 +183,30 @@ export default function AdminWaivers() {
                 </div>
             </div>
 
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 mb-6">
+                <button
+                    onClick={() => setStatusTab("PENDING")}
+                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                        statusTab === "PENDING"
+                            ? "border-neon-blue text-neon-blue"
+                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    }`}
+                >
+                    Pending Waivers
+                </button>
+                <button
+                    onClick={() => setStatusTab("HISTORY")}
+                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                        statusTab === "HISTORY"
+                            ? "border-neon-blue text-neon-blue"
+                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    }`}
+                >
+                    Arrived History
+                </button>
+            </div>
+
             {/* Filters Bar */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="relative w-full md:w-96">
@@ -225,7 +251,7 @@ export default function AdminWaivers() {
                                 <th className="px-6 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">Contact Info</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">Signed On</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">Group Details</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">Arrival Status</th>
+                                <th className="px-6 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">{statusTab === "HISTORY" ? "Status (Revert)" : "Arrival Status"}</th>
                                 <th className="px-6 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide text-right">Actions</th>
                             </tr>
                         </thead>
@@ -386,9 +412,11 @@ export default function AdminWaivers() {
 
                                                         const res = await toggleWaiverVerification(id.toString(), newStatus);
                                                         if (res.success) {
-                                                            toast.success(newStatus ? "Marked as Arrived" : "Marked as Not Arrived");
+                                                            toast.success(newStatus ? "Marked as Arrived" : "Reverted to Pending");
+                                                            // Remove from current view after toggle
+                                                            setWaivers(prev => prev.filter(w => w.id !== id));
                                                         } else {
-                                                            // Revert on failure
+                                                            // Revert optimistic update on failure
                                                             setWaivers(prev => prev.map(w => w.id === id ? { ...w, is_verified: !newStatus } : w));
                                                             toast.error(res.error || "Failed to update status");
                                                             throw new Error(res.error || "Failed to update status");

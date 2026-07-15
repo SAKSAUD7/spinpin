@@ -454,11 +454,12 @@ export async function updateWaiverMinors(id: string, minors: any[]) {
     return { success: false, error: errorMessage };
 }
 
-export async function getWaivers(search?: string, bookingId?: string, partyBookingId?: string): Promise<any[]> {
+export async function getWaivers(search?: string, bookingId?: string, partyBookingId?: string, isVerified?: boolean): Promise<any[]> {
     const params = new URLSearchParams();
     if (search) params.append("search", search);
     if (bookingId) params.append("booking_id", bookingId);
     if (partyBookingId) params.append("party_booking_id", partyBookingId);
+    if (isVerified !== undefined) params.append("is_verified", isVerified.toString());
 
     const res = await fetchAPI(`/bookings/waivers/?${params.toString()}`);
     if (!res || !res.ok) return [];

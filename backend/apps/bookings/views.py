@@ -542,6 +542,13 @@ class WaiverViewSet(viewsets.ModelViewSet):
         
         waivers = self.get_queryset()
         
+        is_verified_param = request.query_params.get('is_verified', None)
+        if is_verified_param is not None:
+            if is_verified_param.lower() == 'true':
+                waivers = waivers.filter(is_verified=True)
+            elif is_verified_param.lower() == 'false':
+                waivers = waivers.filter(is_verified=False)
+        
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="waivers.csv"'
         
@@ -605,6 +612,13 @@ def waiver_list_view(request):
         party_booking_id = request.query_params.get('party_booking_id', None)
         if party_booking_id:
             queryset = queryset.filter(party_booking_id=party_booking_id)
+            
+        is_verified_param = request.query_params.get('is_verified', None)
+        if is_verified_param is not None:
+            if is_verified_param.lower() == 'true':
+                queryset = queryset.filter(is_verified=True)
+            elif is_verified_param.lower() == 'false':
+                queryset = queryset.filter(is_verified=False)
             
         waivers = queryset.order_by('-created_at')
         data = []
