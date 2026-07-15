@@ -10,6 +10,11 @@ on:
       - main
   workflow_dispatch:
 
+# Cancel any in-progress deployment to avoid 409 Conflict errors on Azure
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -64,9 +69,11 @@ jobs:
         uses: azure/CLI@v2
         with:
           inlineScript: |
-            RG=$(az webapp list --query "[?name=='spinpin-backend'].resourceGroup" -o tsv)
+            RG=$(az webapp list --query "[?name=='spinpin-backend-cfgcejczfpgyabd7'].resourceGroup" -o tsv 2>/dev/null || az webapp list --query "[?name=='spinpin-backend'].resourceGroup" -o tsv)
             echo "Found Resource Group: $RG"
-            az webapp stop --name spinpin-backend --resource-group $RG
+            az webapp stop --name spinpin-backend --resource-group $RG || true
+            echo "Waiting 15s for app to fully stop..."
+            sleep 15
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3

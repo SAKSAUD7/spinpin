@@ -22,7 +22,7 @@ import {
 
 import { motion, AnimatePresence } from "framer-motion";
 
-import { bookingSchema, type BookingFormData, getAvailableTimeSlots, isTimeInPast, isSchoolHoliday } from "../lib/api/types";
+import { bookingSchema, type BookingFormData, getAvailableTimeSlots, isTimeInPast, isSchoolHoliday, isPublicHoliday, isHolidayOpen } from "../lib/api/types";
 
 import { useToast } from "./ToastProvider";
 
@@ -1180,9 +1180,42 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                             const dow = new Date(formData.date + 'T12:00:00').getDay();
 
-                                            const isWeekday = dow >= 2 && dow <= 5;
+                                            const isHoliday = isHolidayOpen(formData.date);
 
-                                            const isHoliday = isSchoolHoliday(formData.date);
+                                            // Monday open during holidays
+                                            if (dow === 1 && isHoliday) {
+
+                                                return (
+
+                                                    <div className="flex items-start gap-2.5 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-300 text-sm">
+
+                                                        <School className="w-4 h-4 mt-0.5 flex-shrink-0" />
+
+                                                        <span><strong>Holiday!</strong> We're open today (Mon) 🎉 Book from <strong>12:00 PM</strong>. Perfect for families!</span>
+
+                                                    </div>
+
+                                                );
+
+                                            }
+
+                                            // Monday normally closed
+                                            if (dow === 1) {
+
+                                                return (
+
+                                                    <p className="text-red-400 text-xs mt-2 flex items-center gap-1">
+
+                                                        <AlertCircle className="w-3 h-3" /> We are closed on Mondays — please pick another date.
+
+                                                    </p>
+
+                                                );
+
+                                            }
+
+                                            // School / public holiday banner for other weekdays
+                                            const isWeekday = dow >= 2 && dow <= 5;
 
                                             if (isWeekday && isHoliday) {
 
@@ -1192,7 +1225,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                         <School className="w-4 h-4 mt-0.5 flex-shrink-0" />
 
-                                                        <span><strong>School holiday!</strong> Extended hours available today  book from as early as <strong>10:00 AM</strong>. Perfect for families! ??</span>
+                                                        <span><strong>School holiday!</strong> We're open today 🎉 Book from <strong>12:00 PM</strong>. Perfect for families!</span>
 
                                                     </div>
 
@@ -1200,27 +1233,13 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                             }
 
-                                            if (dow === 1) {
-
-                                                return (
-
-                                                    <p className="text-red-400 text-xs mt-2 flex items-center gap-1">
-
-                                                        <AlertCircle className="w-3 h-3" /> We are closed on Mondays  please pick another date.
-
-                                                    </p>
-
-                                                );
-
-                                            }
-
                                             const hoursMap: Record<number, string> = {
 
-                                                0: 'Sun: 12:00  22:00', 2: 'Tue: 14:00  22:00',
+                                                0: 'Sun: 12:00 – 22:00', 2: 'Tue: 12:00 – 22:00',
 
-                                                3: 'Wed: 14:00  22:00', 4: 'Thu: 14:00  22:00',
+                                                3: 'Wed: 12:00 – 22:00', 4: 'Thu: 12:00 – 22:00',
 
-                                                5: 'Fri: 14:00  22:00', 6: 'Sat: 12:00  23:00',
+                                                5: 'Fri: 12:00 – 22:00', 6: 'Sat: 12:00 – 23:00',
 
                                             };
 

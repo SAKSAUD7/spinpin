@@ -2,32 +2,58 @@ import { z } from "zod";
 import { isAfter, isBefore, startOfDay, addHours } from "date-fns";
 
 // ─── Leicester City Council School Holiday Dates 2025–2027 ──────────────────
-// Source: Leicester City Council & Leicestershire County Council calendars
-// These are DATE RANGES where schools are CLOSED (holidays/half-terms).
-// On these days, weekday opening hours extend to match weekend hours (from 10:00).
+// Source: Leicester City Council 2026-27 official calendar
+// Yellow dates = school holidays (SpinPin is OPEN on these, including Mondays)
 const SCHOOL_HOLIDAY_RANGES: Array<[string, string]> = [
     // 2025
     ["2025-05-26", "2025-05-30"], // Spring half-term
     ["2025-07-23", "2025-08-31"], // Summer holiday
     ["2025-10-20", "2025-10-24"], // Autumn half-term
     ["2025-12-20", "2026-01-04"], // Christmas & New Year
-    // 2026 (Leicester City Council 2026/27)
+    // 2026 spring/summer
     ["2026-02-16", "2026-02-20"], // Spring half-term
     ["2026-03-30", "2026-04-10"], // Easter holidays
     ["2026-05-25", "2026-05-29"], // Summer half-term
-    ["2026-07-22", "2026-08-30"], // Summer holiday + Bank Holiday 31 Aug
-    ["2026-10-19", "2026-10-23"], // Autumn half-term
-    ["2026-12-19", "2027-01-03"], // Christmas & New Year
-    // 2027
+    // 2026-27 council year (from official LCC 2026-27 PDF)
+    ["2026-07-22", "2026-09-04"], // Summer holiday 2026
+    ["2026-10-26", "2026-10-30"], // Autumn half-term
+    ["2026-12-21", "2027-01-04"], // Christmas & New Year
     ["2027-02-15", "2027-02-19"], // Spring half-term
-    ["2027-03-22", "2027-04-02"], // Easter holidays
+    ["2027-03-29", "2027-04-16"], // Easter holidays
     ["2027-05-31", "2027-06-04"], // Summer half-term
-    ["2027-07-12", "2027-08-31"], // Summer holiday
+    ["2027-07-22", "2027-08-31"], // Summer holiday 2027
 ];
+
+// ─── UK Public Holidays (Red dates on LCC calendar) ──────────────────────────
+// SpinPin is OPEN on public holidays (including Mondays)
+const UK_PUBLIC_HOLIDAYS: string[] = [
+    // 2025-26
+    "2025-12-25", "2025-12-26",
+    "2026-01-01", // New Year's Day
+    "2026-04-03", // Good Friday
+    "2026-04-06", // Easter Monday
+    "2026-05-04", // Early May Bank Holiday
+    "2026-05-25", // Spring Bank Holiday
+    "2026-08-31", // Summer Bank Holiday
+    "2026-12-25", // Christmas Day
+    "2026-12-28", // Boxing Day substitute
+    // 2027
+    "2027-01-01", // New Year's Day
+    "2027-04-02", // Good Friday
+    "2027-04-05", // Easter Monday
+    "2027-05-03", // Early May Bank Holiday
+    "2027-05-31", // Spring Bank Holiday
+    "2027-08-30", // Summer Bank Holiday
+];
+
+/** Returns true if the given date (YYYY-MM-DD) is a UK public holiday. */
+export function isPublicHoliday(date: string): boolean {
+    return UK_PUBLIC_HOLIDAYS.includes(date);
+}
 
 /**
  * Returns true if the given date (YYYY-MM-DD) falls within a school holiday period.
- * During school holidays, SpinPin opens earlier on weekdays (like weekends).
+ * SpinPin is OPEN on school holidays including Mondays.
  */
 export function isSchoolHoliday(date: string): boolean {
     if (!date) return false;
@@ -35,6 +61,11 @@ export function isSchoolHoliday(date: string): boolean {
         if (date >= start && date <= end) return true;
     }
     return false;
+}
+
+/** Returns true if SpinPin is open on this date (holidays override Monday closure). */
+export function isHolidayOpen(date: string): boolean {
+    return isSchoolHoliday(date) || isPublicHoliday(date);
 }
 
 export interface Stat {
@@ -204,56 +235,37 @@ export function isValidBookingDate(date: string): boolean {
     }
 }
 
-// Get available time slots for a given date based on SpinPin UK opening hours:
+// Get available time slots for SpinPin opening hours:
 //
-// ROLLER SKATING — timed sessions, 60-min slot intervals:
-//   Monday: CLOSED
-//   Tue–Fri: 12:00 PM – 10:00 PM
-//   Sat:     12:00 PM – 11:00 PM
-//   Sun:     12:00 PM – 10:00 PM
+// EVERY DAY:  12:00 – 22:00 (10 pm)
+// SATURDAY:   12:00 – 23:00 (11 pm)
+// MONDAY:     CLOSED — except school holidays & public holidays (OPEN)
 //
-// TEN PIN BOWLING — per-game pricing, no fixed duration, 90-min slot intervals:
-//   Lanes need ~90 mins between slot bookings for the current group to finish,
-//   lane reset/cleanup, and the next group to settle in.
-//   Monday: CLOSED
-//   Tue–Sun: same open/close hours as skating, but slots every 90 mins.
-//
-// For today's date, only show slots at least 2 hours from now.
+// ROLLER SKATING — 60-min slot intervals (multiple sessions on rink simultaneously)
+// TEN PIN BOWLING — 90-min slot intervals (lane turnover time)
 export function getAvailableTimeSlots(date: string, activity?: string): string[] {
     const selectedDate = new Date(date + 'T12:00:00');
     const dayOfWeek = selectedDate.getDay(); // 0=Sun, 1=Mon, 2=Tue...
 
-    // Monday is always closed
-    if (dayOfWeek === 1) return [];
+    // Monday is CLOSED unless it's a school holiday or public holiday
+    if (dayOfWeek === 1 && !isHolidayOpen(date)) return [];
 
     const isBowling = activity === 'ten-pin-bowling';
+    const isSaturday = dayOfWeek === 6;
     let allSlots: string[];
 
     if (isBowling) {
-        // ── Bowling: 90-minute slot intervals ─────────────────────────────────
-        // Each slot represents a lane booking window. Groups play per-game
-        // and finish at their own pace; 90-min gaps ensure smooth lane turnover.
-        //
-        // Slots generated from 12:00 in 90-min steps:
-        //   12:00 → 13:30 → 15:00 → 16:30 → 18:00 → 19:30 → 21:00
-        // Saturday gets one extra slot at 21:00 (close 23:00 = more runway).
-        if (dayOfWeek === 6) {
-            // Saturday 12:00–23:00: 90-min gaps, last slot 21:00 (finishes ~22:30)
-            allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
-        } else {
-            // Tue–Fri + Sun 12:00–22:00: 90-min gaps, last slot 21:00
-            allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
-        }
+        // 90-min intervals — same for all open days
+        // Saturday closes 23:00: last slot 21:00 (ends ~22:30)
+        // Other days close 22:00: last slot 20:30 → use 21:00 for practical fit
+        allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
     } else {
-        // ── Skating: 60-minute slot intervals (timed sessions) ────────────────
-        if (dayOfWeek === 6) {
-            // Saturday: 12:00 PM – 11:00 PM
+        // Skating: hourly slots
+        if (isSaturday) {
+            // Saturday 12:00–23:00 — last slot 22:00 (session ends at 23:00)
             allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
-        } else if (dayOfWeek === 0) {
-            // Sunday: 12:00 PM – 10:00 PM
-            allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
         } else {
-            // Tue–Fri: 12:00 PM – 10:00 PM
+            // All other days (incl. Monday on holidays) 12:00–22:00 — last slot 21:00
             allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
         }
     }
