@@ -120,29 +120,22 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
 
                         {/* Party Feast Includes */}
                         <ScrollReveal animation="slideUp" delay={0.2}>
-                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-secondary">
+                            <div className="bg-surface-800/50 backdrop-blur-md p-6 rounded-2xl border-2 border-secondary h-full flex flex-col">
                                 <h3 className="text-2xl font-display font-bold mb-4 flex items-center gap-2 text-secondary">
                                     <Utensils className="w-6 h-6" />
                                     Party Feast Includes
                                 </h3>
-                                <ul className="space-y-3 text-white/80">
-                                    {[
-                                        "Pizza",
-                                        "Chicken Nuggets",
-                                        "Onion Rings",
-                                        "Garlic Bread",
-                                        "Curly Fries",
-                                        "Chips",
-                                        "Slush",
-                                        "Unlimited Squash",
-                                    ].map((item, idx) => (
-                                        <li key={idx} className="flex gap-2 items-start">
-                                            <Check className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <div className="mt-4 pt-4 border-t border-white/10 text-sm font-bold text-accent">
+                                <p className="text-white/80 mb-6 flex-1">
+                                    Our delicious party feast features a full spread of kids' favorites including pizza, chicken nuggets, and more! 
+                                </p>
+                                <button 
+                                    onClick={() => setIsMenuOpen(true)}
+                                    className="w-full py-3 bg-secondary/20 hover:bg-secondary/30 border border-secondary text-secondary font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Eye className="w-5 h-5" />
+                                    View Full Menu
+                                </button>
+                                <div className="mt-4 pt-4 border-t border-white/10 text-sm font-bold text-accent text-center">
                                     We cater Vegetarian and Halal food options.
                                 </div>
                             </div>
@@ -182,7 +175,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                         <ScrollReveal animation="slideUp" delay={0.1}>
                             <div className="relative bg-gradient-to-b from-[#1a0a3a] to-[#120830] rounded-3xl border-2 border-primary/50 overflow-hidden flex flex-col h-full hover:border-primary transition-all duration-300 group">
                                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                <div className="p-6 flex-1">
+                                <div className="p-6 flex-1 relative z-10">
                                     <div className="text-5xl mb-4">🛼</div>
                                     <div className="inline-block px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold mb-3 uppercase tracking-wide">
                                         Roller Skating
@@ -200,7 +193,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                         <li className="flex gap-2"><Check className="w-4 h-4 text-primary shrink-0 mt-0.5" /> Online invitations</li>
                                     </ul>
                                 </div>
-                                <div className="p-6 pt-0">
+                                <div className="p-6 pt-0 relative z-10">
                                     <Link href="/party-booking?package=Skating+Party">
                                         <button className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                                             <PartyPopper className="w-4 h-4" /> Book Skating Party
@@ -217,7 +210,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                 <div className="absolute top-4 right-4">
                                     <span className="px-2 py-1 rounded-full bg-secondary/20 text-secondary text-xs font-bold">Popular</span>
                                 </div>
-                                <div className="p-6 flex-1">
+                                <div className="p-6 flex-1 relative z-10">
                                     <div className="text-5xl mb-4">🎳</div>
                                     <div className="inline-block px-3 py-1 rounded-full bg-secondary/20 text-secondary text-xs font-bold mb-3 uppercase tracking-wide">
                                         Ten Pin Bowling
@@ -235,7 +228,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                         <li className="flex gap-2"><Check className="w-4 h-4 text-secondary shrink-0 mt-0.5" /> Online invitations</li>
                                     </ul>
                                 </div>
-                                <div className="p-6 pt-0">
+                                <div className="p-6 pt-0 relative z-10">
                                     <Link href="/party-booking?package=Bowling+Party">
                                         <button className="w-full py-3 bg-gradient-to-r from-secondary to-accent text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                                             <PartyPopper className="w-4 h-4" /> Book Bowling Party
