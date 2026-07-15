@@ -184,25 +184,27 @@ export default function AdminWaivers() {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-slate-200 mb-6">
+            <div className="flex bg-slate-100 p-1 rounded-xl mb-6 w-fit">
                 <button
                     onClick={() => setStatusTab("PENDING")}
-                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                    className={`flex items-center gap-2 px-6 py-2.5 font-semibold text-sm rounded-lg transition-all ${
                         statusTab === "PENDING"
-                            ? "border-neon-blue text-neon-blue"
-                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
                     }`}
                 >
+                    <Clock size={16} className={statusTab === "PENDING" ? "text-amber-500" : ""} />
                     Pending Waivers
                 </button>
                 <button
                     onClick={() => setStatusTab("HISTORY")}
-                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                    className={`flex items-center gap-2 px-6 py-2.5 font-semibold text-sm rounded-lg transition-all ${
                         statusTab === "HISTORY"
-                            ? "border-neon-blue text-neon-blue"
-                            : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
                     }`}
                 >
+                    <CheckCircle size={16} className={statusTab === "HISTORY" ? "text-emerald-500" : ""} />
                     Arrived History
                 </button>
             </div>
