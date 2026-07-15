@@ -378,7 +378,14 @@ SUMUP_BOWLING_API_KEY      = os.getenv('SUMUP_BOWLING_API_KEY', '')
 SUMUP_BOWLING_MERCHANT_CODE = os.getenv('SUMUP_BOWLING_MERCHANT_CODE', 'M7EN4CMZ')
 
 # Return URL after payment (same for both merchants)
-SUMUP_RETURN_URL = os.getenv('SUMUP_RETURN_URL', 'http://localhost:5000/book/success')
+SUMUP_RETURN_URL = os.getenv('SUMUP_RETURN_URL', 'https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net/book/success')
+
+# ── Frontend URL (used for redirect URLs, webhooks, etc.) ──────────────────
+# Set FRONTEND_URL env var in Azure to your custom domain once live
+FRONTEND_URL = os.getenv(
+    'FRONTEND_URL',
+    'https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net'
+)
 
 # Legacy single-key fallback (kept for backward compatibility)
 SUMUP_API_KEY      = os.getenv('SUMUP_API_KEY', SUMUP_SKATING_API_KEY)

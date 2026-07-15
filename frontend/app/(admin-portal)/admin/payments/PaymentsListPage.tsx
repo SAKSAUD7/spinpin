@@ -114,6 +114,30 @@ export default function PaymentsListPage() {
         }
     };
 
+    const handleReverify = async (orderId: string) => {
+        if (!confirm(`Are you sure you want to verify status with SumUp for order ${orderId}?`)) return;
+        
+        try {
+            setLoading(true);
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+            const response = await fetch(`${API_URL}/payments/reverify/${orderId}/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            if (response.ok) {
+                await fetchPayments();
+            } else {
+                const err = await response.json();
+                alert(`Re-verify failed: ${err.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error("Re-verify error:", error);
+            alert("Error trying to re-verify payment.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const stats = useMemo(() => ({
         total:      payments.length,
         success:    payments.filter(p => p.status === "SUCCESS").length,
@@ -418,13 +442,25 @@ export default function PaymentsListPage() {
 
                                             {/* Action */}
                                             <td className="px-6 py-4 text-right">
-                                                <Link
-                                                    href={`/admin/payments/${payment.id}`}
-                                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    View
-                                                </Link>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {payment.status === "CREATED" && payment.provider === "sumup" && (
+                                                        <button
+                                                            onClick={() => handleReverify(payment.order_id)}
+                                                            disabled={loading}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg border border-amber-200 transition-all"
+                                                        >
+                                                            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                                                            Re-verify
+                                                        </button>
+                                                    )}
+                                                    <Link
+                                                        href={`/admin/payments/${payment.id}`}
+                                                        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        View
+                                                    </Link>
+                                                </div>
                                             </td>
                                         </motion.tr>
                                     );

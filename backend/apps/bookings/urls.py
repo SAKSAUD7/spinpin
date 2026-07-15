@@ -56,6 +56,8 @@ urlpatterns = [
     # Custom waiver endpoints (bypasses serializer bug)
     path('waivers/', waiver_list_view, name='waivers-list'),
     path('waivers/<int:id>/', waiver_detail_view, name='waiver-detail'),
+    # Waiver CSV export (used by admin portal /api/waivers/export)
+    path('waivers/export_csv/', WaiverViewSet.as_view({'get': 'export_csv'}), name='waivers-export-csv'),
     path('', include(router.urls)),
 ]
 

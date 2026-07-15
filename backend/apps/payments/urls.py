@@ -12,4 +12,8 @@ urlpatterns = [
     path('refund/', views.process_refund, name='process-refund'),
     path('booking/<int:booking_id>/<str:booking_type>/status/', views.get_booking_payment_status, name='booking-payment-status'),
     path('stats/', views.get_payment_stats, name='payment-stats'),
+    # SumUp server-to-server webhook — register this URL in SumUp merchant dashboard
+    path('sumup-webhook/', views.sumup_webhook, name='sumup-webhook'),
+    # Admin: manually re-verify a stuck pending payment
+    path('reverify/<str:order_id>/', views.reverify_payment, name='reverify-payment'),
 ]

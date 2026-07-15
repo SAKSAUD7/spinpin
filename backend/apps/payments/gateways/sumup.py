@@ -87,9 +87,19 @@ class SumUpGateway(BasePaymentGateway):
         with the factory singleton. The actual credentials are resolved per-order
         inside create_order() using the booking's activity field.
         """
-        self.return_url = getattr(
-            settings, "SUMUP_RETURN_URL", "http://localhost:5000/book/success"
-        )
+        # Build the return URL from explicit setting, or derive from FRONTEND_URL env var.
+        # This ensures SumUp redirects back to the live site even if SUMUP_RETURN_URL is not set.
+        explicit = getattr(settings, "SUMUP_RETURN_URL", "")
+        if explicit and "localhost" not in explicit:
+            self.return_url = explicit
+        else:
+            frontend_url = (
+                getattr(settings, "FRONTEND_URL", "")
+                or getattr(settings, "NEXT_PUBLIC_FRONTEND_URL", "")
+                or "https://spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net"
+            )
+            self.return_url = f"{frontend_url.rstrip('/')}/book/success"
+        logger.info(f"SumUp gateway initialized. Return URL: {self.return_url}")
 
     def get_provider_name(self) -> str:
         return "sumup"
