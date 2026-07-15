@@ -100,8 +100,6 @@ const ACTIVITIES = [
 
         addOns: [
 
-            { id: "bowling-shoes", label: "Shoe Hire", price: 1.50, description: "Bowling shoe rental", emoji: "\u{1F45F}" },
-
             { id: "locker", label: "Locker Hire", price: 2.00, description: "Secure your belongings", emoji: "\u{1F512}" },
 
         ],
@@ -287,7 +285,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             time: "",
 
-            duration: "60",
+            duration: "90",
 
             adults: 1,
 
@@ -393,8 +391,8 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
             // Bowling has no fixed session end — we use 90 (the slot interval in minutes)
             // so the value parses cleanly to an integer for the backend.
             setValue('duration', '90');
-        } else if (!formData.duration || formData.duration === '90') {
-            setValue('duration', '60');
+        } else if (!formData.duration || formData.duration === '60') {
+            setValue('duration', '90');
         }
     }, [selectedActivity]);
 
@@ -494,8 +492,6 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
             ];
 
             case "ten-pin-bowling": return [
-
-                { id: "bowling-shoes", label: "Shoe Hire", price: prices.shoeHire, description: "Bowling shoe rental", emoji: "??" },
 
                 { id: "locker", label: "Locker Hire", price: prices.lockerHire, description: "Secure your belongings", emoji: "??" },
 
@@ -1371,11 +1367,10 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                 </label>
 
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <div className="grid grid-cols-1 gap-3">
 
                                                     {([
-                                                        { val: "60" as const, label: "60 Minutes", note: "Standard Session", price: "" },
-                                                        { val: "120" as const, label: "120 Minutes", note: "Extended Session", price: "+ £9.95/pp" },
+                                                        { val: "90" as const, label: "90 Minutes", note: "Standard Session", price: "" },
                                                     ] as const).map(d => (
 
                                                         <button type="button" key={d.val}
