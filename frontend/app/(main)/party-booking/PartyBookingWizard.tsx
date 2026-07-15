@@ -12,7 +12,7 @@ import { PartyBookingPDF } from "../../../components/PartyBookingPDF";
 import { fetchBookingBlocks, isDateBlocked, BookingBlock } from "@/lib/api/booking-blocks";
 import { PageSection } from "@/lib/cms/types";
 import { SmartCalendar } from "@/components/SmartCalendar";
-import { isSchoolHoliday } from "@/lib/api/types";
+import { isSchoolHoliday, isHolidayOpen } from "@/lib/api/types";
 import { useAccount } from "@/state/account/AccountContext";
 
 interface PartyBookingWizardProps {
@@ -531,16 +531,26 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                             }}
                                             bookingBlocks={bookingBlocks}
                                         />
-                                        {/* School holiday note */}
+                                        {/* Monday closed / holiday note */}
                                         {formData.date && (() => {
                                             const dow = new Date(formData.date + 'T12:00:00').getDay();
-                                            const isWeekday = dow >= 2 && dow <= 5;
-                                            if (isWeekday && isSchoolHoliday(formData.date)) {
+                                            const isHoliday = isHolidayOpen(formData.date);
+                                            
+                                            // Monday open on holidays
+                                            if (dow === 1 && isHoliday) {
                                                 return (
                                                     <div className="mt-2 flex items-start gap-2 p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs">
                                                         <School className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                                                        <span><strong>School holiday!</strong> Extra time slots may be available from 10:00 AM. 🎒</span>
+                                                        <span><strong>Holiday!</strong> We're open today (Mon) 🎉 Open from <strong>12:00 PM</strong>.</span>
                                                     </div>
+                                                );
+                                            }
+                                            // Monday normally closed
+                                            if (dow === 1) {
+                                                return (
+                                                    <p className="mt-2 text-red-400 text-xs flex items-center gap-1">
+                                                        <span>⚠️</span> We are closed on Mondays — please pick another date.
+                                                    </p>
                                                 );
                                             }
                                             return null;

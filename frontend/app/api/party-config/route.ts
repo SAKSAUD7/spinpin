@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
                 min_participants: 10,
                 gst_rate: 0,
                 deposit_percentage: 20,
-                duration_label: '60-min session + 60-min party room',
+                duration_label: '90-min session + 45-min party room',
                 package_inclusions: [
-                    '60-minute skating or bowling session',
+                    '90-minute skating or bowling session',
                     'Dedicated party room for 1 hour',
                     'Party host included',
                     'Decorations & balloons',
@@ -53,9 +53,9 @@ export async function GET(request: NextRequest) {
             min_participants: 10,
             gst_rate: 0,
             deposit_percentage: 20,
-            duration_label: '60-min session + 60-min party room',
+            duration_label: '90-min session + 45-min party room',
             package_inclusions: [
-                '60-minute skating or bowling session',
+                '90-minute skating or bowling session',
                 'Dedicated party room for 1 hour',
                 'Party host included',
                 'Decorations & balloons',
