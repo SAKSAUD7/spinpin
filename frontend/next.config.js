@@ -160,6 +160,11 @@ const nextConfig = {
                 permanent: true,
             },
             {
+                source: '/waiver',
+                destination: '/kiosk/waiver',
+                permanent: true,
+            },
+            {
                 source: '/session-booking/information',
                 destination: '/book',
                 permanent: true,
