@@ -101,6 +101,82 @@ const nextConfig = {
         ];
     },
 
+    // ── 301 Permanent Redirects for SEO ───────────────────────────
+    async redirects() {
+        return [
+            {
+                source: '/information/our-prices',
+                destination: '/pricing',
+                permanent: true,
+            },
+            {
+                source: '/information/disclaimer',
+                destination: '/safety',
+                permanent: true,
+            },
+            {
+                source: '/information/faqs',
+                destination: '/faq',
+                permanent: true,
+            },
+            {
+                source: '/information/your-rights',
+                destination: '/terms',
+                permanent: true,
+            },
+            {
+                source: '/information/privacy-policy',
+                destination: '/privacy',
+                permanent: true,
+            },
+            {
+                source: '/information/about-us',
+                destination: '/about',
+                permanent: true,
+            },
+            {
+                source: '/information/roller-skating-guidelines',
+                destination: '/guidelines',
+                permanent: true,
+            },
+            {
+                source: '/information/terms',
+                destination: '/terms',
+                permanent: true,
+            },
+            {
+                source: '/activity/roller-skating',
+                destination: '/attractions',
+                permanent: true,
+            },
+            {
+                source: '/activity/ten-pin-bowling',
+                destination: '/attractions',
+                permanent: true,
+            },
+            {
+                source: '/activity/arcade-games',
+                destination: '/attractions',
+                permanent: true,
+            },
+            {
+                source: '/session-booking/information',
+                destination: '/book',
+                permanent: true,
+            },
+            {
+                source: '/session-booking/step-1',
+                destination: '/book',
+                permanent: true,
+            },
+            {
+                source: '/party-booking/information',
+                destination: '/parties',
+                permanent: true,
+            },
+        ];
+    },
+
     // Dev-only: reduce logging noise
     logging: {
         fetches: {

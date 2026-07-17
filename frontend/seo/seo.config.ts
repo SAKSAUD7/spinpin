@@ -83,7 +83,7 @@ export const SEO_CONFIG = {
   siteName: "Spin Pin",
   title: "Spin Pin: Skating, Bowling & Arcade Fun – All in One Place",
   description: "Experience fun for all ages at Spin Pin in Leicester. Your go-to destination for rollerskating, arcade games, bowling, and VR.",
-  baseUrl: "https://www.spinpin.uk",
+  baseUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://www.spinpin.uk",
   keywords: SEO_KEYWORDS,
   openGraph: {
     type: "website",

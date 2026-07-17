@@ -1,8 +1,8 @@
 export const siteConfig = {
     name: "Spin Pin",
     description: "Bowling, Roller Skating & Arcade in Leicester - Fun for All Ages!",
-    url: "https://www.spinpin.uk",
-    ogImage: "https://www.spinpin.uk/og.jpg",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.spinpin.uk",
+    ogImage: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.spinpin.uk"}/og.jpg`,
     links: {
         twitter: "https://www.instagram.com/spinpinleicester",
         instagram: "https://www.instagram.com/spinpinleicester",
