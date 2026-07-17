@@ -21,10 +21,37 @@ interface PricingContentProps {
     carouselImages?: any[];
 }
 
+// Helper to find a plan by name (case-insensitive partial match)
+function findPlan(plans: any[], ...names: string[]) {
+    for (const name of names) {
+        const found = plans.find(p => p.name?.toLowerCase().includes(name.toLowerCase()));
+        if (found) return found;
+    }
+    return null;
+}
+
+function formatPrice(price: any) {
+    if (price === undefined || price === null) return null;
+    const num = parseFloat(price);
+    return isNaN(num) ? null : num.toFixed(2);
+}
+
 export default function PricingContent({ plans, settings, info, hero, carouselImages = [] }: PricingContentProps) {
-    // Sort plans by price or some order field if available, otherwise assume backend order
     // Ensure active plans only
     const activePlans = plans.filter(p => !p.hasOwnProperty('active') || p.active);
+
+    // Dynamically resolve prices from CMS
+    const skateHirePlan    = findPlan(activePlans, 'skate hire', 'roller skate');
+    const spectatorPlan    = findPlan(activePlans, 'spectator (4', 'spectator(4');
+    const standardPlan     = findPlan(activePlans, 'standard entry');
+    const parkingPlan      = findPlan(activePlans, 'parking');
+    const lockerPlan       = findPlan(activePlans, 'locker');
+
+    const skateHirePrice   = formatPrice(skateHirePlan?.price)  ?? '3.95';
+    const spectatorPrice   = formatPrice(spectatorPlan?.price)  ?? '2.95';
+    const standardPrice    = formatPrice(standardPlan?.price)   ?? '9.95';
+    const parkingPrice     = formatPrice(parkingPlan?.price)    ?? '3.00';
+    const lockerPrice      = formatPrice(lockerPlan?.price)     ?? '2.00';
 
     const heroTitle = hero?.title || "Pricing Plans";
     const heroSubtitle = hero?.subtitle || "Choose the perfect package for your Spin Pin adventure.";
@@ -101,7 +128,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 </h3>
                                 <p className="text-white/60 mb-6">Per Game / Person</p>
                                 <div className="mb-8">
-                                    <span className="text-5xl font-black text-white">£9.95</span>
+                                    <span className="text-5xl font-black text-white">£{standardPrice}</span>
                                     <span className="text-white/60 text-sm">/ game</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
@@ -143,7 +170,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 </h3>
                                 <p className="text-white/60 mb-6">Equipment Rental</p>
                                 <div className="mb-8">
-                                    <span className="text-5xl font-black text-white">£2.95</span>
+                                    <span className="text-5xl font-black text-white">£{skateHirePrice}</span>
                                     <span className="text-white/60 text-sm">/ pair</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
@@ -181,7 +208,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 </h3>
                                 <p className="text-white/60 mb-6">Watching & Waiting</p>
                                 <div className="mb-8">
-                                    <span className="text-5xl font-black text-white">£2.95</span>
+                                    <span className="text-5xl font-black text-white">£{spectatorPrice}</span>
                                     <span className="text-white/60 text-sm">/ person</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
@@ -259,7 +286,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 </h3>
                                 <p className="text-white/60 mb-6">Per Car</p>
                                 <div className="mb-8">
-                                    <span className="text-5xl font-black text-white">£3.00</span>
+                                    <span className="text-5xl font-black text-white">£{parkingPrice}</span>
                                     <span className="text-white/60 text-sm">/ car</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
@@ -295,7 +322,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 </h3>
                                 <p className="text-white/60 mb-6">Secure Storage</p>
                                 <div className="mb-8">
-                                    <span className="text-5xl font-black text-white">£2.00</span>
+                                    <span className="text-5xl font-black text-white">£{lockerPrice}</span>
                                     <span className="text-white/60 text-sm">/ locker</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
@@ -356,12 +383,12 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                     Pricing Details
                                 </h3>
                                 <ul className="space-y-3 text-white/80 text-sm">
-                                    <li>• <strong>Skating/Bowling/VR:</strong> £9.95 per game/person</li>
-                                    <li>• <strong>Roller Skate Hire:</strong> £2.95 each</li>
-                                    <li>• <strong>Spectators (Age 4+):</strong> £2.95 each</li>
+                                    <li>• <strong>Skating/Bowling/VR:</strong> £{standardPrice} per game/person</li>
+                                    <li>• <strong>Roller Skate Hire:</strong> £{skateHirePrice} each</li>
+                                    <li>• <strong>Spectators (Age 4+):</strong> £{spectatorPrice} each</li>
                                     <li>• <strong>Spectators under 4:</strong> FREE</li>
-                                    <li>• <strong>Parking:</strong> £3.00 per car</li>
-                                    <li>• <strong>Locker Hire:</strong> £2.00 per locker</li>
+                                    <li>• <strong>Parking:</strong> £{parkingPrice} per car</li>
+                                    <li>• <strong>Locker Hire:</strong> £{lockerPrice} per locker</li>
                                 </ul>
                             </div>
                         </ScrollReveal>

@@ -31,9 +31,11 @@ export const fetchBookingBlocks = async (): Promise<BookingBlock[]> => {
  */
 export const fetchSiteAlerts = async (): Promise<BookingBlock[]> => {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL
-            || (typeof window !== 'undefined' ? window.location.origin : '');
-        const url = baseUrl ? `${baseUrl}/api/bookings/site-alerts` : `/api/bookings/site-alerts`;
+        // Always use a relative URL path — this stays on the same origin (www.spinpin.uk)
+        // and proxies through the Next.js /api route to avoid CORS issues.
+        const url = typeof window !== 'undefined'
+            ? `${window.location.origin}/api/bookings/site-alerts`
+            : `/api/bookings/site-alerts`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch alerts');
