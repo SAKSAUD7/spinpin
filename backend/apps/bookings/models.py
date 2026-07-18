@@ -129,16 +129,8 @@ class Booking(models.Model):
         return self.amount - self.paid_amount
     
     def generate_booking_number(self):
-        """Generate unique booking number: SP-YYYYMMDD-XXXX"""
-        date = datetime.now()
-        year = date.year
-        month = str(date.month).zfill(2)
-        day = str(date.day).zfill(2)
-        
-        # Use booking ID for uniqueness — ensures no collisions
-        booking_id = str(self.id).zfill(4)
-        
-        return f"SP-{year}{month}{day}-{booking_id}"
+        """Generate unique booking number: SP-XXXX"""
+        return f"SP-{self.id}"
     
     def save(self, *args, **kwargs):
         # Generate booking number on first save
@@ -246,16 +238,8 @@ class PartyBooking(models.Model):
         return self.amount - self.paid_amount
     
     def generate_booking_number(self):
-        """Generate unique booking number: SPPARTY-YYYYMMDD-XXXX"""
-        date = datetime.now()
-        year = date.year
-        month = str(date.month).zfill(2)
-        day = str(date.day).zfill(2)
-        
-        # Use booking ID for uniqueness
-        booking_id = str(self.id).zfill(4)
-        
-        return f"SPPARTY-{year}{month}{day}-{booking_id}"
+        """Generate unique booking number: SP-PXXXX"""
+        return f"SP-P{self.id}"
     
     def save(self, *args, **kwargs):
         # Generate booking number on first save

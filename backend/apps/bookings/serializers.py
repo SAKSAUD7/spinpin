@@ -98,7 +98,7 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ['id', 'uuid', 'booking_number', 'name', 'email', 'phone', 'date', 'time', 'duration',
-                  'adults', 'kids', 'spectators', 'subtotal', 'discount_amount', 'amount',
+                  'adults', 'kids', 'spectators', 'subtotal', 'discount_amount', 'amount', 'paid_amount',
                   'voucher_code', 'status', 'booking_status', 'payment_status', 'waiver_status',
                   'type', 'activity', 'add_ons', 'parking_plates', 'qr_code', 'customer', 'customer_details',
                   'voucher', 'transactions', 'arrived', 'arrived_at',

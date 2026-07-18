@@ -66,12 +66,15 @@ export async function PATCH(
             apiUrl = `${BACKEND_URL}/bookings/bookings/${id}/`;
         }
 
-        // booking_status is a read-only SerializerMethodField — update it directly
+        // booking_status and payment_status are read-only fields — update them directly
         // via a dedicated admin status-update endpoint
-        if (backendBody.booking_status) {
+        if (backendBody.booking_status || backendBody.payment_status || backendBody.status) {
             const statusUrl = type === 'PARTY'
                 ? `${BACKEND_URL}/bookings/party-bookings/${id}/update_status/`
                 : `${BACKEND_URL}/bookings/bookings/${id}/update_status/`;
+            
+            // For party bookings, frontend sometimes sends `status` instead of `booking_status`
+            const bStatus = backendBody.booking_status || backendBody.status;
 
             const statusRes = await fetch(statusUrl, {
                 method: "POST",
@@ -79,7 +82,10 @@ export async function PATCH(
                     "Content-Type": "application/json",
                     ...(token && { Authorization: `Bearer ${token}` }),
                 },
-                body: JSON.stringify({ booking_status: backendBody.booking_status }),
+                body: JSON.stringify({ 
+                    booking_status: bStatus,
+                    payment_status: backendBody.payment_status
+                }),
             });
 
             if (statusRes.ok) {

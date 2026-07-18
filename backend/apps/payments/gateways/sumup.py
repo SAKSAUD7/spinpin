@@ -165,7 +165,7 @@ class SumUpGateway(BasePaymentGateway):
         activity_label = activity_map.get(activity, activity.replace("-", " ").title()) if activity else ("Party" if is_party else "Session")
         
         description = (
-            f"SpinPin #{booking.id} | {activity_label} | "
+            f"SP #{booking.id} | {activity_label} | "
             f"{booking_date} {booking_time} | £{float(amount or 0):.2f}"
         )
         return_url_str = (

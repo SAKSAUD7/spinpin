@@ -253,9 +253,15 @@ class BookingViewSet(viewsets.ModelViewSet):
         if new_status:
             booking.booking_status = new_status
             update_fields.append('booking_status')
+        
         if new_payment_status:
             booking.payment_status = new_payment_status
             update_fields.append('payment_status')
+            
+            # Auto-update paid_amount if marked as PAID manually (e.g., cash)
+            if new_payment_status == 'PAID' and booking.paid_amount < booking.amount:
+                booking.paid_amount = booking.amount
+                update_fields.append('paid_amount')
 
         if update_fields:
             booking.save(update_fields=update_fields)

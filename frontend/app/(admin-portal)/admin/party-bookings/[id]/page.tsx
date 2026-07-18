@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
     ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle,
     FileSignature, Cake, Share2, CheckCheck, Clock, AlertCircle,
-    RefreshCw, Shield, Calendar as CalendarIcon
+    RefreshCw, Shield, Calendar as CalendarIcon, CreditCard
 } from "lucide-react";
 import { PartyBookingPDF } from "../../../../../components/PartyBookingPDF";
 import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
@@ -85,16 +85,18 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
         finally { setResending(false); }
     };
 
-    const handleUpdateStatus = async (status: string) => {
+    const handleUpdateStatus = async (updates: any) => {
         try {
             const response = await fetch(`/api/bookings/${params.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ type: 'PARTY', status }),
+                body: JSON.stringify({ type: 'PARTY', ...updates }),
                 cache: 'no-store',
             });
-            if (response.ok) setBooking(await response.json());
+            if (response.ok) {
+                setBooking(await response.json());
+            }
         } catch (error) {
             console.error('Error updating status:', error);
         }
@@ -504,18 +506,32 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                         </div>
 
                         <div className="space-y-3">
-                            <button
-                                onClick={() => handleUpdateStatus('CONFIRMED')}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                            >
-                                <Check size={18} /> Approve Party
-                            </button>
-                            <button
-                                onClick={() => handleUpdateStatus('CANCELLED')}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
-                            >
-                                <X size={18} /> Cancel Party
-                            </button>
+                            {booking.status !== 'CONFIRMED' && (
+                                <button
+                                    onClick={() => handleUpdateStatus({ status: 'CONFIRMED' })}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                >
+                                    <Check size={18} /> Approve Party
+                                </button>
+                            )}
+
+                            {(booking.payment_status === 'PENDING' || !booking.payment_status) && (
+                                <button
+                                    onClick={() => handleUpdateStatus({ payment_status: 'PAID', status: 'CONFIRMED' })}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                                >
+                                    <CreditCard size={18} /> Mark as Paid (Cash)
+                                </button>
+                            )}
+
+                            {booking.status !== 'CANCELLED' && (
+                                <button
+                                    onClick={() => handleUpdateStatus({ status: 'CANCELLED' })}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                                >
+                                    <X size={18} /> Cancel Party
+                                </button>
+                            )}
                         </div>
                     </div>
 

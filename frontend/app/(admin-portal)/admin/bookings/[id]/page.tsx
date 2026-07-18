@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Loader2, CreditCard } from "lucide-react";
 import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
 import { toast } from "sonner";
 
@@ -53,27 +53,27 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
         window.print();
     };
 
-    const handleUpdateStatus = async (newStatus: string) => {
+    const handleUpdateStatus = async (updates: any) => {
         setActionLoading(true);
         try {
             const response = await fetch(`/api/bookings/${params.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ booking_status: newStatus }),
+                body: JSON.stringify(updates),
             });
             if (response.ok) {
                 const data = await response.json();
                 setBooking(data);
-                toast.success(`Booking ${newStatus === 'CONFIRMED' ? 'confirmed' : 'cancelled'} successfully!`);
+                toast.success(`Booking updated successfully!`);
             } else {
                 const err = await response.json().catch(() => ({}));
-                console.error('Status update failed:', err);
-                toast.error(err.error || 'Failed to update booking status. Please try again.');
+                console.error('Update failed:', err);
+                toast.error(err.error || 'Failed to update booking. Please try again.');
             }
         } catch (error) {
-            console.error('Error updating status:', error);
-            toast.error('Failed to update booking status. Check your connection.');
+            console.error('Error updating:', error);
+            toast.error('Failed to update booking. Check your connection.');
         } finally {
             setActionLoading(false);
         }
@@ -405,22 +405,38 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                         </div>
 
                         <div className="space-y-3">
-                            <button
-                                onClick={() => handleUpdateStatus('CONFIRMED')}
-                                disabled={actionLoading || booking.booking_status === 'CONFIRMED'}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                                {booking.booking_status === 'CONFIRMED' ? 'Already Confirmed' : 'Approve Booking'}
-                            </button>
-                            <button
-                                onClick={() => handleUpdateStatus('CANCELLED')}
-                                disabled={actionLoading || booking.booking_status === 'CANCELLED'}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <X size={18} />}
-                                Cancel Booking
-                            </button>
+                            {booking.booking_status !== 'CONFIRMED' && (
+                                <button
+                                    onClick={() => handleUpdateStatus({ booking_status: 'CONFIRMED' })}
+                                    disabled={actionLoading}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                    Approve Booking
+                                </button>
+                            )}
+                            
+                            {(booking.payment_status === 'PENDING' || !booking.payment_status) && (
+                                <button
+                                    onClick={() => handleUpdateStatus({ payment_status: 'PAID', booking_status: 'CONFIRMED' })}
+                                    disabled={actionLoading}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
+                                    Mark as Paid (Cash)
+                                </button>
+                            )}
+
+                            {booking.booking_status !== 'CANCELLED' && (
+                                <button
+                                    onClick={() => handleUpdateStatus({ booking_status: 'CANCELLED' })}
+                                    disabled={actionLoading}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <X size={18} />}
+                                    Cancel Booking
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
