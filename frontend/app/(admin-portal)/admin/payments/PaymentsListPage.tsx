@@ -101,11 +101,16 @@ export default function PaymentsListPage() {
     const fetchPayments = async () => {
         setLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-            const response = await fetch(`${API_URL}/payments/`, { credentials: "include", cache: "no-store" });
+            // Use the admin proxy route — forwards admin_token cookie automatically
+            const response = await fetch(`/api/payments/list`, { 
+                credentials: "include", 
+                cache: "no-store" 
+            });
             if (response.ok) {
                 const data = await response.json();
                 setPayments(data.results || data);
+            } else {
+                console.error("Failed to fetch payments:", response.status);
             }
         } catch (error) {
             console.error("Failed to fetch payments:", error);
@@ -119,10 +124,11 @@ export default function PaymentsListPage() {
         
         try {
             setLoading(true);
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-            const response = await fetch(`${API_URL}/payments/reverify/${orderId}/`, {
+            // Use the admin proxy route
+            const response = await fetch(`/api/payments/reverify/${orderId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
             });
             if (response.ok) {
                 await fetchPayments();

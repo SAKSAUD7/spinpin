@@ -3,68 +3,101 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature } from "lucide-react";
+import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Loader2 } from "lucide-react";
 import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
+import { toast } from "sonner";
 
 export default function BookingDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
     const [booking, setBooking] = useState<any>(null);
     const [waivers, setWaivers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
-        async function loadBookingData() {
-            try {
-                // Fetch booking details via API route proxy
-                const bookingResponse = await fetch(`/api/bookings/${params.id}`, {
+        loadBookingData();
+    }, [params.id]);
+
+    async function loadBookingData() {
+        try {
+            const bookingResponse = await fetch(`/api/bookings/${params.id}`, {
+                credentials: 'include',
+                cache: 'no-store',
+            });
+
+            if (bookingResponse.ok) {
+                const bookingData = await bookingResponse.json();
+                setBooking(bookingData);
+
+                const waiversResponse = await fetch(`/api/waivers?booking_id=${bookingData.id}`, {
                     credentials: 'include',
                     cache: 'no-store',
                 });
 
-                if (bookingResponse.ok) {
-                    const bookingData = await bookingResponse.json();
-                    setBooking(bookingData);
-
-                    // Fetch waivers for this booking via API route proxy
-                    const waiversResponse = await fetch(`/api/waivers?booking_id=${bookingData.id}`, {
-                        credentials: 'include',
-                        cache: 'no-store',
-                    });
-
-                    if (waiversResponse.ok) {
-                        const waiversData = await waiversResponse.json();
-                        setWaivers(Array.isArray(waiversData) ? waiversData : []);
-                    }
+                if (waiversResponse.ok) {
+                    const waiversData = await waiversResponse.json();
+                    setWaivers(Array.isArray(waiversData) ? waiversData : []);
                 }
-            } catch (error) {
-                console.error('Error loading booking:', error);
-            } finally {
-                setLoading(false);
+            } else {
+                toast.error('Failed to load booking details.');
             }
+        } catch (error) {
+            console.error('Error loading booking:', error);
+            toast.error('Could not connect to server.');
+        } finally {
+            setLoading(false);
         }
-        loadBookingData();
-    }, [params.id]);
+    }
 
     const handlePrint = () => {
         window.print();
     };
 
-    const handleUpdateStatus = async (status: string) => {
+    const handleUpdateStatus = async (newStatus: string) => {
+        setActionLoading(true);
         try {
             const response = await fetch(`/api/bookings/${params.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ booking_status: status }),
-                cache: 'no-store',
+                body: JSON.stringify({ booking_status: newStatus }),
             });
             if (response.ok) {
-                // Reload booking data
                 const data = await response.json();
                 setBooking(data);
+                toast.success(`Booking ${newStatus === 'CONFIRMED' ? 'confirmed' : 'cancelled'} successfully!`);
+            } else {
+                const err = await response.json().catch(() => ({}));
+                console.error('Status update failed:', err);
+                toast.error(err.error || 'Failed to update booking status. Please try again.');
             }
         } catch (error) {
             console.error('Error updating status:', error);
+            toast.error('Failed to update booking status. Check your connection.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleResendEmail = async () => {
+        setActionLoading(true);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api/v1';
+            const response = await fetch(`${API_URL}/emails/send-booking-confirmation/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ booking_id: params.id }),
+            });
+            if (response.ok) {
+                toast.success('Confirmation email resent successfully!');
+            } else {
+                toast.error('Failed to resend email. Please try again.');
+            }
+        } catch (error) {
+            toast.error('Could not connect to email service.');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -105,8 +138,12 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                     >
                         <Printer size={18} /> Print
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
-                        <Mail size={18} /> Resend Email
+                    <button
+                        onClick={handleResendEmail}
+                        disabled={actionLoading}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    >
+                        {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />} Resend Email
                     </button>
                 </div>
             </div>
@@ -370,15 +407,19 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                         <div className="space-y-3">
                             <button
                                 onClick={() => handleUpdateStatus('CONFIRMED')}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                disabled={actionLoading || booking.booking_status === 'CONFIRMED'}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Check size={18} /> Approve Booking
+                                {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                {booking.booking_status === 'CONFIRMED' ? 'Already Confirmed' : 'Approve Booking'}
                             </button>
                             <button
                                 onClick={() => handleUpdateStatus('CANCELLED')}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                                disabled={actionLoading || booking.booking_status === 'CANCELLED'}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <X size={18} /> Cancel Booking
+                                {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <X size={18} />}
+                                Cancel Booking
                             </button>
                         </div>
                     </div>

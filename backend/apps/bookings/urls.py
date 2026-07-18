@@ -5,6 +5,7 @@ from .views import (
     BookingBlockViewSet, PartyBookingViewSet, SessionBookingHistoryViewSet, 
     PartyBookingHistoryViewSet, create_party_booking_view, waiver_list_view, 
     waiver_detail_view, add_party_participants_view, party_booking_detail_view,
+    party_booking_update_status_view,
     mark_party_arrived_view, mark_party_not_arrived_view,
     PublicBookingBlockViewSet, PublicSiteAlertViewSet
 )
@@ -51,6 +52,7 @@ urlpatterns = [
     path('party-bookings/<int:id>/', party_booking_detail_view, name='party-booking-detail'),
     path('party-bookings/<int:pk>/mark_arrived/', mark_party_arrived_view, name='party-booking-mark-arrived'),
     path('party-bookings/<int:pk>/mark_not_arrived/', mark_party_not_arrived_view, name='party-booking-mark-not-arrived'),
+    path('party-bookings/<int:id>/update_status/', party_booking_update_status_view, name='party-booking-update-status'),
     path('party-bookings/<uuid:uuid>/add_participants/', add_party_participants_view, name='party-booking-add-participants'),
     path('party-bookings/ticket/<uuid:uuid>/', PartyBookingViewSet.as_view({'get': 'ticket'}), name='party-booking-ticket'),
     # Custom waiver endpoints (bypasses serializer bug)

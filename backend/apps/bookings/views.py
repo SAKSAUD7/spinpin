@@ -224,6 +224,46 @@ class BookingViewSet(viewsets.ModelViewSet):
         return response
 
 
+    @action(detail=True, methods=['post'], permission_classes=[IsStaffUser])
+    def update_status(self, request, pk=None):
+        """
+        Admin-only action to directly update booking_status and/or payment_status.
+        POST /api/v1/bookings/bookings/{id}/update_status/
+        Body: { "booking_status": "CONFIRMED" | "CANCELLED" | "PENDING" | "COMPLETED" }
+        """
+        booking = self.get_object()
+        new_status = request.data.get('booking_status')
+        new_payment_status = request.data.get('payment_status')
+
+        valid_booking_statuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
+        valid_payment_statuses = ['PENDING', 'PAID', 'PARTIAL', 'REFUNDED', 'FAILED']
+
+        if new_status and new_status not in valid_booking_statuses:
+            return Response(
+                {'error': f'Invalid status. Must be one of: {valid_booking_statuses}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if new_payment_status and new_payment_status not in valid_payment_statuses:
+            return Response(
+                {'error': f'Invalid payment_status. Must be one of: {valid_payment_statuses}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        update_fields = []
+        if new_status:
+            booking.booking_status = new_status
+            update_fields.append('booking_status')
+        if new_payment_status:
+            booking.payment_status = new_payment_status
+            update_fields.append('payment_status')
+
+        if update_fields:
+            booking.save(update_fields=update_fields)
+
+        serializer = self.get_serializer(booking)
+        return Response(serializer.data)
+
+
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def check_duplicate(self, request):
         """
@@ -1379,6 +1419,26 @@ def party_booking_detail_view(request, id):
         return Response({'success': False, 'error': 'Party booking not found'}, status=404)
     except Exception as e:
         return Response({'success': False, 'error': str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsStaffUser])
+def party_booking_update_status_view(request, id):
+    """Admin-only: directly update party booking status."""
+    try:
+        party_booking = PartyBooking.objects.get(pk=id)
+        new_status = request.data.get('booking_status') or request.data.get('status')
+        if new_status:
+            party_booking.status = new_status
+            party_booking.save(update_fields=['status'])
+        return Response({
+            'id': party_booking.id,
+            'status': party_booking.status,
+            'booking_status': party_booking.status,
+        })
+    except PartyBooking.DoesNotExist:
+        return Response({'error': 'Party booking not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsStaffUser])

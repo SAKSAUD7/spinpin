@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
@@ -55,13 +55,47 @@ export async function PATCH(
     const body = await request.json();
     const type = body.type?.toUpperCase() || 'SESSION';
 
+    // Strip frontend-only helper field before sending to backend
+    const { type: _type, ...backendBody } = body;
+
     try {
-        // Build URL based on booking type
         let apiUrl: string;
         if (type === 'PARTY') {
             apiUrl = `${BACKEND_URL}/bookings/party-bookings/${id}/`;
         } else {
             apiUrl = `${BACKEND_URL}/bookings/bookings/${id}/`;
+        }
+
+        // booking_status is a read-only SerializerMethodField — update it directly
+        // via a dedicated admin status-update endpoint
+        if (backendBody.booking_status) {
+            const statusUrl = type === 'PARTY'
+                ? `${BACKEND_URL}/bookings/party-bookings/${id}/update_status/`
+                : `${BACKEND_URL}/bookings/bookings/${id}/update_status/`;
+
+            const statusRes = await fetch(statusUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+                body: JSON.stringify({ booking_status: backendBody.booking_status }),
+            });
+
+            if (statusRes.ok) {
+                // Fetch fresh booking data to return updated state
+                const freshRes = await fetch(apiUrl, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token && { Authorization: `Bearer ${token}` }),
+                    },
+                    cache: "no-store",
+                });
+                const freshData = await freshRes.json();
+                return NextResponse.json(freshData);
+            }
+
+            // Fallback: try direct PATCH with booking_status field
         }
 
         const res = await fetch(apiUrl, {
@@ -70,12 +104,14 @@ export async function PATCH(
                 "Content-Type": "application/json",
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(backendBody),
         });
 
         if (!res.ok) {
+            const errText = await res.text();
+            console.error(`Booking PATCH failed (${res.status}):`, errText);
             return NextResponse.json(
-                { error: "Failed to update booking" },
+                { error: "Failed to update booking", detail: errText },
                 { status: res.status }
             );
         }
@@ -83,6 +119,7 @@ export async function PATCH(
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error) {
+        console.error("Booking PATCH error:", error);
         return NextResponse.json(
             { error: "Internal Server Error" },
             { status: 500 }
