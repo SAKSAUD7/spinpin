@@ -221,6 +221,18 @@ class EmailService:
         """
         logger.error(f"CREATING EMAILLOG FOR BOOKING {booking.id}")
         
+        # Format activity name
+        activity_name = "Session"
+        if booking.activity:
+            if 'skating' in booking.activity.lower():
+                activity_name = "Roller Skating"
+            elif 'bowling' in booking.activity.lower():
+                activity_name = "Ten Pin Bowling"
+            elif 'combined' in booking.activity.lower():
+                activity_name = "Skating + Bowling"
+            else:
+                activity_name = booking.activity.replace('-', ' ').title()
+
         context = {
             'booking': booking,
             'customer_name': booking.name,
@@ -232,6 +244,7 @@ class EmailService:
             'spectators': booking.spectators,
             'amount': booking.amount,
             'booking_uuid': str(booking.uuid),
+            'activity_name': activity_name,
         }
         
         email_log = self.send_email(
@@ -251,7 +264,45 @@ class EmailService:
             email_log.mark_failed("Booking emails disabled by EMAIL_BOOKING_ENABLED flag")
         
         return email_log
+        return email_log
     
+    def send_post_visit_thank_you(self, booking):
+        """
+        Send a post-visit thank you email for a session booking.
+        """
+        logger.error(f"CREATING EMAILLOG FOR POST VISIT THANK YOU {booking.id}")
+        
+        # Format activity name
+        activity_name = "Session"
+        if booking.activity:
+            if 'skating' in booking.activity.lower():
+                activity_name = "Roller Skating"
+            elif 'bowling' in booking.activity.lower():
+                activity_name = "Ten Pin Bowling"
+            elif 'combined' in booking.activity.lower():
+                activity_name = "Skating + Bowling"
+            else:
+                activity_name = booking.activity.replace('-', ' ').title()
+
+        context = {
+            'booking': booking,
+            'customer_name': booking.name,
+            'activity_name': activity_name,
+        }
+        
+        email_log = self.send_email(
+            email_type='POST_VISIT_THANK_YOU',
+            recipient_email=booking.email,
+            recipient_name=booking.name,
+            subject=f'Thank You for Visiting Spin Pin! ⭐',
+            template_name='emails/booking/post_visit_thank_you.html',
+            context=context,
+            booking=booking
+        )
+        
+        logger.error(f"EMAILLOG CREATED ID={email_log.id} STATUS={email_log.status}")
+        return email_log
+
     def send_party_booking_confirmation(self, party_booking):
         """
         Send party booking confirmation email.
