@@ -36,22 +36,27 @@ export default function SessionBookingDetailPage({ params }: { params: { id: str
         window.print();
     };
 
-    const handleUpdateStatus = async (status: string) => {
+    const handleUpdateStatus = async (newStatus: string) => {
         try {
             const response = await fetch(`/api/bookings/${params.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ type: 'SESSION', status: status }),
+                body: JSON.stringify({ type: 'SESSION', booking_status: newStatus }),
                 cache: 'no-store',
             });
             if (response.ok) {
                 // Reload booking data
                 const data = await response.json();
                 setBooking(data);
+            } else {
+                const err = await response.text();
+                console.error('Status update failed:', err);
+                alert('Failed to update booking status. Please try again.');
             }
         } catch (error) {
             console.error('Error updating status:', error);
+            alert('Failed to update booking status. Please check your connection.');
         }
     };
 

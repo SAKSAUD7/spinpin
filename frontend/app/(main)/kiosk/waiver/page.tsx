@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { ScrollReveal } from "@repo/ui";
@@ -15,8 +15,6 @@ interface Minor {
 
 interface AdultGuest {
     name: string;
-    email: string;
-    phone: string;
     dob: string;
 }
 
@@ -34,6 +32,7 @@ export default function KioskWaiverPage() {
     const [submitting, setSubmitting] = useState(false);
     const [signed, setSigned] = useState(false);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
     const addMinor = () => {
         setMinors([...minors, { name: "", dob: "" }]);
@@ -50,7 +49,7 @@ export default function KioskWaiverPage() {
     };
 
     const addAdult = () => {
-        setAdultGuests([...adultGuests, { name: "", email: "", phone: "", dob: "" }]);
+        setAdultGuests([...adultGuests, { name: "", dob: "" }]);
     };
 
     const removeAdult = (index: number) => {
@@ -67,6 +66,34 @@ export default function KioskWaiverPage() {
         e.preventDefault();
         setSubmitting(true);
         setError("");
+        setFieldErrors({});
+
+        // Client-side validation
+        const errors: Record<string, string> = {};
+        if (!formData.name.trim()) errors.name = "Full name is required.";
+        if (!formData.email.trim()) errors.email = "Email address is required.";
+        if (!formData.phone.trim()) errors.phone = "Phone number is required.";
+        if (!formData.dateOfBirth) errors.dateOfBirth = "Date of birth is required.";
+        if (!formData.waiverAccepted) errors.waiverAccepted = "You must accept the terms to sign the waiver.";
+
+        // Validate minors
+        minors.forEach((m, i) => {
+            if (!m.name.trim()) errors[`minor_${i}_name`] = `Minor ${i + 1}: Name is required.`;
+            if (!m.dob) errors[`minor_${i}_dob`] = `Minor ${i + 1}: Date of birth is required.`;
+        });
+
+        // Validate additional adults
+        adultGuests.forEach((a, i) => {
+            if (!a.name.trim()) errors[`adult_${i}_name`] = `Additional Adult ${i + 1}: Name is required.`;
+            if (!a.dob) errors[`adult_${i}_dob`] = `Additional Adult ${i + 1}: Date of birth is required.`;
+        });
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            setError("Please fix the errors highlighted below before submitting.");
+            setSubmitting(false);
+            return;
+        }
 
         try {
             const response = await fetch(`${API_URL}/bookings/waivers/`, {
@@ -83,13 +110,46 @@ export default function KioskWaiverPage() {
                     is_primary_signer: true,
                     version: "1.0",
                     minors: minors,
-                    adults: adultGuests,
+                    // Additional adults only carry name+dob; primary contact info is used as the key
+                    adults: adultGuests.map(a => ({
+                        name: a.name,
+                        dob: a.dob,
+                        email: formData.email,
+                        phone: formData.phone,
+                    })),
                 }),
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Failed to submit waiver");
+                const errorData = await response.json().catch(() => ({}));
+
+                // Parse DRF validation errors into field messages
+                const parsed: Record<string, string> = {};
+                let genericError = "Failed to submit waiver. Please review your details.";
+
+                if (typeof errorData === "object" && !Array.isArray(errorData)) {
+                    Object.entries(errorData).forEach(([field, msgs]) => {
+                        const message = Array.isArray(msgs) ? msgs.join(" ") : String(msgs);
+                        // Map backend field names to friendly labels
+                        const label: Record<string, string> = {
+                            name: "Full Name",
+                            email: "Email",
+                            phone: "Phone",
+                            dob: "Date of Birth",
+                            detail: "_generic",
+                            non_field_errors: "_generic",
+                        };
+                        const friendlyField = label[field] || field;
+                        if (field === "detail" || field === "non_field_errors") {
+                            genericError = message;
+                        } else {
+                            parsed[field] = `${friendlyField}: ${message}`;
+                        }
+                    });
+                }
+
+                setFieldErrors(parsed);
+                throw new Error(genericError);
             }
 
             setSigned(true);
@@ -193,9 +253,14 @@ export default function KioskWaiverPage() {
                                             required
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-6 py-4 rounded-xl border-2 border-white/10 focus:border-primary bg-surface-900 text-white outline-none transition-all text-lg"
+                                            className={`w-full px-6 py-4 rounded-xl border-2 bg-surface-900 text-white outline-none transition-all text-lg ${
+                                                fieldErrors.name ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-primary"
+                                            }`}
                                             placeholder="Full Name"
                                         />
+                                        {fieldErrors.name && (
+                                            <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.name}</p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -207,9 +272,14 @@ export default function KioskWaiverPage() {
                                             required
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-6 py-4 rounded-xl border-2 border-white/10 focus:border-primary bg-surface-900 text-white outline-none transition-all text-lg"
+                                            className={`w-full px-6 py-4 rounded-xl border-2 bg-surface-900 text-white outline-none transition-all text-lg ${
+                                                fieldErrors.email ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-primary"
+                                            }`}
                                             placeholder="Email Address"
                                         />
+                                        {fieldErrors.email && (
+                                            <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.email}</p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -221,9 +291,14 @@ export default function KioskWaiverPage() {
                                             required
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-6 py-4 rounded-xl border-2 border-white/10 focus:border-primary bg-surface-900 text-white outline-none transition-all text-lg"
+                                            className={`w-full px-6 py-4 rounded-xl border-2 bg-surface-900 text-white outline-none transition-all text-lg ${
+                                                fieldErrors.phone ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-primary"
+                                            }`}
                                             placeholder="Phone Number"
                                         />
+                                        {fieldErrors.phone && (
+                                            <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.phone}</p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -235,8 +310,13 @@ export default function KioskWaiverPage() {
                                             onChange={(value) => setFormData({ ...formData, dateOfBirth: value })}
                                             max={maxAdultDate}
                                             placeholder="DD-MM-YYYY"
-                                            className="w-full px-6 py-4 rounded-xl border-2 border-white/10 focus:border-primary bg-surface-900 text-white outline-none transition-all text-lg"
+                                            className={`w-full px-6 py-4 rounded-xl border-2 bg-surface-900 text-white outline-none transition-all text-lg ${
+                                                fieldErrors.dateOfBirth ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-primary"
+                                            }`}
                                         />
+                                        {fieldErrors.dateOfBirth && (
+                                            <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.dateOfBirth}</p>
+                                        )}
                                     </div>
 
                                     <div className="md:col-span-2">
@@ -275,10 +355,15 @@ export default function KioskWaiverPage() {
                                                 <input
                                                     value={minor.name}
                                                     onChange={(e) => updateMinor(index, 'name', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-lg border border-white/10 bg-surface-900 text-white focus:border-primary outline-none"
+                                                    className={`w-full px-4 py-3 rounded-lg border bg-surface-900 text-white outline-none transition-colors ${
+                                                        fieldErrors[`minor_${index}_name`] ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-primary"
+                                                    }`}
                                                     placeholder="Minor Name"
                                                     required
                                                 />
+                                                {fieldErrors[`minor_${index}_name`] && (
+                                                    <p className="text-red-400 text-xs mt-1 font-medium">{fieldErrors[`minor_${index}_name`]}</p>
+                                                )}
                                             </div>
                                             <div className="md:col-span-5">
                                                 <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wide">
@@ -289,8 +374,13 @@ export default function KioskWaiverPage() {
                                                     onChange={(value) => updateMinor(index, 'dob', value)}
                                                     max={maxMinorDate}
                                                     placeholder="DD-MM-YYYY"
-                                                    className="w-full px-4 py-3 rounded-lg border border-white/10 bg-surface-900 text-white focus:border-primary outline-none"
+                                                    className={`w-full px-4 py-3 rounded-lg border bg-surface-900 text-white outline-none transition-colors ${
+                                                        fieldErrors[`minor_${index}_dob`] ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-primary"
+                                                    }`}
                                                 />
+                                                {fieldErrors[`minor_${index}_dob`] && (
+                                                    <p className="text-red-400 text-xs mt-1 font-medium">{fieldErrors[`minor_${index}_dob`]}</p>
+                                                )}
                                             </div>
                                             <div className="md:col-span-2">
                                                 <button
@@ -329,55 +419,39 @@ export default function KioskWaiverPage() {
                                             exit={{ opacity: 0, height: 0 }}
                                             className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-cyan-500/5 p-4 rounded-xl border border-cyan-500/20"
                                         >
-                                            <div className="md:col-span-3">
+                                            <div className="md:col-span-5">
                                                 <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wide">
                                                     Adult Name <span className="text-red-400">*</span>
                                                 </label>
                                                 <input
                                                     value={adult.name}
                                                     onChange={(e) => updateAdult(index, 'name', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-lg border border-white/10 bg-surface-900 text-white focus:border-cyan-500 outline-none"
+                                                    className={`w-full px-4 py-3 rounded-lg border bg-surface-900 text-white outline-none transition-colors ${
+                                                        fieldErrors[`adult_${index}_name`] ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-cyan-500"
+                                                    }`}
                                                     placeholder="Full Name"
                                                     required
                                                 />
+                                                {fieldErrors[`adult_${index}_name`] && (
+                                                    <p className="text-red-400 text-xs mt-1 font-medium">{fieldErrors[`adult_${index}_name`]}</p>
+                                                )}
                                             </div>
-                                            <div className="md:col-span-3">
+                                            <div className="md:col-span-5">
                                                 <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wide">
-                                                    Email <span className="text-red-400">*</span>
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    value={adult.email}
-                                                    onChange={(e) => updateAdult(index, 'email', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-lg border border-white/10 bg-surface-900 text-white focus:border-cyan-500 outline-none"
-                                                    placeholder="Email"
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="md:col-span-2">
-                                                <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wide">
-                                                    Phone <span className="text-red-400">*</span>
-                                                </label>
-                                                <input
-                                                    type="tel"
-                                                    value={adult.phone}
-                                                    onChange={(e) => updateAdult(index, 'phone', e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-lg border border-white/10 bg-surface-900 text-white focus:border-cyan-500 outline-none"
-                                                    placeholder="Phone"
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="md:col-span-2">
-                                                <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wide">
-                                                    DOB <span className="text-red-400">*</span>
+                                                    Date Of Birth <span className="text-red-400">*</span>
                                                 </label>
                                                 <HybridDateInput
                                                     value={adult.dob}
                                                     onChange={(value) => updateAdult(index, 'dob', value)}
                                                     max={maxAdultDate}
                                                     placeholder="DD-MM-YYYY"
-                                                    className="w-full px-4 py-3 rounded-lg border border-white/10 bg-surface-900 text-white focus:border-cyan-500 outline-none"
+                                                    className={`w-full px-4 py-3 rounded-lg border bg-surface-900 text-white outline-none transition-colors ${
+                                                        fieldErrors[`adult_${index}_dob`] ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-cyan-500"
+                                                    }`}
                                                 />
+                                                {fieldErrors[`adult_${index}_dob`] && (
+                                                    <p className="text-red-400 text-xs mt-1 font-medium">{fieldErrors[`adult_${index}_dob`]}</p>
+                                                )}
                                             </div>
                                             <div className="md:col-span-2">
                                                 <button

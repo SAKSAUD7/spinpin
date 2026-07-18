@@ -1,4 +1,6 @@
-﻿"use server";
+"use server";
+
+import { cookies } from "next/headers";
 
 /**
  * Payment Stats Actions
@@ -6,12 +8,23 @@
  * Server actions for fetching payment analytics and statistics
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+// Use 127.0.0.1 for server-side requests to avoid Node.js 18+ IPv6 resolution issues
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:9000/api/v1").replace("localhost", "127.0.0.1");
 
 export async function getPaymentStats() {
     try {
-        const response = await fetch(`${API_URL}/admin/payments/stats/`, {
-            credentials: "include",
+        const token = cookies().get("admin_token")?.value;
+
+        if (!token) {
+            console.error("[PaymentStats] No admin_token cookie found — returning defaults");
+            return getDefaultStats();
+        }
+
+        const response = await fetch(`${API_URL}/payments/stats/`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
             cache: "no-store",
         });
 

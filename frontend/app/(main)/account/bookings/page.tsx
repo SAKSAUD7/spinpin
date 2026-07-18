@@ -268,7 +268,7 @@ function BookingCard({
         }
     };
 
-    const isPendingPayment = booking.payment_status === "PENDING" || booking.status === "PENDING" || booking.booking_status === "PENDING";
+    const isPendingPayment = booking.payment_status === "PENDING";
 
     return (
         <motion.div

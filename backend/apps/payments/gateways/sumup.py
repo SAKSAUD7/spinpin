@@ -110,7 +110,7 @@ class SumUpGateway(BasePaymentGateway):
             "Content-Type": "application/json",
         }
 
-    def create_order(self, booking, amount: Decimal) -> Dict[str, Any]:
+    def create_order(self, booking, amount: Decimal | None = None) -> Dict[str, Any]:
         """
         Create a SumUp checkout using the correct merchant account for this booking.
 
@@ -152,8 +152,22 @@ class SumUpGateway(BasePaymentGateway):
         # ── Build checkout payload ────────────────────────────────────────────
         reference = f"SP-{booking.id}-{uuid.uuid4().hex[:8].upper()}"
 
-        activity_label = activity.replace("-", " ").title() if activity else ("Party" if is_party else "Session")
-        description    = f"{activity_label} Booking #{booking.id} — SpinPin Leicester"
+        # Build a concise description with key booking info for SumUp tracking
+        booking_date = str(getattr(booking, 'date', '')) if hasattr(booking, 'date') else ''
+        booking_time = str(getattr(booking, 'time', ''))[:5] if hasattr(booking, 'time') else ''
+        
+        # Use concise acronyms for cleaner accounting logs
+        activity_map = {
+            "roller-skating": "RS",
+            "ten-pin-bowling": "Bowling",
+            "arcade": "Arcade"
+        }
+        activity_label = activity_map.get(activity, activity.replace("-", " ").title()) if activity else ("Party" if is_party else "Session")
+        
+        description = (
+            f"SpinPin #{booking.id} | {activity_label} | "
+            f"{booking_date} {booking_time} | £{float(amount or 0):.2f}"
+        )
         return_url_str = (
             f"{self.return_url}"
             f"?booking_id={booking.id}"
@@ -167,7 +181,7 @@ class SumUpGateway(BasePaymentGateway):
 
         payload = {
             "checkout_reference": reference,
-            "amount":            float(amount),
+            "amount":            float(amount or 0),
             "currency":          "GBP",
             "merchant_code":     merchant_code,
             "description":       description,
@@ -190,7 +204,8 @@ class SumUpGateway(BasePaymentGateway):
         except requests.RequestException as e:
             logger.error(f"SumUp create_order failed ({account_name}): {e}")
             try:
-                logger.error(f"SumUp error response: {e.response.text}")
+                if getattr(e, 'response', None) is not None:
+                    logger.error(f"SumUp error response: {e.response.text}") # type: ignore
             except:
                 pass
             raise Exception(f"SumUp checkout creation failed: {e}")
@@ -236,17 +251,17 @@ class SumUpGateway(BasePaymentGateway):
         }
 
     def verify_payment(
-        self, payment_data: Dict[str, Any]
-    ) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+        self, data: Dict[str, Any]
+    ) -> Tuple[bool, str, Dict[str, Any]]:
         """
         Verify a SumUp checkout by polling /checkouts/{id}.
 
         payment_data must contain 'order_id' (the SumUp checkout ID).
         Returns (success, payment_id, response_dict).
         """
-        checkout_id = payment_data.get("order_id")
+        checkout_id = data.get("order_id")
         if not checkout_id:
-            return False, None, {"error": "Missing checkout ID"}
+            return False, "", {"error": "Missing checkout ID"}
 
         # Look up which merchant processed this checkout from the stored Payment record
         api_key = self._get_api_key_for_checkout(checkout_id)
@@ -271,15 +286,18 @@ class SumUpGateway(BasePaymentGateway):
             tx_id = transactions[0].get("id") if transactions else checkout_id
 
             try:
+                from apps.bookings.models import PartyBooking as _PartyBooking
+                from decimal import Decimal
+
                 payment = Payment.objects.get(order_id=checkout_id)
                 payment.mark_success(payment_id=tx_id, provider_response=data)
 
-                from decimal import Decimal
                 booking = payment.get_booking()
                 # Accumulate paid_amount (supports deposit + balance payments)
                 booking.paid_amount = (booking.paid_amount or Decimal("0")) + payment.amount
 
-                is_party = hasattr(booking, 'status') and not hasattr(booking, 'booking_status')
+                # Use isinstance for reliable type detection
+                is_party = isinstance(booking, _PartyBooking)
 
                 if booking.paid_amount >= booking.amount:
                     booking.payment_status = "PAID"
@@ -296,6 +314,11 @@ class SumUpGateway(BasePaymentGateway):
                     booking.save(update_fields=["paid_amount", "payment_status", "status"])
                 else:
                     booking.save(update_fields=["paid_amount", "payment_status", "booking_status"])
+
+                logger.info(
+                    f"Booking {booking.id} updated: payment_status=PAID, "
+                    f"booking_status={'CONFIRMED'}"
+                )
             except Payment.DoesNotExist:
                 logger.warning(f"Payment record not found for checkout {checkout_id}")
 

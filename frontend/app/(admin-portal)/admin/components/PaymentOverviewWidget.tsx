@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * Payment Overview Widget
@@ -56,8 +56,9 @@ export function PaymentOverviewWidget() {
 
     const fetchStats = async () => {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-            const response = await fetch(`${API_URL}/payments/stats/`, {
+            // Use the Next.js proxy route so the httpOnly admin_token cookie
+            // is read server-side and forwarded as an Authorization header to Django.
+            const response = await fetch(`/api/payments/stats`, {
                 credentials: "include",
                 cache: "no-store",
             });
