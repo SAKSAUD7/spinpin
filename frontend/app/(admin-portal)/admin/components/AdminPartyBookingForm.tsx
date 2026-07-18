@@ -12,6 +12,7 @@ interface AdminPartyBookingFormProps {
     isEditing?: boolean;
 }
 
+export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminPartyBookingFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [submitType, setSubmitType] = useState<'later' | 'sumup'>('later');
