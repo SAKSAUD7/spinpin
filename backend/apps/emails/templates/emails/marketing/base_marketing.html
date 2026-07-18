@@ -1,98 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ subject }}</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #4CAF50;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            color: #4CAF50;
-            margin: 0;
-            font-size: 28px;
-        }
-
-        .content {
-            margin-bottom: 30px;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: #4CAF50;
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #eee;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-        }
-
-        .unsubscribe {
-            margin-top: 10px;
-            font-size: 11px;
-            color: #999;
-        }
-
-        .unsubscribe a {
-            color: #999;
-            text-decoration: underline;
-        }
-    </style>
 </head>
+<body style="margin:0;padding:0;background-color:#0d0d1a;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0d1a;padding:40px 20px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Ninja Inflatable Park</h1>
+      <!-- HEADER -->
+      <tr><td style="background:linear-gradient(135deg,#e91e8c,#9c27b0);border-radius:16px 16px 0 0;padding:40px 32px;text-align:center;">
+        <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">Spin Pin Leicester</h1>
+      </td></tr>
+
+      <!-- BODY -->
+      <tr><td style="background:#ffffff;padding:36px 32px;font-size:15px;color:#1a1a2e;line-height:1.6;">
+        {% block content %}{% endblock %}
+      </td></tr>
+
+      <!-- FOOTER -->
+      <tr><td style="background:#1a1a2e;border-radius:0 0 16px 16px;padding:28px 32px;text-align:center;">
+        <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#ffffff;">Spin Pin Leicester</p>
+        <p style="margin:0 0 12px;font-size:13px;color:rgba(255,255,255,0.6);">Roller Skating · Ten Pin Bowling · Arcade</p>
+        <p style="margin:0 0 15px;font-size:12px;color:rgba(255,255,255,0.4);">📧 info@spinpin.co.uk &nbsp;|&nbsp; 📍 Navigation Street, Leicester LE1 3UR</p>
+        
+        <div style="margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.3);">
+            <p style="margin:0 0 5px;">You received this email because you visited Spin Pin.</p>
+            <p style="margin:0;">Don't want these emails? <a href="{{ unsubscribe_url }}" style="color:rgba(255,255,255,0.5);text-decoration:underline;">Unsubscribe here</a></p>
         </div>
+      </td></tr>
 
-        <div class="content">
-            {% block content %}{% endblock %}
-        </div>
-
-        <div class="footer">
-            <p><strong>Ninja Inflatable Park</strong><br>India's Biggest Inflatable Park</p>
-            <p>📧 info@ninjapark.com | 📱 +91 98454 71611</p>
-
-            <div class="unsubscribe">
-                <p>You received this email because you signed up at Ninja Inflatable Park.</p>
-                <p>Don't want these emails? <a href="{{ unsubscribe_url }}">Unsubscribe here</a></p>
-            </div>
-        </div>
-    </div>
+    </table>
+  </td></tr>
+</table>
 </body>
-
 </html>

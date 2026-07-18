@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// Dynamically import react-quill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css";
 import { createTemplate, updateTemplate } from "@/app/actions/marketing";
 import { API_ENDPOINTS } from "@/lib/api-endpoints";
 
@@ -23,14 +28,30 @@ export default function TemplateForm({ initialData, isEditing = false }: Templat
         is_active: initialData?.is_active ?? true,
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleContentChange = (content: string) => {
+        setFormData(prev => ({ ...prev, html_content: content }));
     };
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, is_active: e.target.checked }));
     };
+
+    // Quill modules configuration
+    const modules = useMemo(() => ({
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ],
+    }), []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,19 +126,20 @@ export default function TemplateForm({ initialData, isEditing = false }: Templat
 
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                            HTML Content
+                            Email Content (Template Body)
                         </label>
                         <p className="text-xs text-slate-500 mb-2">
-                            Paste your HTML code here. Use <code>{"{{ content }}"}</code> placeholder where campaign content should be injected.
+                            Design your email layout here. If this is a base template, type <code>{"{{ content }}"}</code> where you want future campaign text to be injected.
                         </p>
-                        <textarea
-                            name="html_content"
-                            required
-                            rows={15}
-                            value={formData.html_content}
-                            onChange={handleChange}
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="bg-white">
+                            <ReactQuill 
+                                theme="snow"
+                                value={formData.html_content}
+                                onChange={handleContentChange}
+                                modules={modules}
+                                className="h-64 mb-12"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2">

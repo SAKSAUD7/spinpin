@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Loader2 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// Dynamically import react-quill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css";
+
 import { createCampaign, updateCampaign, getTemplates } from "@/app/actions/marketing";
 import { API_ENDPOINTS } from "@/lib/api-endpoints";
 
@@ -49,6 +55,22 @@ export default function CampaignForm({ initialData, isEditing = false }: Campaig
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
+
+    const handleContentChange = (content: string) => {
+        setFormData(prev => ({ ...prev, content }));
+    };
+
+    // Quill modules configuration
+    const modules = useMemo(() => ({
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ],
+    }), []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -162,16 +184,17 @@ export default function CampaignForm({ initialData, isEditing = false }: Campaig
                             Injectable Content
                         </label>
                         <p className="text-xs text-slate-500 mb-2">
-                            This text will be injected into the <code>{"{{ content }}"}</code> placeholder of the selected template.
+                            This rich text will be injected into the selected template.
                         </p>
-                        <textarea
-                            name="content"
-                            required
-                            rows={8}
-                            value={formData.content}
-                            onChange={handleChange}
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="bg-white">
+                            <ReactQuill 
+                                theme="snow"
+                                value={formData.content}
+                                onChange={handleContentChange}
+                                modules={modules}
+                                className="h-64 mb-12"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

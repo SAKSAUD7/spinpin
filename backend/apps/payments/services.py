@@ -307,16 +307,10 @@ class PaymentService:
         logger.info(f"Sending payment success email for booking {booking.id}")
         
         try:
-            # Import here to avoid circular imports
             from django.conf import settings
             from apps.bookings.models import PartyBooking
             
-            # Only send email if EMAIL_BOOKING_ENABLED is True
-            if not getattr(settings, 'EMAIL_BOOKING_ENABLED', False):
-                logger.warning(f"EMAIL_BOOKING_ENABLED=False, skipping email for booking {booking.id}")
-                return
-            
-            # Send booking confirmation email after successful payment
+            # Trigger confirmation email for successful or 'pending' payment logic
             if isinstance(booking, PartyBooking):
                 # Party booking confirmation
                 from apps.emails.tasks import send_party_booking_confirmation_email

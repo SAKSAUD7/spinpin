@@ -247,7 +247,7 @@ class EmailService:
             'activity_name': activity_name,
         }
         
-        email_log = self.send_email(
+        return self.send_email(
             email_type='BOOKING_CONFIRMATION',
             recipient_email=booking.email,
             recipient_name=booking.name,
@@ -256,15 +256,6 @@ class EmailService:
             context=context,
             booking=booking
         )
-        
-        logger.error(f"EMAILLOG CREATED ID={email_log.id} STATUS={email_log.status}")
-        
-        if not getattr(settings, 'EMAIL_BOOKING_ENABLED', False):
-            logger.error(f"EMAIL_BOOKING_ENABLED=False, marking as failed")
-            email_log.mark_failed("Booking emails disabled by EMAIL_BOOKING_ENABLED flag")
-        
-        return email_log
-        return email_log
     
     def send_post_visit_thank_you(self, booking):
         """
@@ -310,7 +301,6 @@ class EmailService:
         Args:
             party_booking: PartyBooking instance
         """
-        logger.error(f"CREATING EMAILLOG FOR PARTY BOOKING {party_booking.id}")
         
         context = {
             'party_booking': party_booking,
@@ -326,7 +316,7 @@ class EmailService:
             'booking_uuid': str(party_booking.uuid),
         }
         
-        email_log = self.send_email(
+        return self.send_email(
             email_type='PARTY_BOOKING_CONFIRMATION',
             recipient_email=party_booking.email,
             recipient_name=party_booking.name,
@@ -335,14 +325,6 @@ class EmailService:
             context=context,
             party_booking=party_booking
         )
-        
-        logger.error(f"EMAILLOG CREATED ID={email_log.id} STATUS={email_log.status}")
-        
-        if not getattr(settings, 'EMAIL_BOOKING_ENABLED', False):
-            logger.error(f"EMAIL_BOOKING_ENABLED=False, marking as failed")
-            email_log.mark_failed("Booking emails disabled by EMAIL_BOOKING_ENABLED flag")
-        
-        return email_log
 
 
     def send_admin_contact_notification(self, contact_message):
