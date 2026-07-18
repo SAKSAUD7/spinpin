@@ -315,10 +315,10 @@ else:
 # Feature flags
 EMAIL_ENABLED = get_env_bool('EMAIL_ENABLED', False)
 EMAIL_BOOKING_ENABLED = get_env_bool('EMAIL_BOOKING_ENABLED', False)
-EMAIL_DEBUG_MODE = get_env_bool('EMAIL_DEBUG_MODE', True)
+EMAIL_DEBUG_MODE = get_env_bool('EMAIL_DEBUG_MODE', False)  # Default OFF so emails actually send
 
-# Standard Django SMTP backend
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+# Standard Django SMTP backend (used as fallback when Azure domain is not linked)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = get_env_bool('EMAIL_USE_TLS', True)

@@ -111,9 +111,10 @@ class EmailService:
             # Render email template (use full context with model instances)
             html_content = render_to_string(template_name, context)
             
-            # Send via Azure Communication Services
-            message_id = self._send_via_azure(
+            # Try Azure first, fall back to SMTP
+            message_id = self._send_with_fallback(
                 recipient_email=recipient_email,
+                recipient_name=recipient_name,
                 subject=subject,
                 html_content=html_content
             )
@@ -130,6 +131,69 @@ class EmailService:
         
         return email_log
     
+    def _send_with_fallback(
+        self,
+        recipient_email: str,
+        recipient_name: str,
+        subject: str,
+        html_content: str
+    ) -> str:
+        """
+        Try Azure Communication Services first. If that fails (e.g. DomainNotLinked),
+        automatically fall back to Django SMTP.
+        """
+        # Try Azure if connection string is configured
+        if self.connection_string:
+            try:
+                return self._send_via_azure(
+                    recipient_email=recipient_email,
+                    subject=subject,
+                    html_content=html_content
+                )
+            except Exception as azure_error:
+                logger.warning(
+                    f"Azure email failed ({azure_error}), falling back to SMTP."
+                )
+        
+        # Fall back to Django SMTP
+        return self._send_via_smtp(
+            recipient_email=recipient_email,
+            recipient_name=recipient_name,
+            subject=subject,
+            html_content=html_content
+        )
+
+    def _send_via_smtp(
+        self,
+        recipient_email: str,
+        recipient_name: str,
+        subject: str,
+        html_content: str
+    ) -> str:
+        """
+        Send email via Django's built-in SMTP backend.
+        Uses EMAIL_HOST / EMAIL_HOST_USER / EMAIL_HOST_PASSWORD from settings.
+        """
+        from django.core.mail import EmailMultiAlternatives
+        from django.conf import settings as django_settings
+        import uuid
+
+        from_name = getattr(django_settings, 'EMAIL_SENDER_NAME', 'Spin Pin Leicester')
+        from_email = getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'info@spinpin.co.uk')
+        from_header = f"{from_name} <{from_email}>"
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body="Please view this email in an HTML-compatible client.",
+            from_email=from_header,
+            to=[f"{recipient_name} <{recipient_email}>"] if recipient_name else [recipient_email],
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+
+        logger.info(f"Email sent via SMTP to {recipient_email}")
+        return f"smtp-{uuid.uuid4().hex[:12]}"
+
     def _send_via_azure(
         self,
         recipient_email: str,
