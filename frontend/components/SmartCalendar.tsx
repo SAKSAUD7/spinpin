@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { isSchoolHoliday, isHolidayOpen } from "@/lib/api/types";
+import { isSchoolHoliday, isHolidayOpen, nowInUK, todayInUK } from "@/lib/api/types";
 import type { BookingBlock } from "@/lib/api/booking-blocks";
 
 interface SmartCalendarProps {
@@ -85,13 +85,17 @@ const TYPE_STYLES: Record<string, { cell: string; dot: string; label: string }> 
 };
 
 export function SmartCalendar({ value, onChange, bookingBlocks = [], minDate, maxDate }: SmartCalendarProps) {
-    const today = new Date();
-    const [viewYear, setViewYear] = useState(today.getFullYear());
-    const [viewMonth, setViewMonth] = useState(today.getMonth());
+    // Always use UK time so the calendar reflects Leicester's current date,
+    // regardless of where the visitor's device is located.
+    const ukNow = nowInUK();
+    const [viewYear, setViewYear] = useState(ukNow.getFullYear());
+    const [viewMonth, setViewMonth] = useState(ukNow.getMonth());
 
-    const todayStr = toYMD(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStr = todayInUK();
     const minStr = minDate || todayStr;
-    const maxStr = maxDate || toYMD(today.getFullYear(), today.getMonth() + 12, today.getDate());
+    // Default max = 90 days from now in UK time
+    const maxDefault = new Date(ukNow.getFullYear(), ukNow.getMonth(), ukNow.getDate() + 90);
+    const maxStr = maxDate || toYMD(maxDefault.getFullYear(), maxDefault.getMonth(), maxDefault.getDate());
 
     // Build grid
     const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun

@@ -98,22 +98,21 @@ export async function createBooking(formData: any) {
         const sanitizedEmail = data.email.toLowerCase().trim();
         const sanitizedPhone = data.phone.trim();
 
-        // Validate date is not in the past
-        const selectedDate = new Date(data.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (selectedDate < today) {
+        // Validate date is not in the past — compare against UK date (Europe/London)
+        // The server runs on UTC (Azure), so we must explicitly compute the UK date
+        function getUKDateString(): string {
+            return new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' })
+                .split('/').reverse().join('-'); // dd/mm/yyyy → yyyy-mm-dd
+        }
+        const ukTodayStr = getUKDateString();
+        if (data.date < ukTodayStr) {
             return { success: false, error: "Cannot book for past dates" };
         }
 
-        // Validate time is not in the past for today's bookings
-        if (selectedDate.toDateString() === today.toDateString()) {
-            const [hours, minutes] = data.time.split(':').map(Number);
-            const bookingTime = new Date();
-            bookingTime.setHours(hours, minutes || 0, 0, 0);
-
-            if (bookingTime < new Date()) {
+        // Validate time is not in the past for today's bookings (UK time)
+        if (data.date === ukTodayStr) {
+            const ukNowStr = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hour12: false });
+            if (data.time <= ukNowStr) {
                 return { success: false, error: "Selected time has passed. Please choose a future time slot." };
             }
         }

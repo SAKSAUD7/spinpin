@@ -1,6 +1,38 @@
 import { z } from "zod";
 import { isAfter, isBefore, startOfDay, addHours } from "date-fns";
 
+/**
+ * Returns the current date/time expressed in UK local time (Europe/London),
+ * which correctly handles both GMT (winter) and BST (summer, UTC+1).
+ * Use this INSTEAD of `new Date()` whenever you need to know what time it
+ * currently is in Leicester.
+ */
+export function nowInUK(): Date {
+    // Intl gives us the UK wall-clock time as a locale string;
+    // we parse it back into a JS Date so arithmetic works normally.
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/London',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false,
+    });
+    const parts = formatter.formatToParts(new Date());
+    const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value ?? '0');
+    return new Date(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+}
+
+/**
+ * Returns today's date string (YYYY-MM-DD) in UK local time.
+ */
+export function todayInUK(): string {
+    const d = nowInUK();
+    return [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+    ].join('-');
+}
+
 // ─── Leicester City Council School Holiday Dates 2025–2027 ──────────────────
 // Source: Leicester City Council 2026-27 official calendar
 // Yellow dates = school holidays (SpinPin is OPEN on these, including Mondays)
@@ -208,28 +240,31 @@ export function formatPhoneNumber(phone: string): string {
     return phone.trim();
 }
 
-// Helper function to check if selected time is in the past
+// Helper function to check if selected time is in the past — always uses UK time
 export function isTimeInPast(date: string, time: string): boolean {
     if (!date || !time) return false;
     try {
-        const selectedDate = new Date(date);
+        // Build a Date representing the booking time (no timezone offset — wall-clock time)
+        const [year, month, day] = date.split('-').map(Number);
         const [hours, minutes] = time.split(':').map(Number);
-        selectedDate.setHours(hours, minutes || 0, 0, 0);
-        const now = new Date();
-        return isBefore(selectedDate, now);
+        const bookingWallClock = new Date(year, month - 1, day, hours, minutes || 0, 0, 0);
+        // Compare against the CURRENT UK wall-clock time
+        const ukNow = nowInUK();
+        return isBefore(bookingWallClock, ukNow);
     } catch {
         return false;
     }
 }
 
-// Helper to validate if a date is a valid booking date
+// Helper to validate if a date is a valid booking date — uses UK today
 export function isValidBookingDate(date: string): boolean {
     try {
-        const selectedDate = new Date(date);
-        const today = startOfDay(new Date());
-        const maxDate = addHours(new Date(), 24 * 90);
-        return (isAfter(selectedDate, today) || selectedDate.getTime() === today.getTime())
-            && isBefore(selectedDate, maxDate);
+        const [year, month, day] = date.split('-').map(Number);
+        const selectedDate = new Date(year, month - 1, day);
+        const ukToday = nowInUK();
+        const todayStart = new Date(ukToday.getFullYear(), ukToday.getMonth(), ukToday.getDate());
+        const maxDate = new Date(todayStart.getTime() + 90 * 24 * 60 * 60 * 1000);
+        return selectedDate >= todayStart && selectedDate <= maxDate;
     } catch {
         return false;
     }
@@ -270,11 +305,13 @@ export function getAvailableTimeSlots(date: string, activity?: string): string[]
         }
     }
 
-    // For today's date, only show slots at least 2 hours from now
-    const today = new Date();
-    if (selectedDate.toDateString() === today.toDateString()) {
-        const currentHour = today.getHours();
-        const currentMinute = today.getMinutes();
+    // For today's date, only show slots that are at least 2 hours from now (UK time)
+    const ukNow = nowInUK();
+    const ukTodayStr = todayInUK();
+    if (date === ukTodayStr) {
+        const currentHour = ukNow.getHours();
+        const currentMinute = ukNow.getMinutes();
+        // Require at least 2 full hours ahead; if we're mid-hour, round up to 3h
         const minSlotHour = currentMinute > 0 ? currentHour + 3 : currentHour + 2;
         return allSlots.filter(slot => {
             const [slotHour, slotMin] = slot.split(':').map(Number);
