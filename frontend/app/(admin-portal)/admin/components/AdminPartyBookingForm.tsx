@@ -12,9 +12,9 @@ interface AdminPartyBookingFormProps {
     isEditing?: boolean;
 }
 
-export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminPartyBookingFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [submitType, setSubmitType] = useState<'later' | 'sumup'>('later');
     const [error, setError] = useState("");
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -37,13 +37,6 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                 childName: formData.get("childName"),
                 childAge: Number(formData.get("childAge")),
                 specialRequests: formData.get("specialRequests"),
-                partyPackage: formData.get("partyPackage"),
-                theme: formData.get("theme"),
-                decorations: formData.get("decorations") === "true",
-                catering: formData.get("catering") === "true",
-                cake: formData.get("cake") === "true",
-                photographer: formData.get("photographer") === "true",
-                partyFavors: formData.get("partyFavors") === "true",
                 booking_status: formData.get("bookingStatus"), // Add status support
             };
 
@@ -56,8 +49,36 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
 
             if (result.success) {
                 toast.success(isEditing ? "Booking updated successfully" : "Booking created successfully");
-                router.push("/admin/party-bookings");
-                router.refresh();
+                
+                if (!isEditing && submitType === 'sumup' && result.bookingIntId) {
+                    try {
+                        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+                        const res = await fetch(`${API}/payments/create-order/`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                booking_id: result.bookingIntId,
+                                booking_type: "party",
+                                amount: result.amount || 0, // Fallback, backend handles total
+                            }),
+                            cache: "no-store",
+                        });
+                        const sumupData = await res.json();
+                        if (res.ok && sumupData.checkout_url) {
+                            window.location.href = sumupData.checkout_url;
+                            return; // Don't redirect to admin bookings list yet
+                        } else {
+                            setError(sumupData.error || "Booking created, but SumUp payment failed to initialize.");
+                            toast.error("SumUp payment failed to initialize");
+                        }
+                    } catch (paymentErr) {
+                        setError("Booking created, but failed to connect to payment gateway.");
+                        toast.error("Failed to connect to payment gateway");
+                    }
+                } else {
+                    router.push("/admin/party-bookings");
+                    router.refresh();
+                }
             } else {
                 setError(result.error || `Failed to ${isEditing ? "update" : "create"} booking`);
                 toast.error(result.error || "Operation failed");
@@ -66,7 +87,9 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
             setError("An unexpected error occurred");
             toast.error("An unexpected error occurred");
         } finally {
-            setLoading(false);
+            if (submitType !== 'sumup' || error || isEditing) {
+                setLoading(false);
+            }
         }
     }
 
@@ -246,72 +269,6 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                 </div>
             </div>
 
-            {/* Package & Add-ons */}
-            <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-primary" />
-                    Package & Add-ons
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Party Package</label>
-                        <select
-                            name="partyPackage"
-                            defaultValue={initialData?.partyPackage || initialData?.party_package}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
-                        >
-                            <option value="STANDARD">Standard Party</option>
-                            <option value="SKATING">Roller Skating Party</option>
-                            <option value="BOWLING">Bowling Party</option>
-                            <option value="PREMIUM">Premium (Skating + Bowling)</option>
-                            <option value="ULTIMATE">Ultimate (All Activities)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Theme</label>
-                        <select
-                            name="theme"
-                            defaultValue={initialData?.theme}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
-                        >
-                            <option value="">No Theme</option>
-                            <option value="RAINBOW">Rainbow & Sparkle</option>
-                            <option value="SPACE">Space Adventure</option>
-                            <option value="JUNGLE">Jungle Safari</option>
-                            <option value="PRINCESS">Princess Castle</option>
-                            <option value="SUPERHERO">Superhero</option>
-                            <option value="SPORTS">Sports Star</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="space-y-3">
-                    <label className="block text-sm font-medium text-slate-700">Add-ons</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-                            <input type="checkbox" name="decorations" value="true" defaultChecked={initialData?.decorations} className="w-4 h-4 text-primary rounded focus:ring-primary" />
-                            <span className="text-sm text-slate-700">Decorations</span>
-                        </label>
-                        <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-                            <input type="checkbox" name="catering" value="true" defaultChecked={initialData?.catering} className="w-4 h-4 text-primary rounded focus:ring-primary" />
-                            <span className="text-sm text-slate-700">Catering</span>
-                        </label>
-                        <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-                            <input type="checkbox" name="cake" value="true" defaultChecked={initialData?.cake} className="w-4 h-4 text-primary rounded focus:ring-primary" />
-                            <span className="text-sm text-slate-700">Cake</span>
-                        </label>
-                        <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-                            <input type="checkbox" name="photographer" value="true" defaultChecked={initialData?.photographer} className="w-4 h-4 text-primary rounded focus:ring-primary" />
-                            <span className="text-sm text-slate-700">Photographer</span>
-                        </label>
-                        <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-                            <input type="checkbox" name="partyFavors" value="true" defaultChecked={initialData?.partyFavors || initialData?.party_favors} className="w-4 h-4 text-primary rounded focus:ring-primary" />
-                            <span className="text-sm text-slate-700">Party Favors</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
             {/* Additional Info */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -331,14 +288,25 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
             </div>
 
             {/* Submit */}
-            <div className="pt-4 border-t border-slate-200 flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
                 <button
                     type="submit"
+                    onClick={() => setSubmitType('later')}
                     disabled={loading}
-                    className="px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-white text-slate-700 border border-slate-300 font-semibold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {loading ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update Booking" : "Create Party Booking")}
+                    {loading && submitType === 'later' ? (isEditing ? "Updating..." : "Creating...") : (isEditing ? "Update Booking" : "Create (Pay Later / Cash)")}
                 </button>
+                {!isEditing && (
+                    <button
+                        type="submit"
+                        onClick={() => setSubmitType('sumup')}
+                        disabled={loading}
+                        className="px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading && submitType === 'sumup' ? "Redirecting to SumUp..." : "Create & Pay with SumUp"}
+                    </button>
+                )}
             </div>
         </form>
     );

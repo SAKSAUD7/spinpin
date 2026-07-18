@@ -8,6 +8,7 @@ import { Calendar, Clock, Users, User, Mail, Phone, Info } from "lucide-react";
 export function AdminSessionBookingForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [submitType, setSubmitType] = useState<'later' | 'sumup'>('later');
     const [error, setError] = useState("");
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -36,15 +37,42 @@ export function AdminSessionBookingForm() {
             const result = await createBooking(data);
 
             if (result.success) {
-                router.push("/admin/bookings");
-                router.refresh();
+                if (submitType === 'sumup' && result.bookingIntId) {
+                    try {
+                        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+                        const res = await fetch(`${API}/payments/create-order/`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                booking_id: result.bookingIntId,
+                                booking_type: "session",
+                                amount: result.amount || 0, // Fallback, backend handles total
+                            }),
+                            cache: "no-store",
+                        });
+                        const sumupData = await res.json();
+                        if (res.ok && sumupData.checkout_url) {
+                            window.location.href = sumupData.checkout_url;
+                            return; // Don't redirect to admin bookings list yet
+                        } else {
+                            setError(sumupData.error || "Booking created, but SumUp payment failed to initialize.");
+                        }
+                    } catch (paymentErr) {
+                        setError("Booking created, but failed to connect to payment gateway.");
+                    }
+                } else {
+                    router.push("/admin/bookings");
+                    router.refresh();
+                }
             } else {
                 setError(result.error || "Failed to create booking");
             }
         } catch (err) {
             setError("An unexpected error occurred");
         } finally {
-            setLoading(false);
+            if (submitType !== 'sumup' || error) {
+                setLoading(false);
+            }
         }
     }
 
@@ -218,13 +246,22 @@ export function AdminSessionBookingForm() {
             </div>
 
             {/* Submit */}
-            <div className="pt-4 border-t border-slate-200 flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
                 <button
                     type="submit"
+                    onClick={() => setSubmitType('later')}
+                    disabled={loading}
+                    className="px-6 py-2 bg-white text-slate-700 border border-slate-300 font-semibold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {loading && submitType === 'later' ? "Creating..." : "Create (Pay Later / Cash)"}
+                </button>
+                <button
+                    type="submit"
+                    onClick={() => setSubmitType('sumup')}
                     disabled={loading}
                     className="px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {loading ? "Creating Booking..." : "Create Session Booking"}
+                    {loading && submitType === 'sumup' ? "Redirecting to SumUp..." : "Create & Pay with SumUp"}
                 </button>
             </div>
         </form>
