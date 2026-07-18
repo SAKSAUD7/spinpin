@@ -41,19 +41,52 @@ function isValidPhone(phone: string): boolean {
 
 export async function createBooking(formData: any) {
     try {
-        // Server-side validation using Zod schema
-        const validationResult = bookingSchema.safeParse(formData);
+        // Admin manual bookings don't have waiver/DOB fields — use a simpler schema
+        const isAdminBooking = formData.waiverAccepted === undefined;
 
-        if (!validationResult.success) {
-            console.error("Validation failed:", validationResult.error.issues);
-            const firstError = validationResult.error.issues[0];
-            return {
-                success: false,
-                error: firstError.message || "Invalid form data. Please check your inputs."
+        let data: any;
+
+        if (isAdminBooking) {
+            // Simple validation for admin-created bookings (no waiver required)
+            const { z } = await import("zod");
+            const adminSchema = z.object({
+                date: z.string().min(1, "Please select a date"),
+                time: z.string().min(1, "Please select a time slot"),
+                duration: z.enum(["60", "90", "120"]),
+                adults: z.number().min(0),
+                kids: z.number().min(0),
+                spectators: z.number().min(0),
+                name: z.string().min(1, "Name is required"),
+                email: z.string().email("Please enter a valid email address"),
+                phone: z.string().min(1, "Phone number is required"),
+            });
+            const result = adminSchema.safeParse(formData);
+            if (!result.success) {
+                const firstError = result.error.issues[0];
+                return { success: false, error: firstError.message || "Invalid form data." };
+            }
+            // Inject defaults for fields the full schema expects
+            data = {
+                ...result.data,
+                waiverAccepted: false,
+                dateOfBirth: "",
+                dateOfArrival: "",
+                minors: [],
+                adultGuests: [],
             };
+        } else {
+            // Full customer booking validation
+            const validationResult = bookingSchema.safeParse(formData);
+            if (!validationResult.success) {
+                console.error("Validation failed:", validationResult.error.issues);
+                const firstError = validationResult.error.issues[0];
+                return {
+                    success: false,
+                    error: firstError.message || "Invalid form data. Please check your inputs."
+                };
+            }
+            data = validationResult.data;
         }
-
-        const data = validationResult.data;
 
         // Additional server-side checks
         if (!isValidEmail(data.email)) {
@@ -152,7 +185,8 @@ export async function createBooking(formData: any) {
 
         subtotal = parseFloat((subtotal + addOnsTotal).toFixed(2));
         const gst = parseFloat((subtotal * (GST_RATE / 100)).toFixed(2));
-        const onlineBookingFee = 2.00;
+        // Admin bookings skip the online booking fee (£2) — it's for online customer flow only
+        const onlineBookingFee = isAdminBooking ? 0 : 2.00;
         let totalAmount = parseFloat((subtotal + gst + onlineBookingFee).toFixed(2));
         let discountAmount = 0;
         let voucherId = null;
@@ -360,7 +394,8 @@ export async function createBooking(formData: any) {
             success: true,
             bookingId: booking.uuid || booking.id, // UUID for display/tracking
             bookingIntId: booking.id, // Integer ID for backend operations (payments)
-            bookingNumber: bookingNumber
+            bookingNumber: bookingNumber,
+            amount: Number(totalAmount.toFixed(2)), // Total amount for SumUp payment
         };
     } catch (error) {
         console.error("Failed to create booking:", error);
