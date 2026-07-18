@@ -15,23 +15,22 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     """
-    Centralized email sending service using Azure Communication Services.
-    
-    Features:
-    - Template rendering
-    - Azure Email integration
-    - EmailLog creation and updates
-    - Error handling
-    - Feature flag support
+    Service for sending emails via Azure Communication Services.
+    Handles template rendering, logging, and Azure API integration.
     """
     
     def __init__(self):
-        """Initialize email service with Azure credentials from environment"""
-        self.enabled = getattr(settings, 'EMAIL_ENABLED', False)
-        self.debug_mode = getattr(settings, 'EMAIL_DEBUG_MODE', True)
-        self.connection_string = getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', '')
         self.sender_address = getattr(settings, 'AZURE_EMAIL_SENDER_ADDRESS', 'info@spinpin.co.uk')
         self.sender_name = getattr(settings, 'AZURE_EMAIL_SENDER_NAME', 'Spin Pin')
+        self.connection_string = getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', '')
+        
+    @property
+    def enabled(self):
+        return getattr(settings, 'EMAIL_ENABLED', False)
+        
+    @property
+    def debug_mode(self):
+        return getattr(settings, 'EMAIL_DEBUG_MODE', False)
     
     def send_email(
         self,
