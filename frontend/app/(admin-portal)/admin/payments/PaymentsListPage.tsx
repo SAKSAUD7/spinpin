@@ -449,7 +449,7 @@ export default function PaymentsListPage() {
                                             {/* Action */}
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {payment.status === "CREATED" && payment.provider === "sumup" && (
+                                                    {(payment.status === "CREATED" || payment.status === "PENDING" || payment.status === "PENDING_PAYMENT") && payment.provider?.toLowerCase() === "sumup" && (
                                                         <button
                                                             onClick={() => handleReverify(payment.order_id)}
                                                             disabled={loading}

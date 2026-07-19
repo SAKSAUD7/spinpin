@@ -548,3 +548,22 @@ def reverify_payment(request, order_id):
     except Exception as e:
         logger.error(f"Re-verify error for {order_id}: {e}")
         return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def get_payment(request, payment_id):
+    """
+    Get a single payment by ID.
+    """
+    try:
+        from .models import Payment
+        from .serializers import PaymentSerializer
+        payment = Payment.objects.get(id=payment_id)
+        serializer = PaymentSerializer(payment)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )

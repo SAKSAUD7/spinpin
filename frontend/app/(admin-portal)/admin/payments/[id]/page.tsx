@@ -48,7 +48,7 @@ export default function PaymentDetailPage() {
         setLoading(true);
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
-            const response = await fetch(`${API_URL}/admin/payments/${paymentId}/`, {
+            const response = await fetch(`${API_URL}/payments/${paymentId}/`, {
                 credentials: "include",
                 cache: "no-store",
             });
