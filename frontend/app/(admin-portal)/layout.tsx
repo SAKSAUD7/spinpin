@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { getAdminSession } from "../lib/admin-auth";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "./admin/components/AdminSidebar";
@@ -13,8 +14,20 @@ export default async function AdminPortalLayout({
     const session = await getAdminSession();
     const isAuthenticated = !!session;
 
-    // If not authenticated, just render the login page
+    // Use headers injected by middleware to know our current path
+    const headersList = headers();
+    const currentPath = headersList.get('x-current-path') || '';
+
+    // If not authenticated, we MUST redirect to login to prevent broken UI renders.
+    // The middleware catches missing cookies, but if the cookie exists but the token
+    // is expired on the backend, getAdminSession() fails here.
     if (!isAuthenticated) {
+        // Prevent infinite loops if we're already on the login page
+        if (!currentPath.startsWith('/admin/login')) {
+            redirect('/admin/login');
+        }
+        
+        // If we are on the login page, just render it without the sidebar
         return (
             <>
                 {children}

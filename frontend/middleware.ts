@@ -15,6 +15,26 @@ export function middleware(request: NextRequest) {
     ) {
         return NextResponse.next();
     }
+    // --- Admin Authentication Check ---
+    // If accessing any /admin route (except login), check for admin_token
+    if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+        const adminToken = request.cookies.get('admin_token')?.value;
+        if (!adminToken) {
+            const loginUrl = new URL('/admin/login', request.url);
+            return NextResponse.redirect(loginUrl, 302); // 302 Temporary Redirect
+        }
+    }
+    
+    // Create a new response and modify REQUEST headers so server components can read it
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-current-path', pathname);
+    
+    // We must pass the modified headers into the Next request object
+    let response = NextResponse.next({
+        request: {
+            headers: requestHeaders,
+        },
+    });
     
     // Retrieve target site URL from environment variable
     const targetSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.spinpin.uk';
@@ -26,7 +46,7 @@ export function middleware(request: NextRequest) {
     // (e.g., spinpin-frontend-d7ftbvf8h8cxe9g5.centralus-01.azurewebsites.net)
     if (lowercaseHost.includes('.azurewebsites.net')) {
         const redirectUrl = new URL(pathname + url.search, targetSiteUrl);
-        return NextResponse.redirect(redirectUrl, 301);
+        response = NextResponse.redirect(redirectUrl, 301);
     }
     
     // Case 2: The user is accessing the site via the apex/root domain (non-www)
