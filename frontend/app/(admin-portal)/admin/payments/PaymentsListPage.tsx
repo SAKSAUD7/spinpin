@@ -39,10 +39,12 @@ type SortKey = "id" | "amount" | "created_at" | "status";
 type SortDir = "asc" | "desc";
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string; dot: string; icon: React.ReactNode }> = {
-    SUCCESS:  { label: "Success",  cls: "text-emerald-700 bg-emerald-100 border-emerald-200", dot: "bg-emerald-500", icon: <CheckCircle className="w-3.5 h-3.5" /> },
-    FAILED:   { label: "Failed",   cls: "text-red-700 bg-red-100 border-red-200",            dot: "bg-red-500",     icon: <XCircle className="w-3.5 h-3.5" />     },
-    CREATED:  { label: "Pending",  cls: "text-amber-700 bg-amber-100 border-amber-200",       dot: "bg-amber-500",   icon: <Clock className="w-3.5 h-3.5" />       },
-    REFUNDED: { label: "Refunded", cls: "text-purple-700 bg-purple-100 border-purple-200",    dot: "bg-purple-500",  icon: <ArrowDownRight className="w-3.5 h-3.5" />},
+    SUCCESS:         { label: "Success",  cls: "text-emerald-700 bg-emerald-100 border-emerald-200", dot: "bg-emerald-500", icon: <CheckCircle className="w-3.5 h-3.5" /> },
+    FAILED:          { label: "Failed",   cls: "text-red-700 bg-red-100 border-red-200",            dot: "bg-red-500",     icon: <XCircle className="w-3.5 h-3.5" />     },
+    CREATED:         { label: "Pending",  cls: "text-amber-700 bg-amber-100 border-amber-200",       dot: "bg-amber-500",   icon: <Clock className="w-3.5 h-3.5" />       },
+    PENDING:         { label: "Pending",  cls: "text-amber-700 bg-amber-100 border-amber-200",       dot: "bg-amber-500",   icon: <Clock className="w-3.5 h-3.5" />       },
+    PENDING_PAYMENT: { label: "Pending",  cls: "text-amber-700 bg-amber-100 border-amber-200",       dot: "bg-amber-500",   icon: <Clock className="w-3.5 h-3.5" />       },
+    REFUNDED:        { label: "Refunded", cls: "text-purple-700 bg-purple-100 border-purple-200",    dot: "bg-purple-500",  icon: <ArrowDownRight className="w-3.5 h-3.5" />},
 };
 
 const PROVIDER_CONFIG: Record<string, { label: string; cls: string }> = {
@@ -108,7 +110,14 @@ export default function PaymentsListPage() {
             });
             if (response.ok) {
                 const data = await response.json();
-                setPayments(data.results || data);
+                // Normalize: coerce amount to a real number immediately so future
+                // calculations (reduce, toLocaleString) always work correctly.
+                const raw: any[] = data.results || data;
+                const normalized = raw.map((p: any) => ({
+                    ...p,
+                    amount: parseFloat(p.amount) || 0,
+                }));
+                setPayments(normalized);
             } else {
                 console.error("Failed to fetch payments:", response.status);
             }
@@ -430,7 +439,7 @@ export default function PaymentsListPage() {
                                                         : <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
                                                     }
                                                     <span className={`font-bold text-sm ${isNegative ? "text-red-600" : "text-slate-900"}`}>
-                                                        {isNegative ? "-" : ""}£{Math.abs(payment.amount).toLocaleString("en-GB")}
+                                                        {isNegative ? "-" : ""}£{Math.abs(payment.amount).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
                                             </td>
