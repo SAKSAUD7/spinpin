@@ -178,14 +178,14 @@ class DashboardViewSet(viewsets.ViewSet):
         first_day_of_month = today.replace(day=1)
 
         # Session Bookings (Standard Booking model)
-        session_bookings_today = Booking.objects.filter(date=today).exclude(booking_status='CANCELLED').count()
-        total_session_bookings = Booking.objects.exclude(booking_status='CANCELLED').count()
-        session_revenue = Booking.objects.exclude(booking_status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        session_bookings_today = Booking.objects.filter(date=today, payment_status='PAID').exclude(booking_status='CANCELLED').count()
+        total_session_bookings = Booking.objects.filter(payment_status='PAID').exclude(booking_status='CANCELLED').count()
+        session_revenue = Booking.objects.filter(payment_status='PAID').exclude(booking_status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
 
         # Party Bookings (New PartyBooking model)
-        party_bookings_today = PartyBooking.objects.filter(date=today).exclude(status='CANCELLED').count()
-        total_party_bookings = PartyBooking.objects.exclude(status='CANCELLED').count()
-        party_revenue = PartyBooking.objects.exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        party_bookings_today = PartyBooking.objects.filter(date=today, status__in=['CONFIRMED', 'COMPLETED']).count()
+        total_party_bookings = PartyBooking.objects.filter(status__in=['CONFIRMED', 'COMPLETED']).count()
+        party_revenue = PartyBooking.objects.filter(status__in=['CONFIRMED', 'COMPLETED']).aggregate(Sum('amount'))['amount__sum'] or 0
 
         # Aggregated Stats
         bookings_today = session_bookings_today + party_bookings_today
@@ -243,14 +243,14 @@ class DashboardViewSet(viewsets.ViewSet):
         start_date = today - timedelta(days=6)
         
         session_revenue_by_date = Booking.objects.filter(
-            date__gte=start_date, date__lte=today
+            date__gte=start_date, date__lte=today, payment_status='PAID'
         ).exclude(booking_status='CANCELLED').values('date').annotate(
             daily_revenue=Sum('amount')
         )
         
         party_revenue_by_date = PartyBooking.objects.filter(
-            date__gte=start_date, date__lte=today
-        ).exclude(status='CANCELLED').values('date').annotate(
+            date__gte=start_date, date__lte=today, status__in=['CONFIRMED', 'COMPLETED']
+        ).values('date').annotate(
             daily_revenue=Sum('amount')
         )
         
@@ -300,26 +300,26 @@ class DashboardViewSet(viewsets.ViewSet):
             latest_message_preview = f"{latest_message.name}: {latest_message.message[:50]}..." if len(latest_message.message) > 50 else f"{latest_message.name}: {latest_message.message}"
         
         # Today's Revenue
-        today_session_revenue = Booking.objects.filter(date=today).exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
-        today_party_revenue = PartyBooking.objects.filter(date=today).exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        today_session_revenue = Booking.objects.filter(date=today, payment_status='PAID').exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        today_party_revenue = PartyBooking.objects.filter(date=today, status__in=['CONFIRMED', 'COMPLETED']).aggregate(Sum('amount'))['amount__sum'] or 0
         today_revenue = today_session_revenue + today_party_revenue
         
         # Yesterday's Revenue for comparison
         yesterday = today - timedelta(days=1)
-        yesterday_session_revenue = Booking.objects.filter(date=yesterday).exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
-        yesterday_party_revenue = PartyBooking.objects.filter(date=yesterday).exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        yesterday_session_revenue = Booking.objects.filter(date=yesterday, payment_status='PAID').exclude(status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        yesterday_party_revenue = PartyBooking.objects.filter(date=yesterday, status__in=['CONFIRMED', 'COMPLETED']).aggregate(Sum('amount'))['amount__sum'] or 0
         yesterday_revenue = yesterday_session_revenue + yesterday_party_revenue
         
         # Booking Trend (This week vs Last week)
         week_ago = today - timedelta(days=7)
         two_weeks_ago = today - timedelta(days=14)
         
-        this_week_session = Booking.objects.filter(created_at__gte=week_ago).exclude(status='CANCELLED').count()
-        this_week_party = PartyBooking.objects.filter(created_at__gte=week_ago).exclude(status='CANCELLED').count()
+        this_week_session = Booking.objects.filter(created_at__gte=week_ago, payment_status='PAID').exclude(status='CANCELLED').count()
+        this_week_party = PartyBooking.objects.filter(created_at__gte=week_ago, status__in=['CONFIRMED', 'COMPLETED']).count()
         this_week_bookings = this_week_session + this_week_party
         
-        last_week_session = Booking.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=week_ago).exclude(status='CANCELLED').count()
-        last_week_party = PartyBooking.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=week_ago).exclude(status='CANCELLED').count()
+        last_week_session = Booking.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=week_ago, payment_status='PAID').exclude(status='CANCELLED').count()
+        last_week_party = PartyBooking.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=week_ago, status__in=['CONFIRMED', 'COMPLETED']).count()
         last_week_bookings = last_week_session + last_week_party
         
         # Calculate growth percentage
