@@ -290,16 +290,24 @@ class SumUpGateway(BasePaymentGateway):
                 from decimal import Decimal
 
                 payment = Payment.objects.get(order_id=checkout_id)
+
+                # --- IDEMPOTENCY CHECK ---
+                # Only accumulate paid_amount if this payment was NOT already marked SUCCESS.
+                # This prevents double-counting when verify is called multiple times
+                # (e.g. from the success page redirect AND from the SumUp webhook).
+                already_processed = payment.status == "SUCCESS"
+
                 payment.mark_success(payment_id=tx_id, provider_response=data)
 
                 booking = payment.get_booking()
-                # Accumulate paid_amount (supports deposit + balance payments)
-                booking.paid_amount = (booking.paid_amount or Decimal("0")) + payment.amount
-
-                # Use isinstance for reliable type detection
                 is_party = isinstance(booking, _PartyBooking)
 
-                if booking.paid_amount >= booking.amount:
+                if not already_processed:
+                    # Only add to paid_amount on first successful verification
+                    booking.paid_amount = (booking.paid_amount or Decimal("0")) + payment.amount
+
+                # Always enforce correct status based on current paid_amount
+                if (booking.paid_amount or Decimal("0")) >= booking.amount:
                     booking.payment_status = "PAID"
                     if is_party:
                         booking.status = "CONFIRMED"
@@ -316,8 +324,8 @@ class SumUpGateway(BasePaymentGateway):
                     booking.save(update_fields=["paid_amount", "payment_status", "booking_status"])
 
                 logger.info(
-                    f"Booking {booking.id} updated: payment_status=PAID, "
-                    f"booking_status={'CONFIRMED'}"
+                    f"Booking {booking.id} updated: payment_status={booking.payment_status}, "
+                    f"paid_amount={booking.paid_amount}, already_processed={already_processed}"
                 )
             except Payment.DoesNotExist:
                 logger.warning(f"Payment record not found for checkout {checkout_id}")

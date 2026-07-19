@@ -57,28 +57,45 @@ function SuccessPageContent() {
 
     useEffect(() => {
         async function verify() {
-            // 1. Try backend verification if we have any ID to verify
+            // 1. Try backend verification with up to 4 retries (2s apart)
+            // SumUp processes payments async, so the first check may return PENDING
             if (verifyId) {
-                try {
-                    const res = await fetch(`${API_URL}/payments/verify/`, {
-                        method:  "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body:    JSON.stringify({ order_id: verifyId }),
-                        cache:   "no-store",
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        setPayment(data);
-                        setVerified(true);
-                        const st = (data.payment_status || sumupStatus || "").toUpperCase();
-                        if (st === "PAID" || st === "SUCCESSFUL")       setUiStatus("paid");
-                        else if (st === "FAILED" || st === "CANCELLED") setUiStatus("failed");
-                        else                                             setUiStatus("paid"); // treat as paid (verify succeeded)
-                    } else {
-                        // Fallback to URL param
-                        resolveFromParams();
+                let verified_paid = false;
+                for (let attempt = 0; attempt < 4; attempt++) {
+                    try {
+                        const res = await fetch(`${API_URL}/payments/verify/`, {
+                            method:  "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body:    JSON.stringify({ order_id: verifyId }),
+                            cache:   "no-store",
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            setPayment(data);
+                            setVerified(true);
+                            const st = (data.payment_status || "").toUpperCase();
+                            if (st === "PAID" || st === "SUCCESSFUL") {
+                                setUiStatus("paid");
+                                verified_paid = true;
+                                break; // Success — stop retrying
+                            } else if (st === "FAILED" || st === "CANCELLED") {
+                                setUiStatus("failed");
+                                verified_paid = true;
+                                break;
+                            }
+                            // PENDING — wait 2s and retry
+                        }
+                    } catch {
+                        // Network error — wait and retry
                     }
-                } catch {
+                    if (attempt < 3) {
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                }
+
+                // If backend never confirmed PAID, fall back to SumUp's URL param
+                // SumUp only adds ?status=PAID when the payment is genuinely successful
+                if (!verified_paid) {
                     resolveFromParams();
                 }
             } else {
@@ -103,7 +120,7 @@ function SuccessPageContent() {
             const st = (sumupStatus || "").toUpperCase();
             if (st === "PAID" || st === "SUCCESSFUL") setUiStatus("paid");
             else if (st === "FAILED" || st === "CANCELLED") setUiStatus("failed");
-            else setUiStatus("paid"); // default: treat as confirmed (verified by redirect)
+            else setUiStatus("paid"); // default: show success (SumUp redirected here)
         }
 
         verify();
