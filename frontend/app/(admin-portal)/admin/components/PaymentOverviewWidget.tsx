@@ -123,7 +123,7 @@ export function PaymentOverviewWidget() {
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-slate-500 uppercase">Total Revenue</p>
-                            <h3 className="text-2xl font-bold text-slate-900">£{stats.total_revenue.toLocaleString('en-GB')}</h3>
+                            <h3 className="text-2xl font-bold text-slate-900">£{stats.total_revenue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                         </div>
                     </div>
                     <p className="text-xs text-slate-600">
@@ -138,11 +138,11 @@ export function PaymentOverviewWidget() {
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-slate-500 uppercase">Today's Revenue</p>
-                            <h3 className="text-2xl font-bold text-slate-900">£{stats.today_revenue.toLocaleString('en-GB')}</h3>
+                            <h3 className="text-2xl font-bold text-slate-900">£{stats.today_revenue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
                         </div>
                     </div>
                     <p className="text-xs text-slate-600">
-                        This week: £{stats.this_week_revenue.toLocaleString('en-GB')}
+                        This week: £{stats.this_week_revenue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                 </div>
 

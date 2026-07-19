@@ -148,9 +148,9 @@ export default function PaymentsListPage() {
         total:      payments.length,
         success:    payments.filter(p => p.status === "SUCCESS").length,
         failed:     payments.filter(p => p.status === "FAILED").length,
-        pending:    payments.filter(p => p.status === "CREATED").length,
+        pending:    payments.filter(p => p.status === "CREATED" || p.status === "PENDING" || p.status === "PENDING_PAYMENT").length,
         refunded:   payments.filter(p => p.status === "REFUNDED").length,
-        revenue:    payments.filter(p => p.status === "SUCCESS" && p.amount > 0).reduce((s, p) => s + p.amount, 0),
+        revenue:    payments.filter(p => p.status === "SUCCESS" && Number(p.amount) > 0).reduce((s, p) => s + Number(p.amount), 0),
     }), [payments]);
 
     const toggleSort = (key: SortKey) => {
@@ -177,7 +177,7 @@ export default function PaymentsListPage() {
         list.sort((a, b) => {
             let av: number | string = 0, bv: number | string = 0;
             if (sort === "id")         { av = a.id;          bv = b.id; }
-            if (sort === "amount")     { av = a.amount;       bv = b.amount; }
+            if (sort === "amount")     { av = Number(a.amount); bv = Number(b.amount); }
             if (sort === "created_at") { av = a.created_at;  bv = b.created_at; }
             if (sort === "status")     { av = a.status;       bv = b.status; }
             if (av < bv) return dir === "asc" ? -1 : 1;
@@ -238,7 +238,7 @@ export default function PaymentsListPage() {
                 />
                 <StatCard
                     label="Revenue"
-                    value={`£${stats.revenue.toLocaleString("en-GB")}`}
+                    value={`£${stats.revenue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     sub={`${stats.success} successful`}
                     color="border-emerald-200 ring-1 ring-emerald-50"
                     icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}

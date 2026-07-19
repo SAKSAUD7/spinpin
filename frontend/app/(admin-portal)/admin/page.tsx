@@ -74,7 +74,7 @@ export default async function AdminDashboard() {
                 />
                 <StatCard
                     title="Avg Booking Value"
-                    value={`£${stats.avgBookingValue.toLocaleString()}`}
+                    value={`£${stats.avgBookingValue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     icon={<DollarSign className="text-emerald-600" />}
                     trend="Per Booking"
                     trendUp={true}
@@ -106,7 +106,7 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <StatCard
                     title="Today's Revenue"
-                    value={`£${stats.todayRevenue.toLocaleString()}`}
+                    value={`£${stats.todayRevenue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     icon={<TrendingUp className="text-emerald-600" />}
                     trend={`${stats.bookingsToday} bookings today`}
                     trendUp={stats.todayRevenue >= stats.yesterdayRevenue}
@@ -122,7 +122,7 @@ export default async function AdminDashboard() {
                 />
                 <StatCard
                     title="Total Revenue"
-                    value={`£${stats.totalRevenue.toLocaleString()}`}
+                    value={`£${stats.totalRevenue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     icon={<DollarSign className="text-teal-600" />}
                     trend="All Time"
                     trendUp={true}
@@ -139,7 +139,7 @@ export default async function AdminDashboard() {
                     <SummaryCard category="Bookings Breakdown" icon={<CalendarCheck size={16} />} items={[
                         { label: "Session Bookings", value: stats.sessionBookings },
                         { label: "Party Bookings", value: stats.partyBookings },
-                        { label: "Avg Booking Value", value: `£${stats.avgBookingValue}` }
+                        { label: "Avg Booking Value", value: `£${stats.avgBookingValue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
                     ]} />
 
                     {/* Customer Stats */}
