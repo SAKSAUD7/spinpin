@@ -216,7 +216,7 @@ class SumUpGateway(BasePaymentGateway):
 
         # ── Save Payment record ───────────────────────────────────────────────
         payment_kwargs = {"booking": booking} if not is_party else {"party_booking": booking}
-        Payment.objects.create(
+        Payment.objects.create(  # type: ignore[attr-defined]
             **payment_kwargs,
             provider="SUMUP",
             order_id=checkout_id,
@@ -245,14 +245,14 @@ class SumUpGateway(BasePaymentGateway):
             "checkout_url": checkout_url,
             "provider":     "sumup",
             "merchant":     account_name,
-            "amount":       float(amount),
+            "amount":       float(amount) if amount is not None else 0.0,
             "currency":     "GBP",
             "reference":    reference,
         }
 
     def verify_payment(
         self, data: Dict[str, Any]
-    ) -> Tuple[bool, str, Dict[str, Any]]:
+    ) -> Tuple[bool, Optional[str], Dict[str, Any]]:
         """
         Verify a SumUp checkout by polling /checkouts/{id}.
 
@@ -289,7 +289,7 @@ class SumUpGateway(BasePaymentGateway):
                 from apps.bookings.models import PartyBooking as _PartyBooking
                 from decimal import Decimal
 
-                payment = Payment.objects.get(order_id=checkout_id)
+                payment = Payment.objects.get(order_id=checkout_id)  # type: ignore[attr-defined]
 
                 # --- IDEMPOTENCY CHECK ---
                 # Only accumulate paid_amount if this payment was NOT already marked SUCCESS.
@@ -327,16 +327,16 @@ class SumUpGateway(BasePaymentGateway):
                     f"Booking {booking.id} updated: payment_status={booking.payment_status}, "
                     f"paid_amount={booking.paid_amount}, already_processed={already_processed}"
                 )
-            except Payment.DoesNotExist:
+            except Payment.DoesNotExist:  # type: ignore[attr-defined]
                 logger.warning(f"Payment record not found for checkout {checkout_id}")
 
             return True, tx_id, data
 
         elif checkout_status in ("FAILED", "EXPIRED"):
             try:
-                payment = Payment.objects.get(order_id=checkout_id)
+                payment = Payment.objects.get(order_id=checkout_id)  # type: ignore[attr-defined]
                 payment.mark_failed(f"SumUp status: {checkout_status}")
-            except Payment.DoesNotExist:
+            except Payment.DoesNotExist:  # type: ignore[attr-defined]
                 pass
             return False, None, {
                 "error": f"Checkout {checkout_status.lower()}",
@@ -365,7 +365,7 @@ class SumUpGateway(BasePaymentGateway):
         creds = _get_merchant_credentials(activity)
         api_key = creds["api_key"]
 
-        refund_amount = float(amount) if amount else float(payment.amount)
+        refund_amount = float(amount) if amount is not None else float(payment.amount)  # type: ignore[arg-type]
 
         try:
             resp = requests.post(
@@ -414,12 +414,12 @@ class SumUpGateway(BasePaymentGateway):
         Falls back to SpinPin Ltd (skating) keys if not determinable.
         """
         try:
-            payment = Payment.objects.get(order_id=checkout_id)
+            payment = Payment.objects.get(order_id=checkout_id)  # type: ignore[attr-defined]
             stored  = payment.provider_response or {}
             activity = stored.get("_activity", "")
             creds   = _get_merchant_credentials(activity)
             return creds["api_key"]
-        except Payment.DoesNotExist:
+        except Payment.DoesNotExist:  # type: ignore[attr-defined]
             pass
 
         # Default: SpinPin Ltd
