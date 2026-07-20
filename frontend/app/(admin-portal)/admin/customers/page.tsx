@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { getCustomers } from "@/app/actions/admin";
@@ -153,6 +153,10 @@ export default function AdminCustomers() {
                                                 <div>
                                                     <p className="text-xs text-slate-600 uppercase font-bold">Spent</p>
                                                     <p className="text-sm font-bold text-emerald-600">£{customer.total_spent || 0}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-slate-600 uppercase font-bold">Emails</p>
+                                                    <p className="text-sm font-bold text-blue-600">{customer.email_count || 0}</p>
                                                 </div>
                                             </div>
                                         </td>

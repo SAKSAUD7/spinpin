@@ -2,7 +2,7 @@
 Payment API URLs.
 """
 
-from django.urls import path
+from django.urls import path  # type: ignore[import-untyped]
 from . import views
 
 urlpatterns = [

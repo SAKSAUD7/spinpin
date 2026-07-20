@@ -526,6 +526,12 @@ export async function getCustomerById(id: string) {
     return transformCustomer(data);
 }
 
+export async function getCustomerEmails(id: string) {
+    const res = await fetchAPI(`/bookings/customers/${id}/emails/`);
+    if (!res || !res.ok) return [];
+    return await res.json();
+}
+
 export async function getWaiverById(id: string) {
     const res = await fetchAPI(`/bookings/waivers/${id}/`);
     if (!res || !res.ok) return null;

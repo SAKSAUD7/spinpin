@@ -16,11 +16,11 @@ Docs: https://developer.sumup.com/api/checkouts/
 
 import logging
 import uuid
-import requests
+import requests  # type: ignore[import-untyped]
 from decimal import Decimal
 from typing import Tuple, Dict, Any, Optional
 
-from django.conf import settings
+from django.conf import settings  # type: ignore[import-untyped]
 
 from .base import BasePaymentGateway
 from ..models import Payment
@@ -388,7 +388,7 @@ class SumUpGateway(BasePaymentGateway):
         booking.paid_amount = max(  # type: ignore[attr-defined]
             Decimal("0"), booking.paid_amount - Decimal(str(refund_amount))  # type: ignore[attr-defined]
         )
-        if booking.paid_amount <= 0:
+        if booking.paid_amount <= 0:  # type: ignore[attr-defined]
             booking.payment_status = "REFUNDED"  # type: ignore[attr-defined]
         else:
             booking.payment_status = "PARTIAL"  # type: ignore[attr-defined]

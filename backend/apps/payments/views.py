@@ -75,7 +75,7 @@ def create_payment_order(request):
                 )
         
         # Create order
-        order_data = payment_service.create_payment_order(
+        order_data = payment_service.create_payment_order(  # type: ignore[misc]
             booking_id=int(booking_id),
             booking_type=booking_type,
             amount=amount
@@ -211,7 +211,7 @@ def process_refund(request):
                 )
         
         # Process refund
-        result = payment_service.process_refund(
+        result = payment_service.process_refund(  # type: ignore[misc]
             payment_id=int(payment_id),
             amount=amount,
             reason=reason
@@ -306,7 +306,7 @@ def get_payment_stats(request):
         from datetime import timedelta
         
         # Get all payments
-        all_payments = Payment.objects.all()
+        all_payments = Payment.objects.all()  # type: ignore[attr-defined]
         
         # Basic counts
         total_payments = all_payments.count()
@@ -513,11 +513,11 @@ def sumup_webhook(request):
             # Mark payment as failed
             try:
                 from .models import Payment
-                payment = Payment.objects.get(order_id=checkout_id)
+                payment = Payment.objects.get(order_id=checkout_id)  # type: ignore[attr-defined]
                 if payment.status not in ('SUCCESS', 'REFUNDED'):
                     payment.mark_failed(f'SumUp webhook: {sumup_status}')
                     logger.info(f"Payment {checkout_id} marked FAILED via webhook")
-            except Payment.DoesNotExist:
+            except Payment.DoesNotExist:  # type: ignore[attr-defined, misc]
                 logger.warning(f"Webhook: payment record not found for checkout {checkout_id}")
             return Response({'received': True})
 
@@ -635,7 +635,7 @@ def get_payment(request, payment_id):
     try:
         from .models import Payment
         from .serializers import PaymentSerializer
-        payment = Payment.objects.get(id=payment_id)
+        payment = Payment.objects.get(id=payment_id)  # type: ignore[attr-defined]
         serializer = PaymentSerializer(payment)
         return Response(serializer.data)
     except Exception as e:

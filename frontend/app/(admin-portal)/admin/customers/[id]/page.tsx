@@ -1,5 +1,5 @@
 import { getAdminSession } from "@/app/lib/admin-auth";
-import { getCustomerById } from "@/app/actions/admin";
+import { getCustomerById, getCustomerEmails } from "@/app/actions/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, Calendar, Package, TrendingUp } from "lucide-react";
@@ -69,7 +69,10 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
         );
     }
 
-    const bookings = await getCustomerBookings(params.id, customer.email);
+    const [bookings, emails] = await Promise.all([
+        getCustomerBookings(params.id, customer.email),
+        getCustomerEmails(params.id)
+    ]);
     const totalSpent = parseFloat(customer.total_spent || 0);
     const lastBooking = bookings[0];
 
@@ -264,6 +267,74 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
                         </div>
                         <p className="text-slate-500 font-medium">No bookings found</p>
                         <p className="text-sm text-slate-400 mt-1">This customer hasn't made any bookings yet</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Email History */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+                <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-900">Email History</h2>
+                        <p className="text-sm text-slate-500 mt-0.5">{emails.length} total email{emails.length !== 1 ? 's' : ''}</p>
+                    </div>
+                </div>
+
+                {emails.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                                    <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Subject</th>
+                                    <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {emails.map((email: any) => (
+                                    <tr key={email.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <Mail size={16} className="text-slate-400" />
+                                                <p className="text-sm font-bold text-slate-900">{email.email_type?.replace(/_/g, ' ') || 'Unknown'}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm text-slate-600 truncate max-w-xs">{email.subject}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                <Calendar size={14} className="text-slate-400" />
+                                                {formatDate(email.created_at)}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1 ${
+                                                email.status === 'SENT' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                                                email.status === 'PENDING' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                                                'bg-red-100 text-red-700 border-red-200'
+                                            }`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                                    email.status === 'SENT' ? 'bg-emerald-500' :
+                                                    email.status === 'PENDING' ? 'bg-amber-500' :
+                                                    'bg-red-500'
+                                                }`} />
+                                                {email.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="p-12 text-center">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                            <Mail className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <p className="text-slate-500 font-medium">No emails found</p>
+                        <p className="text-sm text-slate-400 mt-1">This customer hasn't received any automated emails yet</p>
                     </div>
                 )}
             </div>

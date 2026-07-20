@@ -23,10 +23,19 @@ class CustomerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsStaffUser]  # Allow employees to access customers
 
     def get_queryset(self):
+        from apps.emails.models import EmailLog
+        from django.db.models import Subquery, OuterRef, IntegerField
+        from django.db.models.functions import Coalesce
+
+        email_count_sq = EmailLog.objects.filter(
+            recipient_email=OuterRef('email')
+        ).values('recipient_email').annotate(c=Count('id')).values('c')
+
         queryset = Customer.objects.annotate(
             booking_count=Count('bookings'),
             total_spent=Sum('bookings__amount'),
-            last_visit=Max('bookings__date')
+            last_visit=Max('bookings__date'),
+            email_count=Coalesce(Subquery(email_count_sq, output_field=IntegerField()), 0)
         )
         
         search = self.request.query_params.get('search', None)
@@ -38,6 +47,15 @@ class CustomerViewSet(viewsets.ModelViewSet):
             )
             
         return queryset
+
+    @action(detail=True, methods=['get'])
+    def emails(self, request, pk=None):
+        customer = self.get_object()
+        from apps.emails.models import EmailLog
+        from apps.emails.serializers import EmailLogSerializer
+        emails = EmailLog.objects.filter(recipient_email=customer.email).order_by('-created_at')
+        serializer = EmailLogSerializer(emails, many=True)
+        return Response(serializer.data)
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()

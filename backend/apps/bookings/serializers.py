@@ -6,11 +6,12 @@ class CustomerSerializer(serializers.ModelSerializer):
     booking_count = serializers.IntegerField(read_only=True)
     total_spent = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     last_visit = serializers.DateField(read_only=True)
+    email_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Customer
         fields = ['id', 'name', 'email', 'phone', 'notes', 'created_at', 'updated_at', 
-                  'booking_count', 'total_spent', 'last_visit']
+                  'booking_count', 'total_spent', 'last_visit', 'email_count']
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -111,16 +112,16 @@ class BookingSerializer(serializers.ModelSerializer):
             return 'SIGNED'
         return obj.waiver_status or 'PENDING'
         
-    def validate(self, data):
+    def validate(self, attrs):  # type: ignore[override]
         """Check for Booking Blocks"""
-        date = data.get('date')
+        date = attrs.get('date')
         if date:
             # Check for active blocks on this date
             # We block if type is BLOCKED_DATE or any legacy blocking type
             # CLOSED_TODAY and OPEN_TODAY are alerts only, not blocks
             blocking_types = ['BLOCKED_DATE', 'CLOSED', 'MAINTENANCE', 'PRIVATE_EVENT', 'OTHER']
             
-            blocks = BookingBlock.objects.filter(
+            blocks = BookingBlock.objects.filter(  # type: ignore[attr-defined]
                 start_date__lte=date,
                 end_date__gte=date,
                 type__in=blocking_types
@@ -130,7 +131,7 @@ class BookingSerializer(serializers.ModelSerializer):
                 block = blocks.first()
                 raise serializers.ValidationError(f"This date is not available due to {block.reason}")
                 
-        return data
+        return attrs
     
     def create(self, validated_data):
         """Override create to automatically create/link customer"""
@@ -141,7 +142,7 @@ class BookingSerializer(serializers.ModelSerializer):
         
         # Get or create customer by email
         if email:
-            customer, created = Customer.objects.get_or_create(
+            customer, created = Customer.objects.get_or_create(  # type: ignore[attr-defined]
                 email=email,
                 defaults={
                     'name': name,
@@ -208,12 +209,12 @@ class PartyBookingSerializer(serializers.ModelSerializer):
     def get_booking_status(self, obj):
         return obj.status
 
-    def validate(self, data):
+    def validate(self, attrs):  # type: ignore[override]
         """Check for Booking Blocks"""
-        date = data.get('date')
+        date = attrs.get('date')
         if date:
             blocking_types = ['BLOCKED_DATE', 'CLOSED', 'MAINTENANCE', 'PRIVATE_EVENT', 'OTHER']
-            blocks = BookingBlock.objects.filter(
+            blocks = BookingBlock.objects.filter(  # type: ignore[attr-defined]
                 start_date__lte=date,
                 end_date__gte=date,
                 type__in=blocking_types
@@ -223,7 +224,7 @@ class PartyBookingSerializer(serializers.ModelSerializer):
                 block = blocks.first()
                 raise serializers.ValidationError(f"This date is not available due to {block.reason}")
                 
-        return data
+        return attrs
     
     def create(self, validated_data):
         """Override create to automatically create/link customer"""
@@ -234,7 +235,7 @@ class PartyBookingSerializer(serializers.ModelSerializer):
         
         # Get or create customer by email
         if email:
-            customer, created = Customer.objects.get_or_create(
+            customer, created = Customer.objects.get_or_create(  # type: ignore[attr-defined]
                 email=email,
                 defaults={
                     'name': name,
