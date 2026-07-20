@@ -209,23 +209,62 @@ function SuccessPageContent() {
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
                     <div className="text-center mb-8">
-                        <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
-                            {isPaid ? "Payment " : "Booking "}{" "}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">
-                                {isPaid ? "Successful!" : "Confirmed!"}
+                        {isPaid && (
+                            <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-bold uppercase tracking-wider mb-3">
+                                Step 6 • Complete
                             </span>
+                        )}
+                        <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
+                            {isPaid ? "Here is your Ticket!" : "Booking Confirmed!"}
                         </h1>
                         <p className="text-white/60 text-lg">
                             {isPaid
-                                ? "Your payment is confirmed. We'll see you at Spin Pin! 🎉"
+                                ? "Your payment is confirmed. Please show this digital ticket at reception."
                                 : "Your booking is confirmed. Payment may take a moment to process."}
                         </p>
                     </div>
 
+                    {/* DIGITAL TICKET (Only if PAID) */}
+                    {isPaid && booking && (
+                        <div className="bg-gradient-to-br from-primary/20 to-purple-500/20 border-2 border-primary/30 rounded-3xl p-8 mb-8 text-center relative overflow-hidden shadow-2xl shadow-primary/20">
+                            {/* Decorative ticket cutouts */}
+                            <div className="absolute top-1/2 -left-4 w-8 h-8 bg-background rounded-full -translate-y-1/2" />
+                            <div className="absolute top-1/2 -right-4 w-8 h-8 bg-background rounded-full -translate-y-1/2" />
+                            
+                            <div className="text-6xl mb-4 text-primary">🎟️</div>
+                            <h2 className="text-2xl font-black text-white mb-1">Digital Ticket</h2>
+                            <p className="text-primary font-bold mb-6 text-lg">{emoji} {actLabel}</p>
+                            
+                            <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto text-left mb-6 bg-black/30 p-4 rounded-2xl">
+                                <div>
+                                    <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Calendar size={12}/> Date</p>
+                                    <p className="text-white font-semibold">{fmtDate(booking.date)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Clock size={12}/> Time</p>
+                                    <p className="text-white font-semibold">{booking.time}</p>
+                                </div>
+                                <div>
+                                    <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Users size={12}/> Guests</p>
+                                    <p className="text-white font-semibold">{(booking.adults || 0) + (booking.kids || 0)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-white/40 text-xs font-bold uppercase mb-1 flex items-center gap-1"><User size={12}/> Name</p>
+                                    <p className="text-white font-semibold">{booking.name}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="inline-block bg-white text-black px-6 py-2 rounded-lg">
+                                <p className="text-xs font-bold uppercase text-black/60 mb-0.5">Booking ID</p>
+                                <p className="font-mono font-black text-2xl tracking-wider">#{booking.booking_number || reference || booking.id}</p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Transaction / Payment Card */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 space-y-3">
                         <h2 className="text-white font-black text-lg mb-4 flex items-center gap-2">
-                            <CreditCard className="w-5 h-5 text-primary" /> Payment Details
+                            <CreditCard className="w-5 h-5 text-primary" /> Receipt Details
                         </h2>
 
                         {checkoutId && (
@@ -262,8 +301,8 @@ function SuccessPageContent() {
                         )}
                     </div>
 
-                    {/* Booking Details Card */}
-                    {booking && (
+                    {/* Booking Details Card (Fallback if not paid yet) */}
+                    {!isPaid && booking && (
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 space-y-3">
                             <h2 className="text-white font-black text-lg mb-4 flex items-center gap-2">
                                 <Ticket className="w-5 h-5 text-primary" /> Your Booking
