@@ -375,7 +375,7 @@ class SumUpGateway(BasePaymentGateway):
                 timeout=15,
             )
             resp.raise_for_status()
-            data = resp.json() if resp.content else {}
+            _ = resp.json() if resp.content else {}
         except requests.RequestException as e:
             logger.error(f"SumUp refund failed: {e}")
             raise Exception(f"SumUp refund failed: {e}")
