@@ -276,7 +276,7 @@ class SumUpGateway(BasePaymentGateway):
             data = resp.json()
         except requests.RequestException as e:
             logger.error(f"SumUp verify_payment failed: {e}")
-            return False, None, {"error": str(e)}
+            return False, "", {"error": str(e)}
 
         checkout_status = data.get("status", "").upper()
         logger.info(f"SumUp checkout {checkout_id} status: {checkout_status}")
@@ -338,12 +338,12 @@ class SumUpGateway(BasePaymentGateway):
                 payment.mark_failed(f"SumUp status: {checkout_status}")
             except Payment.DoesNotExist:  # type: ignore[attr-defined]
                 pass
-            return False, None, {
+            return False, "", {
                 "error": f"Checkout {checkout_status.lower()}",
                 "status": checkout_status,
             }
 
-        return False, None, {
+        return False, "", {
             "status": checkout_status,
             "message": "Payment not yet completed",
         }
@@ -386,7 +386,7 @@ class SumUpGateway(BasePaymentGateway):
 
         booking = payment.get_booking()
         booking.paid_amount = max(  # type: ignore[attr-defined]
-            Decimal("0"), booking.paid_amount - Decimal(str(refund_amount))
+            Decimal("0"), booking.paid_amount - Decimal(str(refund_amount))  # type: ignore[attr-defined]
         )
         if booking.paid_amount <= 0:
             booking.payment_status = "REFUNDED"  # type: ignore[attr-defined]
