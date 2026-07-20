@@ -60,21 +60,48 @@ function SuccessPageContent() {
 
     useEffect(() => {
         async function verify() {
-            // 1. Backend verification — up to 8 retries, 3 s apart, 25 s timeout each.
-            //    SumUp processes async, Azure cold-starts can be slow — be patient.
+            // ── STEP 0: Trust SumUp's own redirect status immediately ──────────
+            // SumUp only redirects to our success URL after confirming payment.
+            // If the URL says PAID, we optimistically show success immediately
+            // while we confirm in the background.
+            const sumupSaysOk = (sumupStatus || '').toUpperCase() === 'PAID'
+                || (sumupStatus || '').toUpperCase() === 'SUCCESSFUL';
+
+            if (sumupSaysOk && !verifyId) {
+                // No checkout_id to verify — just trust SumUp
+                setUiStatus('paid');
+                return;
+            }
+
+            // ── STEP 1: Fire background auto-sweep of ALL pending payments ────
+            // This guarantees that even if the user closes their browser before
+            // the verify loop completes, the backend will pick up the payment.
+            // We do NOT await this — it runs in the background.
+            fetch('/api/payments/auto-verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                cache: 'no-store',
+            }).then(r => r.json()).then(d => {
+                console.log('[AutoVerify] Sweep result:', d);
+            }).catch(() => {/* non-critical */});
+
+            // ── STEP 2: Verify this specific payment (up to 12 retries × 4s) ─
             if (verifyId) {
                 let verified_paid = false;
-                for (let attempt = 0; attempt < 8; attempt++) {
+                const MAX_ATTEMPTS = 12;  // 12 × 4s = up to 48 seconds
+                const RETRY_INTERVAL = 4_000;
+
+                for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
                     try {
                         const controller = new AbortController();
-                        const timeoutId  = setTimeout(() => controller.abort(), 25_000); // 25 s
+                        const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
                         const res = await fetch(VERIFY_URL, {
-                            method:  "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body:    JSON.stringify({ order_id: verifyId }),
-                            cache:   "no-store",
-                            signal:  controller.signal,
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ order_id: verifyId }),
+                            cache: 'no-store',
+                            signal: controller.signal,
                         });
                         clearTimeout(timeoutId);
 
@@ -82,41 +109,56 @@ function SuccessPageContent() {
                             const data = await res.json();
                             setPayment(data);
                             setVerified(true);
-                            const st = (data.payment_status || "").toUpperCase();
-                            if (st === "PAID" || st === "SUCCESSFUL") {
-                                setUiStatus("paid");
+                            const st = (data.payment_status || '').toUpperCase();
+                            if (st === 'PAID' || st === 'SUCCESSFUL') {
+                                setUiStatus('paid');
                                 verified_paid = true;
                                 break;
-                            } else if (st === "FAILED" || st === "CANCELLED") {
-                                setUiStatus("failed");
+                            } else if (st === 'FAILED' || st === 'CANCELLED') {
+                                setUiStatus('failed');
                                 verified_paid = true;
                                 break;
                             }
-                            // PENDING — wait 3 s and retry
+                            // PENDING — wait and retry
                         }
                     } catch {
                         // Timeout or network error — wait and retry
                     }
-                    if (attempt < 7) {
-                        await new Promise(r => setTimeout(r, 3_000));
+                    if (attempt < MAX_ATTEMPTS - 1) {
+                        await new Promise(r => setTimeout(r, RETRY_INTERVAL));
                     }
                 }
 
-                // If backend never confirmed PAID, fall back to SumUp's URL param
+                // ── STEP 3: Fallback — trust SumUp's URL param if backend timed out ─
+                // SumUp only sends us to /book/success when payment is confirmed.
+                // If our backend verification loop ran out of retries but SumUp
+                // says PAID in the URL, honour that and show success.
                 if (!verified_paid) {
-                    resolveFromParams();
+                    if (sumupSaysOk) {
+                        setUiStatus('paid');
+                    } else {
+                        // Default to paid — SumUp redirected here, so payment was processed
+                        setUiStatus('paid');
+                    }
                 }
             } else {
-                resolveFromParams();
+                // No verifyId — fall back to SumUp URL status or default to paid
+                if (sumupSaysOk) {
+                    setUiStatus('paid');
+                } else if ((sumupStatus || '').toUpperCase() === 'FAILED') {
+                    setUiStatus('failed');
+                } else {
+                    setUiStatus('paid'); // SumUp redirected here → payment was done
+                }
             }
 
-            // 2. Fetch booking details via proxy
+            // ── STEP 4: Fetch booking details ─────────────────────────────────
             if (bookingId) {
                 try {
-                    const endpoint = bookingType === "party"
+                    const endpoint = bookingType === 'party'
                         ? `${BOOKING_API}/bookings/party-bookings/ticket/${bookingId}/`
                         : `${BOOKING_API}/bookings/bookings/ticket/${bookingId}/`;
-                    const res = await fetch(endpoint, { cache: "no-store" });
+                    const res = await fetch(endpoint, { cache: 'no-store' });
                     if (res.ok) {
                         setBooking(await res.json());
                     }
@@ -124,16 +166,10 @@ function SuccessPageContent() {
             }
         }
 
-        function resolveFromParams() {
-            const st = (sumupStatus || "").toUpperCase();
-            if (st === "PAID" || st === "SUCCESSFUL") setUiStatus("paid");
-            else if (st === "FAILED" || st === "CANCELLED") setUiStatus("failed");
-            else setUiStatus("paid"); // default: show success (SumUp redirected here)
-        }
-
         verify();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
 
     // ── LOADING ──────────────────────────────────────────────────────────────
     if (uiStatus === "loading") {

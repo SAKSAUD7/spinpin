@@ -549,6 +549,82 @@ def reverify_payment(request, order_id):
         logger.error(f"Re-verify error for {order_id}: {e}")
         return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def auto_verify_pending_payments(request):
+    """
+    AUTO-SWEEP: Verify all SUMUP payments that are still in CREATED status.
+
+    POST /api/v1/payments/auto-verify/
+    Called automatically from:
+      - The success page after every SumUp redirect (ensures the DB is updated
+        even if the user's browser closed before the verify loop finished)
+      - The admin payments page on load (sweeps any stale records)
+
+    Returns a summary of how many payments were resolved.
+    """
+    from .models import Payment
+    from django.utils import timezone
+    from datetime import timedelta
+
+    # Only look at SUMUP payments created in last 24 hours that are still CREATED
+    cutoff = timezone.now() - timedelta(hours=24)
+    pending_payments = Payment.objects.filter(  # type: ignore[attr-defined]
+        provider='SUMUP',
+        status='CREATED',
+        created_at__gte=cutoff,
+    ).order_by('-created_at')
+
+    total = pending_payments.count()
+    resolved = 0
+    paid_count = 0
+    failed_count = 0
+    still_pending = 0
+    errors = []
+
+    logger.info(f"[AutoVerify] Starting sweep of {total} pending SUMUP payments")
+
+    for payment in pending_payments:
+        try:
+            result = payment_service.verify_and_complete_payment(
+                order_id=payment.order_id,
+                payment_data={'order_id': payment.order_id}
+            )
+            if result.get('success'):
+                resolved += 1
+                if result.get('payment_status') == 'PAID':
+                    paid_count += 1
+                    logger.info(f"[AutoVerify] ✅ Payment {payment.order_id} → PAID")
+                else:
+                    still_pending += 1
+            else:
+                # SumUp says FAILED/EXPIRED
+                err_msg = result.get('error', '')
+                if 'failed' in err_msg.lower() or 'expired' in err_msg.lower():
+                    failed_count += 1
+                else:
+                    still_pending += 1
+        except Exception as e:
+            logger.error(f"[AutoVerify] Error verifying {payment.order_id}: {e}")
+            errors.append({'order_id': payment.order_id, 'error': str(e)})
+
+    logger.info(
+        f"[AutoVerify] Sweep complete: {total} total, "
+        f"{paid_count} newly paid, {still_pending} still pending, "
+        f"{failed_count} failed, {len(errors)} errors"
+    )
+
+    return Response({
+        'success': True,
+        'total_checked': total,
+        'newly_paid': paid_count,
+        'still_pending': still_pending,
+        'failed': failed_count,
+        'errors': errors,
+    })
+
 @api_view(['GET'])
 @authentication_classes([])
 @permission_classes([AllowAny])

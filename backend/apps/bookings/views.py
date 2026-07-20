@@ -1067,15 +1067,14 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
             party_booking_id = response.data.get('id')
             logger.info(f"Party booking {party_booking_id} created successfully")
 
-            # Send confirmation email (non-blocking — failure never blocks booking)
+            # Trigger confirmation email if it is an admin manual booking (has payment_status PAID/CONFIRMED etc).
+            # Otherwise payment gateway will trigger it later.
             try:
                 party_booking = PartyBooking.objects.get(id=party_booking_id)
-                from services.email_service import send_party_confirmation
-                email_ok = send_party_confirmation(party_booking)
-                if email_ok:
-                    logger.info(f"Confirmation email sent for party booking {party_booking_id}")
-                else:
-                    logger.warning(f"Email failed for party booking {party_booking_id} — booking still created")
+                if party_booking.payment_status in ['PAID', 'CONFIRMED'] or party_booking.booking_status == 'CONFIRMED':
+                    from apps.emails.tasks import send_party_booking_confirmation_email
+                    send_party_booking_confirmation_email(party_booking.id)
+                    logger.info(f"Confirmation email queued for party booking {party_booking_id}")
             except Exception as e:
                 logger.error(f"Email error for party booking {party_booking_id}: {e}", exc_info=True)
 

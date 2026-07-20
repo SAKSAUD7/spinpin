@@ -16,5 +16,7 @@ urlpatterns = [
     path('sumup-webhook/', views.sumup_webhook, name='sumup-webhook'),
     # Admin: manually re-verify a stuck pending payment
     path('reverify/<str:order_id>/', views.reverify_payment, name='reverify-payment'),
+    # Auto-sweep: verify all SUMUP payments that are still CREATED/PENDING
+    path('auto-verify/', views.auto_verify_pending_payments, name='auto-verify-payments'),
     path('<int:payment_id>/', views.get_payment, name='get-payment'),
 ]

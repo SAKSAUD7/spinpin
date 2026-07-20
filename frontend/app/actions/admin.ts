@@ -172,9 +172,36 @@ export async function logoutAdmin() {
 // --- Dashboard Actions ---
 
 export async function getDashboardStats() {
-    const res = await fetchAPI("/core/dashboard/stats/");
-    if (!res || !res.ok) throw new Error("Unauthorized or Failed to fetch stats");
-    return await res.json();
+    try {
+        const res = await fetchAPI("/core/dashboard/stats/");
+        if (!res || !res.ok) {
+            console.error("[getDashboardStats] Failed to fetch stats, returning defaults");
+            return getDefaultDashboardStats();
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("[getDashboardStats] Error:", error);
+        return getDefaultDashboardStats();
+    }
+}
+
+function getDefaultDashboardStats() {
+    return {
+        totalBookings: 0,
+        avgBookingValue: 0,
+        unreadMessages: 0,
+        latestMessagePreview: "",
+        waiverCompletionRate: 0,
+        pendingWaivers: 0,
+        todayBookings: 0,
+        weekRevenue: 0,
+        monthRevenue: 0,
+        totalRevenue: 0,
+        recentBookings: [],
+        monthlyRevenue: [],
+        bookingsByStatus: {},
+        topActivities: [],
+    };
 }
 
 export async function getAllBookings(filter?: { type?: string; status?: string; search?: string }): Promise<any[]> {
