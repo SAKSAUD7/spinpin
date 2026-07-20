@@ -10,7 +10,10 @@ import {
     RefreshCw, User, Package
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
+// Always use the Next.js proxy — never call the backend directly from the browser.
+// This avoids CORS errors and Azure cold-start timeouts.
+const VERIFY_URL    = "/api/payments/verify";
+const BOOKING_API   = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
 
 const ACTIVITY_EMOJI: Record<string, string> = {
     "roller-skating":  "🛼",
@@ -57,18 +60,24 @@ function SuccessPageContent() {
 
     useEffect(() => {
         async function verify() {
-            // 1. Try backend verification with up to 4 retries (2s apart)
-            // SumUp processes payments async, so the first check may return PENDING
+            // 1. Backend verification — up to 8 retries, 3 s apart, 25 s timeout each.
+            //    SumUp processes async, Azure cold-starts can be slow — be patient.
             if (verifyId) {
                 let verified_paid = false;
-                for (let attempt = 0; attempt < 4; attempt++) {
+                for (let attempt = 0; attempt < 8; attempt++) {
                     try {
-                        const res = await fetch(`${API_URL}/payments/verify/`, {
+                        const controller = new AbortController();
+                        const timeoutId  = setTimeout(() => controller.abort(), 25_000); // 25 s
+
+                        const res = await fetch(VERIFY_URL, {
                             method:  "POST",
                             headers: { "Content-Type": "application/json" },
                             body:    JSON.stringify({ order_id: verifyId }),
                             cache:   "no-store",
+                            signal:  controller.signal,
                         });
+                        clearTimeout(timeoutId);
+
                         if (res.ok) {
                             const data = await res.json();
                             setPayment(data);
@@ -77,24 +86,23 @@ function SuccessPageContent() {
                             if (st === "PAID" || st === "SUCCESSFUL") {
                                 setUiStatus("paid");
                                 verified_paid = true;
-                                break; // Success — stop retrying
+                                break;
                             } else if (st === "FAILED" || st === "CANCELLED") {
                                 setUiStatus("failed");
                                 verified_paid = true;
                                 break;
                             }
-                            // PENDING — wait 2s and retry
+                            // PENDING — wait 3 s and retry
                         }
                     } catch {
-                        // Network error — wait and retry
+                        // Timeout or network error — wait and retry
                     }
-                    if (attempt < 3) {
-                        await new Promise(r => setTimeout(r, 2000));
+                    if (attempt < 7) {
+                        await new Promise(r => setTimeout(r, 3_000));
                     }
                 }
 
                 // If backend never confirmed PAID, fall back to SumUp's URL param
-                // SumUp only adds ?status=PAID when the payment is genuinely successful
                 if (!verified_paid) {
                     resolveFromParams();
                 }
@@ -102,12 +110,12 @@ function SuccessPageContent() {
                 resolveFromParams();
             }
 
-            // 2. Fetch booking details
+            // 2. Fetch booking details via proxy
             if (bookingId) {
                 try {
                     const endpoint = bookingType === "party"
-                        ? `${API_URL}/bookings/party-bookings/ticket/${bookingId}/`
-                        : `${API_URL}/bookings/bookings/ticket/${bookingId}/`;
+                        ? `${BOOKING_API}/bookings/party-bookings/ticket/${bookingId}/`
+                        : `${BOOKING_API}/bookings/bookings/ticket/${bookingId}/`;
                     const res = await fetch(endpoint, { cache: "no-store" });
                     if (res.ok) {
                         setBooking(await res.json());

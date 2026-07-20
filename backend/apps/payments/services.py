@@ -124,7 +124,6 @@ class PaymentService:
 
         return order_data
     
-    @transaction.atomic
     def verify_and_complete_payment(
         self,
         order_id: str,
