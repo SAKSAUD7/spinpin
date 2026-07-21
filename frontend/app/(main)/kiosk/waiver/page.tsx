@@ -199,9 +199,9 @@ export default function KioskWaiverPage() {
         );
     }
 
-    // Calculate max dates
+    // Calculate max date for 7+ years
     const maxAdultDOB = new Date();
-    maxAdultDOB.setFullYear(maxAdultDOB.getFullYear() - 18);
+    maxAdultDOB.setFullYear(maxAdultDOB.getFullYear() - 7);
     const maxAdultDate = maxAdultDOB.toISOString().split('T')[0];
     const maxMinorDate = new Date().toISOString().split('T')[0];
 

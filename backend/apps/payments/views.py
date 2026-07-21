@@ -134,7 +134,7 @@ def verify_payment(request):
         }
     """
     try:
-        # Get order_id (could be 'order_id' for mock or 'razorpay_order_id' for Razorpay)
+        # Get order_id (could be 'order_id' for mock, 'razorpay_order_id', or a SumUp checkout reference)
         order_id = request.data.get('order_id') or request.data.get('razorpay_order_id')
         
         if not order_id:
@@ -142,6 +142,17 @@ def verify_payment(request):
                 {'error': 'order_id or razorpay_order_id is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+            
+        # If order_id is a SpinPin reference (SP-...), look up the actual checkout ID
+        if order_id.startswith('SP-'):
+            from .models import Payment
+            from django.db.models import Q
+            payment = Payment.objects.filter(
+                Q(order_id=order_id) | 
+                Q(provider_response__checkout_reference=order_id)
+            ).first()
+            if payment:
+                order_id = payment.order_id
         
         # Verify payment
         result = payment_service.verify_and_complete_payment(
@@ -569,15 +580,15 @@ def auto_verify_pending_payments(request):
     from django.utils import timezone
     from datetime import timedelta
 
-    # Only look at SUMUP payments created in last 24 hours that are still CREATED
+    # Only look at SUMUP payments created in last 24 hours that are still CREATED (limit to 15 to prevent timeouts)
     cutoff = timezone.now() - timedelta(hours=24)
-    pending_payments = Payment.objects.filter(  # type: ignore[attr-defined]
+    pending_payments = list(Payment.objects.filter(  # type: ignore[attr-defined]
         provider='SUMUP',
         status='CREATED',
         created_at__gte=cutoff,
-    ).order_by('-created_at')
+    ).order_by('-created_at')[:15])
 
-    total = pending_payments.count()
+    total = len(pending_payments)
     resolved = 0
     paid_count = 0
     failed_count = 0

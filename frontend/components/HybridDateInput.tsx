@@ -101,6 +101,48 @@ export const HybridDateInput = ({
         // Intermediate states do not trigger onChange to prevent invalid ISO strings
     };
 
+    // Handle blur event to fix incomplete/2-digit years
+    const handleBlur = () => {
+        if (!inputValue) return;
+        
+        const parts = inputValue.split("-");
+        if (parts.length !== 3) return;
+
+        let [day, month, year] = parts;
+        if (!day || !month || !year) return;
+
+        // Pad day and month
+        if (day.length === 1) day = `0${day}`;
+        if (month.length === 1) month = `0${month}`;
+
+        // Handle 2 digit year
+        if (year.length === 2) {
+            const y = parseInt(year, 10);
+            const currentYear = new Date().getFullYear() % 100;
+            // E.g. if currentYear is 26: 
+            // typing 27 -> 1927. typing 26 -> 2026.
+            if (y > currentYear) {
+                year = `19${year}`;
+            } else {
+                year = `20${year}`;
+            }
+        }
+
+        const formattedDisplay = `${day}-${month}-${year}`;
+        setInputValue(formattedDisplay);
+
+        if (formattedDisplay.length === 10) {
+            const isoDate = displayToIso(formattedDisplay);
+            const date = new Date(isoDate);
+
+            if (!isNaN(date.getTime())) {
+                if (max && isoDate > max) return;
+                if (min && isoDate < min) return;
+                onChange(isoDate);
+            }
+        }
+    };
+
     // Handle native date picker selection
     const handleNativeDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const isoDate = e.target.value;
@@ -130,6 +172,7 @@ export const HybridDateInput = ({
                 type="text"
                 value={inputValue}
                 onChange={handleTextInput}
+                onBlur={handleBlur}
                 placeholder={placeholder}
                 className={className || "w-full pl-4 pr-10 py-3 bg-background-dark/80 border border-surface-700 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none text-white placeholder:text-white/40 text-sm transition-all"}
                 inputMode="numeric"

@@ -39,19 +39,17 @@ function fmtDate(d: string) {
 function SuccessPageContent() {
     const searchParams  = useSearchParams();
 
-    // SumUp sends back: ?checkout_id=xxx&merchant_code=xxx&status=PAID|FAILED
-    // We also pass: ?booking_id=X&booking_type=session&reference=SP-X-XXX
-    // Mock sends: ?order_id=MOCK_ORDER_xxx&booking_id=X&booking_type=session&mock=true
+    // SumUp appends smp-status and checkout-reference. We pass reference explicitly.
     const checkoutId    = searchParams.get("checkout_id");
     const orderId       = searchParams.get("order_id");   // mock flow
     const isMock        = searchParams.get("mock") === "true";
-    const sumupStatus   = searchParams.get("status");         // PAID | FAILED | PENDING
+    const sumupStatus   = searchParams.get("status") || searchParams.get("smp-status"); // PAID | FAILED | PENDING
     const bookingId     = searchParams.get("booking_id");
     const bookingType   = searchParams.get("booking_type") || "session";
-    const reference     = searchParams.get("reference");
+    const reference     = searchParams.get("reference") || searchParams.get("checkout-reference");
 
-    // The ID we use to verify — SumUp uses checkout_id, mock uses order_id
-    const verifyId      = checkoutId || orderId;
+    // The ID we use to verify — SumUp uses checkout_id, mock uses order_id. We fallback to reference if checkout_id is missing.
+    const verifyId      = checkoutId || orderId || reference;
 
     const [uiStatus, setUiStatus]     = useState<"loading" | "paid" | "pending" | "failed">("loading");
     const [booking,  setBooking]      = useState<any>(null);

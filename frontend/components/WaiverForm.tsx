@@ -29,9 +29,9 @@ export const WaiverForm = () => {
         }
     }, [date, watch, setValue]);
 
-    // Calculate max date for 18+ years
+    // Calculate max date for 7+ years
     const maxAdultDOB = new Date();
-    maxAdultDOB.setFullYear(maxAdultDOB.getFullYear() - 18);
+    maxAdultDOB.setFullYear(maxAdultDOB.getFullYear() - 7);
     const maxAdultDate = maxAdultDOB.toISOString().split('T')[0];
 
     // Calculate max date for minors (today's date)
