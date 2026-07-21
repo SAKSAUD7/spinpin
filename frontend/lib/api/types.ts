@@ -207,10 +207,8 @@ export const bookingSchema = z.object({
         dob: z.string().min(1, "Minor DOB is required")
     })).optional(),
     adultGuests: z.array(z.object({
-        name: z.string().min(1, "Adult name is required"),
-        email: z.string().email("Valid email required"),
-        phone: z.string().min(10, "Valid phone required"),
-        dob: z.string().min(1, "Adult DOB is required")
+        name: z.string().min(1, "Name is required"),
+        dob: z.string().min(1, "DOB is required")
     })).optional(),
     voucherCode: z.string().optional(),
     discountAmount: z.number().optional(),

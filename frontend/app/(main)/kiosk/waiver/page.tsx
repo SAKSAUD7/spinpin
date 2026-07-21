@@ -404,11 +404,11 @@ export default function KioskWaiverPage() {
                                 </button>
                             </div>
 
-                            {/* Additional Adults Section */}
+                            {/* Additional Guests Section */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
                                     <User className="w-5 h-5" />
-                                    Additional Adults
+                                    Additional Guests
                                 </h3>
                                 <AnimatePresence>
                                     {adultGuests.map((adult, index) => (
@@ -421,7 +421,7 @@ export default function KioskWaiverPage() {
                                         >
                                             <div className="md:col-span-5">
                                                 <label className="block text-xs font-bold text-white/70 mb-2 uppercase tracking-wide">
-                                                    Adult Name <span className="text-red-400">*</span>
+                                                    Guest Name <span className="text-red-400">*</span>
                                                 </label>
                                                 <input
                                                     value={adult.name}
@@ -443,7 +443,7 @@ export default function KioskWaiverPage() {
                                                 <HybridDateInput
                                                     value={adult.dob}
                                                     onChange={(value) => updateAdult(index, 'dob', value)}
-                                                    max={maxAdultDate}
+                                                    max={maxMinorDate}
                                                     placeholder="DD-MM-YYYY"
                                                     className={`w-full px-4 py-3 rounded-lg border bg-surface-900 text-white outline-none transition-colors ${
                                                         fieldErrors[`adult_${index}_dob`] ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-cyan-500"
@@ -471,7 +471,7 @@ export default function KioskWaiverPage() {
                                     onClick={addAdult}
                                     className="px-6 py-3 bg-cyan-500 text-black font-bold rounded-lg hover:bg-cyan-600 transition-colors flex items-center gap-2"
                                 >
-                                    <Plus size={20} /> Add Adult
+                                    <Plus size={20} /> Add Guest
                                 </button>
                             </div>
 
