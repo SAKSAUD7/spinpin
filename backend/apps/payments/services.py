@@ -102,6 +102,10 @@ class PaymentService:
         if amount <= 0:
             raise ValueError("Payment amount must be positive")
 
+        # Prevent duplicate payments if booking is already fully paid
+        if booking.payment_status == 'PAID':
+            raise ValueError("This booking has already been paid in full.")
+
         # If the requested amount exceeds what is stored on the booking (e.g. the
         # online booking fee was added to the checkout but the DB row predates that
         # change), update the booking amount so remaining_balance matches the real
