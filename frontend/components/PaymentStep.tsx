@@ -370,6 +370,13 @@ export function PaymentStep({
                             <span className="text-gray-400 text-xs">powered by</span>
                             <span className="text-gray-600 font-black text-sm tracking-tight">sumup</span>
                         </div>
+
+                        {/* Customer Warning */}
+                        <div className="mt-4 text-center">
+                            <p className="text-xs text-red-500 font-bold bg-red-50 p-2 rounded-lg border border-red-100">
+                                Please do not close the window after paying. Wait to be automatically redirected back to SpinPin.
+                            </p>
+                        </div>
                     </div>
 
                     {/* Security notice */}
