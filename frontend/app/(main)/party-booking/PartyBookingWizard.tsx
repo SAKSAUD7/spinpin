@@ -257,8 +257,9 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
         };
     };
 
+    const costs = calculateTotal();
+
     if (submitted && step === 6 && bookingDetails) {
-        const costs = calculateTotal();
         return (
             <main className="min-h-screen bg-background py-20">
                 <div className="max-w-3xl mx-auto px-4">
