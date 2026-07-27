@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getMediaUrl } from "@/lib/media-utils";
 import { ScrollReveal } from "@repo/ui";
+import Image from "next/image";
 
 interface CarouselImage {
     id: number;
@@ -108,11 +109,11 @@ export default function PricingCarousel({ images }: PricingCarouselProps) {
                             key={img.id}
                             className="flex-none snap-center w-[85%] sm:w-[50%] md:w-[33%] aspect-video relative rounded-2xl overflow-hidden border border-white/10 shadow-lg"
                         >
-                            <img
+                            <Image
                                 src={getMediaUrl(img.image_url)}
                                 alt={img.title || "Gallery image"}
-                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                loading="lazy"
+                                fill
+                                className="object-cover transition-transform duration-500 hover:scale-105"
                             />
                             {img.title && (
                                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">

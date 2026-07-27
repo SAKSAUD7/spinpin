@@ -4,6 +4,7 @@ import { ScrollReveal, SectionDivider, BouncyButton } from "@repo/ui";
 import { motion } from "framer-motion";
 import { Heart, Shield, Users, Zap, Target, Award, Sparkles, Calendar, HelpCircle, Instagram, Play } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { TimingCardsClient } from "@/components/TimingCardsClient";
 
 interface AboutContentProps {
@@ -130,11 +131,13 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
 
                         <ScrollReveal animation="slideRight">
                             <div className="relative rounded-3xl overflow-hidden aspect-square">
-                                <img
+                                <Image
                                     src={story?.image || "/images/spinpin/unnamed (11).webp"}
                                     alt="Kids having fun at Spin Pin Leicester"
-                                    className="w-full h-full object-cover rounded-3xl"
+                                    fill
+                                    className="object-cover rounded-3xl"
                                     onError={(e) => {
+                                        e.currentTarget.srcset = "";
                                         e.currentTarget.src = "/images/spinpin/unnamed (11).webp";
                                     }}
                                 />
@@ -263,10 +266,11 @@ export default function AboutContent({ values, stats, timeline, faqs, reels, her
                                         whileHover={{ y: -10 }}
                                         className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[9/16]"
                                     >
-                                        <img
+                                        <Image
                                             src={item.thumbnail_url || item.img || "/images/instagram/reel-1.jpg"}
                                             alt="Instagram Reel"
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-60"
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-60"
                                         />
                                         <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                                             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">

@@ -9,6 +9,7 @@ import { TimingCardsClient } from "../../../components/TimingCardsClient";
 import { motion } from "framer-motion";
 import { Zap, Shield, Users, Trophy, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Stat, GalleryItem, Activity } from "../../../lib/api/types";
 import InstagramReels from "./InstagramReels";
 import { getMediaUrl } from "@/lib/media-utils";
@@ -126,10 +127,11 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
 
                         <ScrollReveal animation="slideRight">
                             <div className="relative rounded-3xl overflow-hidden aspect-video lg:aspect-square">
-                                <img
+                                <Image
                                     src={getMediaUrl(aboutImage)}
                                     alt="Kids enjoying the park"
-                                    className="w-full h-full object-cover rounded-3xl"
+                                    fill
+                                    className="object-cover rounded-3xl"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
                             </div>
@@ -189,11 +191,13 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                                     className="relative group overflow-hidden rounded-3xl cursor-pointer"
                                 >
                                     <div className="aspect-[4/3] relative">
-                                        <img
+                                        <Image
                                             src={getMediaUrl(photo.src)}
                                             alt=""
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            fill
+                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
                                             onError={(e) => {
+                                                e.currentTarget.srcset = "";
                                                 e.currentTarget.src = "/images/spinpin/unnamed.webp";
                                             }}
                                         />

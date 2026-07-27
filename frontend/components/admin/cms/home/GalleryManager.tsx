@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { createGalleryItem, deleteGalleryItem } from '@/app/actions/gallery';
 import { Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 import { getMediaUrl } from '@/lib/media-utils';
 
 interface GalleryManagerProps {
@@ -117,7 +118,7 @@ export function GalleryManager({ items: initialItems }: GalleryManagerProps) {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {items.map((item) => (
                         <div key={item.id} className="group relative aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
-                            <img src={getMediaUrl(item.image_url)} alt={item.title} className="w-full h-full object-cover" />
+                            <Image src={getMediaUrl(item.image_url)} alt={item.title || "Gallery image"} fill className="object-cover" />
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <button
                                     onClick={() => handleDelete(item.id)}

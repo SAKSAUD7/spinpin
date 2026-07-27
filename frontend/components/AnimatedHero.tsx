@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Ticket } from "lucide-react";
+import Image from "next/image";
 import { getMediaUrl } from "@/lib/media-utils";
 
 interface AnimatedHeroProps {
@@ -22,10 +23,11 @@ export function AnimatedHero({
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
-                <img
+                <Image
                     src={getMediaUrl(backgroundImage)}
                     alt="Spin Pin Leicester"
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40" />
             </div>

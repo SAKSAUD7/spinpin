@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ScrollReveal, BouncyButton, SectionDivider } from "@repo/ui";
 import { motion } from "framer-motion";
 import { Check, Clock, AlertCircle } from "lucide-react";
+import Image from "next/image";
 import { formatCurrency } from "@repo/utils";
 import { getMediaUrl } from "@/lib/media-utils";
 import PricingCarousel from "./PricingCarousel";
@@ -74,10 +75,11 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         </h1>
                         {hero?.image && (
                             <div className="relative w-full max-w-4xl mx-auto h-64 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-2xl border border-white/10">
-                                <img
+                                <Image
                                     src={getMediaUrl(hero.image)}
                                     alt={heroTitle}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                             </div>

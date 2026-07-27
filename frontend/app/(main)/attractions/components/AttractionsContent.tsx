@@ -8,6 +8,7 @@ import AttractionVideoSection from "@/components/AttractionVideoSection";
 import { TimingCardsClient } from "@/components/TimingCardsClient";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 interface AttractionsContentProps {
     activities: any[];
@@ -177,11 +178,13 @@ export default function AttractionsContent({ activities, facilities, hero, video
                                 <ScrollReveal key={facility.id || index} animation="fade" delay={index * 0.1}>
                                     <div className="bg-surface-800 rounded-3xl border border-white/10 hover:border-primary/30 transition-colors flex flex-col overflow-hidden group h-full">
                                         <div className="h-48 overflow-hidden relative flex-shrink-0">
-                                            <img
+                                            <Image
                                                 src={getMediaUrl(facility.image_url) || `/hero-background.jpg`}
                                                 alt={facility.title || facility.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                fill
+                                                className="object-cover transition-transform duration-500 group-hover:scale-110"
                                                 onError={(e) => {
+                                                    e.currentTarget.srcset = "";
                                                     e.currentTarget.src = "/hero-background.jpg";
                                                 }}
                                             />
