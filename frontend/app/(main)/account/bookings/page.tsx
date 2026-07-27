@@ -80,9 +80,9 @@ export default function AccountBookingsPage() {
         })
             .then(r => r.ok ? r.json() : Promise.reject(new Error(`Server error: ${r.status}`)))
             .then(data => {
-                // Completely hide PENDING bookings from customer dashboard to prevent confusion
-                const validBookings = (data.bookings || []).filter((b: any) => b.payment_status !== 'PENDING');
-                setBookings(validBookings);
+                // We keep pending bookings visible, so customers can resume payment if they actually abandoned it.
+                // The auto-verify (above) guarantees that paid ones won't be stuck here.
+                setBookings(data.bookings || []);
             })
             .catch((err) => {
                 console.error('[Account] Failed to load bookings:', err);

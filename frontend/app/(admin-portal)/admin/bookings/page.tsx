@@ -113,12 +113,6 @@ export default function AdminBookings() {
             filtered = filtered.filter(booking =>
                 (booking.bookingStatus || booking.status) === statusFilter.toUpperCase()
             );
-        } else {
-            // Exclude pending bookings from 'all' view to reduce noise
-            filtered = filtered.filter(booking => 
-                (booking.bookingStatus || booking.status) !== 'PENDING' &&
-                (booking.payment_status || booking.paymentStatus) !== 'PENDING'
-            );
         }
 
         // Date filter
