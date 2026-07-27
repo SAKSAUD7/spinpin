@@ -151,8 +151,8 @@ export function PaymentStep({
     
     // For party bookings, recalculate based on base package
     const partyBasePrice   = d.partyBasePrice ?? 250.00;
-    const partyExtraKids   = d.partyExtraKids ?? 0;
-    const partyExtraSpecs  = d.partyExtraSpectators ?? 0;
+    const partyExtraKids   = d.partyExtraKids ?? Math.max(0, kids - 10);
+    const partyExtraSpecs  = d.partyExtraSpectators ?? Math.max(0, spectators - 10);
     const partyExtraKidsCost = partyExtraKids * (d.partyExtraKidPrice ?? 19.95);
     const partyExtraSpecsCost = partyExtraSpecs * (d.partyExtraSpectatorPrice ?? 2.95);
     
