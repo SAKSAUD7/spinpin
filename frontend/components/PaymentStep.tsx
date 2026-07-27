@@ -144,9 +144,15 @@ export function PaymentStep({
     const notes        = d.notes || "N/a";
 
     // Derived totals
-    const ticketsAdults    = adults * adultPrice;
-    const ticketsKids      = kids   * kidPrice;
+    let ticketsAdults    = adults * adultPrice;
+    let ticketsKids      = kids   * kidPrice;
     const ticketsSpecs     = spectators * specPrice;
+    
+    if (d.duration === "120") {
+        ticketsAdults += adults * adultPrice;
+        ticketsKids += kids * kidPrice;
+    }
+    
     const totalTickets     = ticketsAdults + ticketsKids + ticketsSpecs;
     
     // For party bookings, recalculate based on base package

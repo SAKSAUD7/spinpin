@@ -137,9 +137,9 @@ export async function createBooking(formData: any) {
             (data.kids * KID_PRICE) +
             (data.spectators * SPEC_PRICE);
 
-        // 120-min session = extra session fee per person
+        // 120-min session = double the session fee for participants
         if (data.duration === "120") {
-            subtotal += (data.kids + data.adults) * ADULT_PRICE;
+            subtotal += (data.adults * ADULT_PRICE) + (data.kids * KID_PRICE);
         }
 
         // ── Add-ons — prices also driven by CMS config ─────────────────────

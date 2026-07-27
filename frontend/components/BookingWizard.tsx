@@ -553,7 +553,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
     const calculateTotal = () => {
 
-        const subtotal =
+        let subtotal =
 
             (formData.adults * prices.adult) +
 
@@ -562,6 +562,10 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
             (formData.spectators * prices.spectator) +
 
             addOnTotal;
+
+        if (formData.duration === "120") {
+            subtotal += (formData.adults * prices.adult) + (formData.kids * prices.kid);
+        }
 
         const gst = subtotal * (prices.gstRate / 100);
 
