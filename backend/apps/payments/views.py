@@ -580,13 +580,13 @@ def auto_verify_pending_payments(request):
     from django.utils import timezone
     from datetime import timedelta
 
-    # Only look at SUMUP payments created in last 24 hours that are still CREATED (limit to 15 to prevent timeouts)
-    cutoff = timezone.now() - timedelta(hours=24)
+    # Only look at SUMUP payments created in last 7 days that are still CREATED (limit to 50 to prevent timeouts)
+    cutoff = timezone.now() - timedelta(days=7)
     pending_payments = list(Payment.objects.filter(  # type: ignore[attr-defined]
         provider='SUMUP',
         status='CREATED',
         created_at__gte=cutoff,
-    ).order_by('-created_at')[:15])
+    ).order_by('-created_at')[:50])
 
     total = len(pending_payments)
     resolved = 0

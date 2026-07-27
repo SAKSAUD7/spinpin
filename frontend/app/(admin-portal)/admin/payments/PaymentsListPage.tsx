@@ -103,6 +103,9 @@ export default function PaymentsListPage() {
     const fetchPayments = async () => {
         setLoading(true);
         try {
+            // Silently verify any stale pending payments before fetching
+            await fetch('/api/payments/auto-verify', { method: 'POST', cache: 'no-store' }).catch(() => {});
+
             // Use the admin proxy route — forwards admin_token cookie automatically
             const response = await fetch(`/api/payments/list`, { 
                 credentials: "include", 

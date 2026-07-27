@@ -62,10 +62,18 @@ export default function AccountBookingsPage() {
         }
     };
 
-    const fetchBookings = () => {
+    const fetchBookings = async () => {
         if (authLoading || !token) return;
         setLoading(true);
         setFetchError(null);
+
+        try {
+            // Silently verify any stale pending payments before fetching bookings
+            await fetch('/api/payments/auto-verify', { method: 'POST', cache: 'no-store' }).catch(() => {});
+        } catch (e) {
+            console.error('[Account] Auto-verify failed:', e);
+        }
+
         const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api/v1";
         fetch(`${API}/bookings/customer-auth/my-bookings/`, {
             headers: { Authorization: `Bearer ${token}` }

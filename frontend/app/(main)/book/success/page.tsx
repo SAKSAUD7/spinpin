@@ -83,10 +83,10 @@ function SuccessPageContent() {
                 console.log('[AutoVerify] Sweep result:', d);
             }).catch(() => {/* non-critical */});
 
-            // ── STEP 2: Verify this specific payment (up to 12 retries × 4s) ─
+            // ── STEP 2: Verify this specific payment (up to 30 retries × 4s) ─
             if (verifyId) {
                 let verified_paid = false;
-                const MAX_ATTEMPTS = 12;  // 12 × 4s = up to 48 seconds
+                const MAX_ATTEMPTS = 30;  // 30 × 4s = up to 120 seconds
                 const RETRY_INTERVAL = 4_000;
 
                 for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {

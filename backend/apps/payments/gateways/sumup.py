@@ -281,7 +281,7 @@ class SumUpGateway(BasePaymentGateway):
         checkout_status = data.get("status", "").upper()
         logger.info(f"SumUp checkout {checkout_id} status: {checkout_status}")
 
-        if checkout_status == "PAID":
+        if checkout_status in ("PAID", "SUCCESSFUL"):
             transactions = data.get("transactions", [])
             tx_id = transactions[0].get("id") if transactions else checkout_id
 
