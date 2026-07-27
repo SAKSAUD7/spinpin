@@ -511,7 +511,7 @@ def sumup_webhook(request):
         if not checkout_id:
             return Response({'error': 'Missing checkout id'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if sumup_status == 'PAID':
+        if sumup_status in ('PAID', 'SUCCESSFUL'):
             # Verify by polling SumUp API to confirm the status is authentic
             result = payment_service.verify_and_complete_payment(
                 order_id=checkout_id,

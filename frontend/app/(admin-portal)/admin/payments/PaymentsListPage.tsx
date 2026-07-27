@@ -183,7 +183,12 @@ export default function PaymentsListPage() {
                 p.id.toString().includes(q)
             );
         }
-        if (filterStatus !== "all") list = list.filter(p => p.status === filterStatus);
+        if (filterStatus !== "all") {
+            list = list.filter(p => p.status === filterStatus);
+        } else {
+            // Exclude pending/created payments from the default 'all' view
+            list = list.filter(p => p.status !== "CREATED" && p.status !== "PENDING");
+        }
         if (filterProvider !== "all") list = list.filter(p => p.provider === filterProvider);
 
         list.sort((a, b) => {

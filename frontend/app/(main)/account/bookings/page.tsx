@@ -79,7 +79,11 @@ export default function AccountBookingsPage() {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(r => r.ok ? r.json() : Promise.reject(new Error(`Server error: ${r.status}`)))
-            .then(data => setBookings(data.bookings || []))
+            .then(data => {
+                // Completely hide PENDING bookings from customer dashboard to prevent confusion
+                const validBookings = (data.bookings || []).filter((b: any) => b.payment_status !== 'PENDING');
+                setBookings(validBookings);
+            })
             .catch((err) => {
                 console.error('[Account] Failed to load bookings:', err);
                 setFetchError("Could not load your bookings. Please check your connection and try again.");
