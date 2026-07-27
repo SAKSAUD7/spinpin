@@ -11,9 +11,14 @@ import { Zap, Shield, Users, Trophy, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Stat, GalleryItem, Activity } from "../../../lib/api/types";
-import InstagramReels from "./InstagramReels";
+import dynamic from "next/dynamic";
 import { getMediaUrl } from "@/lib/media-utils";
 import { InstallAppSection } from "../../../components/InstallAppSection";
+
+const InstagramReels = dynamic(() => import("./InstagramReels"), { 
+    ssr: false, 
+    loading: () => <div className="h-[600px] flex items-center justify-center text-white/50">Loading Instagram...</div>
+});
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     Zap,
@@ -131,6 +136,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                                     src={getMediaUrl(aboutImage)}
                                     alt="Kids enjoying the park"
                                     fill
+                                    sizes="(max-width: 1024px) 100vw, 50vw"
                                     className="object-cover rounded-3xl"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
@@ -195,6 +201,7 @@ export default function HomeContent({ stats, gallery, banners, reels, settings, 
                                             src={getMediaUrl(photo.src)}
                                             alt=""
                                             fill
+                                            sizes="(max-width: 768px) 50vw, 33vw"
                                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                                             onError={(e) => {
                                                 e.currentTarget.srcset = "";
