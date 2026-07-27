@@ -153,7 +153,7 @@ export default function KioskWaiverPage() {
             }
 
             setSigned(true);
-            // Reset form after 5 seconds
+            // Reset form after 25 seconds
             setTimeout(() => {
                 setSigned(false);
                 setFormData({
@@ -166,7 +166,7 @@ export default function KioskWaiverPage() {
                 });
                 setMinors([]);
                 setAdultGuests([]);
-            }, 5000);
+            }, 25000);
         } catch (err: any) {
             setError(err.message || "Failed to submit waiver");
         } finally {
@@ -192,7 +192,7 @@ export default function KioskWaiverPage() {
                         Thank you for signing. You may now proceed to the check-in counter.
                     </p>
                     <p className="text-sm text-white/50">
-                        Redirecting to new form in 5 seconds...
+                        Redirecting to new form in 25 seconds...
                     </p>
                 </motion.div>
             </main>
