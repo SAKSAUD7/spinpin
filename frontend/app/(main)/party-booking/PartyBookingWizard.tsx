@@ -17,42 +17,7 @@ import { useAccount } from "@/state/account/AccountContext";
 
 interface PartyBookingWizardProps {
     cmsContent?: PageSection[];
-}
-
-// E-Invitation Step Component
-function EInvitationStep({ bookingId, bookingDetails, onNext, onSkip, onBack, title, subtitle }: any) {
-    return (
-        <div className="bg-surface-800/50 backdrop-blur-md p-8 rounded-3xl border border-white/10 max-w-3xl mx-auto">
-            <h2 className="text-2xl font-display font-bold mb-4 text-primary">{title}</h2>
-            <p className="text-white/70 mb-6">{subtitle}</p>
-            <div className="bg-background-dark rounded-xl p-6 mb-6">
-                <p className="text-white/80 mb-4">
-                    Send beautiful e-invitations to your guests! You can customize and send invitations after booking.
-                </p>
-                <p className="text-sm text-white/60">
-                    Visit your booking dashboard to manage invitations.
-                </p>
-            </div>
-            <div className="flex gap-4">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    className="px-6 py-3 bg-surface-700 hover:bg-surface-600 text-white font-bold rounded-xl transition-colors"
-                >
-                    Back
-                </button>
-                <button
-                    type="button"
-                    onClick={onSkip}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-xl transition-all"
-                >
-                    Continue to Payment
-                </button>
-            </div>
-        </div>
-    );
-}
-
+}import EInvitationStep from "./steps/EInvitationStep";
 
 export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWizardProps) {
     const router = useRouter();
@@ -292,9 +257,7 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
         };
     };
 
-    const costs = calculateTotal();
-
-    if (submitted && step === 5 && bookingDetails) {
+    if (submitted && step === 6 && bookingDetails) {
         const costs = calculateTotal();
         return (
             <main className="min-h-screen bg-background py-20">
@@ -422,13 +385,20 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                         <div className={`flex items-center justify-center w-10 h-10 rounded-full ${step >= 5 ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-surface-700 text-white/30'} font-bold transition-all`}>
                             5
                         </div>
+                        <div className={`h-1 w-12 ${step >= 6 ? 'bg-primary' : 'bg-surface-700'} transition-all`}></div>
+
+                        {/* 6 */}
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full ${step >= 6 ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-surface-700 text-white/30'} font-bold transition-all`}>
+                            6
+                        </div>
                     </div>
-                    <div className="flex justify-between mt-2 text-xs font-semibold px-4 max-w-lg mx-auto">
+                    <div className="flex justify-between mt-2 text-xs font-semibold px-4 max-w-xl mx-auto">
                         <span className={step >= 1 ? 'text-primary' : 'text-white/30'}>Details</span>
                         <span className={step >= 2 ? 'text-primary' : 'text-white/30'}>Sign In</span>
                         <span className={step >= 3 ? 'text-primary' : 'text-white/30'}>Participants</span>
-                        <span className={step >= 4 ? 'text-primary' : 'text-white/30'}>Payment</span>
-                        <span className={step >= 5 ? 'text-primary' : 'text-white/30'}>Confirm</span>
+                        <span className={step >= 4 ? 'text-primary' : 'text-white/30'}>Invite</span>
+                        <span className={step >= 5 ? 'text-primary' : 'text-white/30'}>Payment</span>
+                        <span className={step >= 6 ? 'text-primary' : 'text-white/30'}>Confirm</span>
                     </div>
                 </div>
 
@@ -789,8 +759,23 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                     </ScrollReveal>
                 )}
 
-                {/* STEP 4 — Payment */}
-                {step === 4 && tempBookingIntId && (
+                {/* STEP 4 — E-Invitations */}
+                {step === 4 && tempBookingId && (
+                    <ScrollReveal animation="slideUp">
+                        <EInvitationStep
+                            bookingId={tempBookingId}
+                            bookingDetails={bookingDetails}
+                            onNext={() => setStep(5)}
+                            onSkip={() => setStep(5)}
+                            onBack={() => setStep(3)}
+                            title={getContent('step-4', 'E-Invitations', '').title}
+                            subtitle={getContent('step-4', '', 'Send beautiful digital invitations to your guests.').subtitle}
+                        />
+                    </ScrollReveal>
+                )}
+
+                {/* STEP 5 — Payment */}
+                {step === 5 && tempBookingIntId && (
                     <ScrollReveal animation="slideUp">
                         <div className="max-w-4xl mx-auto mb-8 bg-surface-800/50 backdrop-blur-md p-6 rounded-3xl border border-white/10">
                             <h3 className="text-2xl font-bold text-white mb-4">Payment Options</h3>
@@ -833,9 +818,9 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                             }}
                             onSuccess={() => {
                                 setSubmitted(true);
-                                setStep(5);
+                                setStep(6);
                             }}
-                            onBack={() => setStep(3)}
+                            onBack={() => setStep(4)}
                         />
                     </ScrollReveal>
                 )}

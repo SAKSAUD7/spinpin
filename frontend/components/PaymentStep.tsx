@@ -148,12 +148,24 @@ export function PaymentStep({
     const ticketsKids      = kids   * kidPrice;
     const ticketsSpecs     = spectators * specPrice;
     const totalTickets     = ticketsAdults + ticketsKids + ticketsSpecs;
+    
+    // For party bookings, recalculate based on base package
+    const partyBasePrice   = d.partyBasePrice ?? 250.00;
+    const partyExtraKids   = d.partyExtraKids ?? 0;
+    const partyExtraSpecs  = d.partyExtraSpectators ?? 0;
+    const partyExtraKidsCost = partyExtraKids * (d.partyExtraKidPrice ?? 19.95);
+    const partyExtraSpecsCost = partyExtraSpecs * (d.partyExtraSpectatorPrice ?? 2.95);
+    
     const skateTotal       = skateQty  * skatePrice;
     const shoeTotal        = shoeQty   * shoePrice;
     const lockerTotal      = lockerQty * lockerPrice;
     const parkingTotal     = parkingQty * parkingPrice;
     const addOnsTotal      = skateTotal + shoeTotal + lockerTotal + parkingTotal;
-    const subtotal         = totalTickets + addOnsTotal;
+    
+    const subtotal         = bookingType === "party" 
+                                ? (partyBasePrice + partyExtraKidsCost + partyExtraSpecsCost + addOnsTotal) 
+                                : (totalTickets + addOnsTotal);
+                                
     const afterDiscount    = Math.max(0, subtotal - discount);
     const grandTotal       = afterDiscount + onlineFee;
     const amountGBP        = (amount / 100).toFixed(2);
@@ -235,28 +247,40 @@ export function PaymentStep({
                             <Row label="Session Time"    value={formatTime(d.time, activity)} />
                             <Row label="Activity"        value={actLabel} />
 
-                            {/* Skaters / Bowlers */}
-                            <Row
-                                label={activity === "ten-pin-bowling" ? "Bowlers Quantity" : "Skaters Quantity"}
-                                value={String(adults + kids)}
-                            />
-                            {spectators > 0 && (
-                                <Row label="Spectators Quantity" value={String(spectators)} />
+                            {bookingType === "party" ? (
+                                <>
+                                    <Row label="Party Package Participants" value={`${adults + kids} (Up to 10 included)`} />
+                                    {spectators > 0 && <Row label="Spectators" value={`${spectators} (Up to 10 included)`} />}
+                                    
+                                    <Row label="Party Base Package Price" value={fmt(partyBasePrice)} />
+                                    {partyExtraKids > 0 && <Row label={`Extra Kids Price (${partyExtraKids} × ${fmt(d.partyExtraKidPrice ?? 19.95)})`} value={fmt(partyExtraKidsCost)} />}
+                                    {partyExtraSpecs > 0 && <Row label={`Extra Spectators Price (${partyExtraSpecs} × ${fmt(d.partyExtraSpectatorPrice ?? 2.95)})`} value={fmt(partyExtraSpecsCost)} />}
+                                </>
+                            ) : (
+                                <>
+                                    <Row
+                                        label={activity === "ten-pin-bowling" ? "Bowlers Quantity" : "Skaters Quantity"}
+                                        value={String(adults + kids)}
+                                    />
+                                    {spectators > 0 && (
+                                        <Row label="Spectators Quantity" value={String(spectators)} />
+                                    )}
+
+                                    {/* Add-ons */}
+                                    {skateQty > 0 && <Row label="Skate Hire Quantity" value={String(skateQty)} />}
+                                    {shoeQty  > 0 && <Row label="Shoe Hire Quantity"  value={String(shoeQty)} />}
+                                    {lockerQty > 0 && <Row label="Locker Hire Quantity" value={String(lockerQty)} />}
+                                    {parkingQty > 0 && <Row label="Parking Spaces"     value={String(parkingQty)} />}
+
+                                    {/* Pricing breakdown */}
+                                    <Row label={activity === "ten-pin-bowling" ? "Total Bowler Tickets Price" : "Total Skater Tickets Price"} value={fmt(ticketsAdults + ticketsKids)} />
+                                    {spectators > 0 && <Row label="Total Spectators Tickets Price" value={fmt(ticketsSpecs)} />}
+                                    {skateQty  > 0 && <Row label="Total Skate Hire Price"  value={fmt(skateTotal)} />}
+                                    {shoeQty   > 0 && <Row label="Total Shoe Hire Price"   value={fmt(shoeTotal)} />}
+                                    {lockerQty > 0 && <Row label="Total Locker Hire Price" value={fmt(lockerTotal)} />}
+                                    {parkingQty > 0 && <Row label="Total Parking Price"    value={fmt(parkingTotal)} />}
+                                </>
                             )}
-
-                            {/* Add-ons */}
-                            {skateQty > 0 && <Row label="Skate Hire Quantity" value={String(skateQty)} />}
-                            {shoeQty  > 0 && <Row label="Shoe Hire Quantity"  value={String(shoeQty)} />}
-                            {lockerQty > 0 && <Row label="Locker Hire Quantity" value={String(lockerQty)} />}
-                            {parkingQty > 0 && <Row label="Parking Spaces"     value={String(parkingQty)} />}
-
-                            {/* Pricing breakdown */}
-                            <Row label={activity === "ten-pin-bowling" ? "Total Bowler Tickets Price" : "Total Skater Tickets Price"} value={fmt(ticketsAdults + ticketsKids)} />
-                            {spectators > 0 && <Row label="Total Spectators Tickets Price" value={fmt(ticketsSpecs)} />}
-                            {skateQty  > 0 && <Row label="Total Skate Hire Price"  value={fmt(skateTotal)} />}
-                            {shoeQty   > 0 && <Row label="Total Shoe Hire Price"   value={fmt(shoeTotal)} />}
-                            {lockerQty > 0 && <Row label="Total Locker Hire Price" value={fmt(lockerTotal)} />}
-                            {parkingQty > 0 && <Row label="Total Parking Price"    value={fmt(parkingTotal)} />}
 
                             <Row label="Paying Full Amount?" value="Yes" />
 
