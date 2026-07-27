@@ -90,7 +90,7 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                         </div>
                     </ScrollReveal>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                         {/* Roller Skating Party */}
                         <ScrollReveal animation="slideUp" delay={0.1}>
                             <div className="relative bg-gradient-to-b from-[#1a0a3a] to-[#120830] rounded-3xl border-2 border-primary/50 overflow-hidden flex flex-col h-full hover:border-primary transition-all duration-300 group">
@@ -152,43 +152,6 @@ export default function PartyContent({ packages, menus, hero, settings, terms, c
                                     <Link href="/party-booking?package=Bowling+Party">
                                         <button className="w-full py-3 bg-gradient-to-r from-secondary to-accent text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                                             <PartyPopper className="w-4 h-4" /> Book Bowling Party
-                                        </button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </ScrollReveal>
-
-                        {/* Ultimate Party */}
-                        <ScrollReveal animation="slideUp" delay={0.3}>
-                            <div className="relative bg-gradient-to-b from-[#2a0a1a] to-[#180820] rounded-3xl border-2 border-accent overflow-hidden flex flex-col h-full group">
-                                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent" />
-                                <div className="absolute top-4 right-4">
-                                    <span className="px-2 py-1 rounded-full bg-accent text-black text-xs font-black">✨ Best Value</span>
-                                </div>
-                                <div className="p-6 flex-1 relative z-10">
-                                    <div className="text-5xl mb-4">🎉</div>
-                                    <div className="inline-block px-3 py-1 rounded-full bg-accent/20 text-accent text-xs font-bold mb-3 uppercase tracking-wide">
-                                        Ultimate Pack
-                                    </div>
-                                    <h3 className="text-2xl font-display font-black text-white mb-2">
-                                        Ultimate Party
-                                    </h3>
-                                    <div className="text-3xl font-black text-accent mb-1">£250</div>
-                                    <p className="text-xs text-white/50 mb-4">Skating + Bowling + Arcade access</p>
-                                    <ul className="space-y-2 text-sm text-white/70 mb-6">
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> 10 participants (Under 14s)</li>
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> 10 free spectators</li>
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> Skating + bowling sessions</li>
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> Arcade & VR access</li>
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> Party food & unlimited squash</li>
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> Dedicated party host</li>
-                                        <li className="flex gap-2"><Check className="w-4 h-4 text-accent shrink-0 mt-0.5" /> Online invitations</li>
-                                    </ul>
-                                </div>
-                                <div className="p-6 pt-0 relative z-10">
-                                    <Link href="/party-booking?package=Ultimate+Party">
-                                        <button className="w-full py-3 bg-gradient-to-r from-accent to-primary text-black font-black rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                                            <PartyPopper className="w-4 h-4" /> Book Ultimate Party
                                         </button>
                                     </Link>
                                 </div>
