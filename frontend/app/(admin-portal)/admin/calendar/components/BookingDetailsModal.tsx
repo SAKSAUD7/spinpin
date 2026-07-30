@@ -1,4 +1,4 @@
-﻿import { X, User, Mail, Phone, Users, Calendar, Clock, DollarSign, CheckCircle, AlertCircle, MapPin } from 'lucide-react';
+import { X, User, Mail, Phone, Users, Calendar, Clock, DollarSign, CheckCircle, AlertCircle, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface CalendarEvent {
@@ -156,9 +156,9 @@ export const BookingDetailsModal = ({ event, onClose, onRefresh }: BookingDetail
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">🎂</span>
                                     <div>
-                                        <p className="text-xs text-slate-500">Birthday Child</p>
+                                        <p className="text-xs text-slate-500">Celebrant / Event Name</p>
                                         <p className="font-semibold text-slate-900">
-                                            {event.birthdayChildName} ({event.birthdayChildAge} years old)
+                                            {event.birthdayChildName} (Age: {event.birthdayChildAge || 'N/A'})
                                         </p>
                                     </div>
                                 </div>

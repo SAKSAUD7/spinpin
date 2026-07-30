@@ -264,12 +264,12 @@ export default function PartyBookingDetailPage({ params }: { params: { id: strin
                     {/* Payment History & Gateway Updates */}
                     <PaymentHistoryCard bookingId={booking.id} bookingType="party" />
 
-                    {/* Birthday Child */}
+                    {/* Celebrant / Event Name */}
                     {booking.birthday_child_name && (
                         <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl shadow-sm border border-pink-200 p-6">
                             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <Cake size={20} className="text-pink-600" />
-                                Birthday Child
+                                Celebrant / Event Name
                             </h2>
                             <div className="grid grid-cols-2 gap-6">
                                 <div>

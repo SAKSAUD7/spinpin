@@ -162,14 +162,14 @@ export function AdminPartyBookingForm({ initialData, isEditing = false }: AdminP
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Birthday Child Name</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Celebrant / Event Name</label>
                         <input
                             name="childName"
                             type="text"
                             required
                             defaultValue={initialData?.childName || initialData?.birthday_child_name}
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-slate-900"
-                            placeholder="Child's Name"
+                            placeholder="e.g. Leo or Company Name"
                         />
                     </div>
                     <div>

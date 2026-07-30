@@ -154,8 +154,8 @@ export function AdminBookingModal({
                             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">🎉 Party Specifics</h3>
                             <div className="bg-purple-50 border border-purple-100 p-4 rounded-xl flex items-center gap-4">
                                 <div>
-                                    <p className="text-xs text-purple-600 font-semibold mb-1">Birthday Child</p>
-                                    <p className="font-bold text-purple-900">{booking.birthday_child_name} ({booking.birthday_child_age} years old)</p>
+                                    <p className="text-xs text-purple-600 font-semibold mb-1">Celebrant / Event Name</p>
+                                    <p className="font-bold text-purple-900">{booking.birthday_child_name} (Age: {booking.birthday_child_age || 'N/A'})</p>
                                 </div>
                             </div>
                         </div>

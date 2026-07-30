@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
@@ -187,7 +187,7 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 text-white drop-shadow-md">
                                     <div className="transform -translate-y-8">
                                         <h3 className="text-3xl font-black uppercase tracking-wider mb-2 font-display">You're Invited!</h3>
-                                        <p className="text-lg font-bold mb-6">to {childName || "Our"}'s Birthday Party</p>
+                                        <p className="text-lg font-bold mb-6">to {childName || "Our"}'s Party</p>
 
                                         <div className="space-y-2 bg-black/40 backdrop-blur-sm p-6 rounded-xl border border-white/20">
                                             <p className="font-bold flex items-center justify-center gap-2">
@@ -273,12 +273,12 @@ export default function EInvitationStep({ bookingId, bookingDetails, onNext, onS
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold mb-2 text-white/80">Birthday Child's Name</label>
+                                <label className="block text-sm font-bold mb-2 text-white/80">Celebrant / Event Name</label>
                                 <input
                                     value={childName}
                                     onChange={(e) => setChildName(e.target.value)}
                                     className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white"
-                                    placeholder="e.g. Leo"
+                                    placeholder="e.g. Leo or Company Name"
                                 />
                             </div>
 
