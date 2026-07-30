@@ -153,21 +153,15 @@ class SumUpGateway(BasePaymentGateway):
         reference = f"SP-{booking.id}-{uuid.uuid4().hex[:8].upper()}"
 
         # Build a concise description with key booking info for SumUp tracking
-        booking_date = str(getattr(booking, 'date', '')) if hasattr(booking, 'date') else ''
+        booking_date_obj = getattr(booking, 'date', None)
+        date_formatted = booking_date_obj.strftime("%d.%m") if booking_date_obj else ""
         booking_time = str(getattr(booking, 'time', ''))[:5] if hasattr(booking, 'time') else ''
         
-        # Use concise acronyms for cleaner accounting logs
-        activity_map = {
-            "roller-skating": "RS",
-            "ten-pin-bowling": "Bowling",
-            "arcade": "Arcade"
-        }
-        activity_label = activity_map.get(activity, activity.replace("-", " ").title()) if activity else ("Party" if is_party else "Session")
+        adults = getattr(booking, 'adults', 0) or 0
+        kids = getattr(booking, 'kids', 0) or 0
+        total_people = adults + kids
         
-        description = (
-            f"SP #{booking.id} | {activity_label} | "
-            f"{booking_date} {booking_time} | £{float(amount or 0):.2f}"
-        )
+        description = f"SP #{booking.id} | {date_formatted} | {total_people}P | {booking_time}"
         return_url_str = (
             f"{self.return_url}"
             f"?booking_id={booking.id}"

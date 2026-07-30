@@ -621,22 +621,13 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             if (ok) {
 
-                if ((formData.minors?.length || 0) !== formData.kids) {
+                const totalParticipants = formData.adults + formData.kids;
+                const additionalParticipantsNeeded = Math.max(0, totalParticipants - 1);
+                const totalAdded = (formData.minors?.length || 0) + (formData.adultGuests?.length || 0);
 
-                    showToast("error", `Please add details for all ${formData.kids} minor(s).`);
-
+                if (totalAdded !== additionalParticipantsNeeded) {
+                    showToast("error", `You have ${totalParticipants} total participants. Please add details for the remaining ${additionalParticipantsNeeded} guest(s) (Adults or Minors).`);
                     return;
-
-                }
-
-                const reqAdults = Math.max(0, formData.adults - 1);
-
-                if ((formData.adultGuests?.length || 0) !== reqAdults) {
-
-                    showToast("error", `Please add details for all ${reqAdults} additional adult(s).`);
-
-                    return;
-
                 }
 
                 setStep(step + 1);
@@ -1795,24 +1786,24 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                                     <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
                                                         <User className="inline w-4 h-4 mr-1.5" /> Full Name
                                                     </label>
-                                                    <input type="text" {...register("name")} readOnly
-                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white/70 cursor-not-allowed focus:outline-none" />
+                                                    <input type="text" {...register("name")}
+                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary transition-colors" />
                                                     <ErrorMessage message={errors.name?.message} />
                                                 </div>
                                                 <div>
                                                     <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
                                                         <Mail className="inline w-4 h-4 mr-1.5" /> Email Address
                                                     </label>
-                                                    <input type="email" {...register("email")} readOnly
-                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white/70 cursor-not-allowed focus:outline-none" />
+                                                    <input type="email" {...register("email")}
+                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary transition-colors" />
                                                     <ErrorMessage message={errors.email?.message} />
                                                 </div>
                                                 <div>
                                                     <label className="block text-white/80 text-sm font-bold mb-2 uppercase tracking-wide">
                                                         <Phone className="inline w-4 h-4 mr-1.5" /> Phone Number
                                                     </label>
-                                                    <input type="tel" {...register("phone")} readOnly
-                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white/70 cursor-not-allowed focus:outline-none" />
+                                                    <input type="tel" {...register("phone")}
+                                                        className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary transition-colors" />
                                                     <ErrorMessage message={errors.phone?.message} />
                                                 </div>
                                                 <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-200 text-sm">
