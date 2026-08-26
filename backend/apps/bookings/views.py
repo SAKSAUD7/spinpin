@@ -1,4 +1,4 @@
-import rest_framework.pagination
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
@@ -58,7 +58,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         serializer = EmailLogSerializer(emails, many=True)
         return Response(serializer.data)
 
-class BookingPagination(rest_framework.pagination.PageNumberPagination):
+class BookingPagination(PageNumberPagination):
     """Fast pagination for admin booking lists. Default 50/page, max 200."""
     page_size = 50
     page_size_query_param = 'page_size'
