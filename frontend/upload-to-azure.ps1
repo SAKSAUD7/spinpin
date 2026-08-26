@@ -1,6 +1,6 @@
 # Upload files to Azure App Service via Kudu VFS API
-$appName = "ninjapark-frontend"
-$resourceGroup = "ninjapark"
+$appName = "spinpin-frontend"
+$resourceGroup = "spinpin-rg"
 
 # Get publishing credentials
 Write-Host "Getting publishing credentials..."

@@ -62,6 +62,10 @@ db.sqlite3-journal
 # Media IS tracked in git (all uploaded images/assets go to GitHub)
 # To exclude large user-uploaded content later, add rules here
 
+# Azure deploy artifacts (generated locally, not for git)
+frontend/deploy.zip
+frontend/deploy-extracted/
+
 # Azure migration scripts (not needed for VPS)
 /backend/create_azure_db.py
 /backend/migrate_media.py
