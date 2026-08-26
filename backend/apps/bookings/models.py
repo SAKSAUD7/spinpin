@@ -115,6 +115,7 @@ class Booking(models.Model):
             models.Index(fields=['payment_status']),  # For payment tracking
             models.Index(fields=['-created_at']),  # For sorting by newest
             models.Index(fields=['customer']),  # Foreign key lookup
+            models.Index(fields=['activity']),   # For skating/bowling filter
         ]
         ordering = ['-created_at']
         verbose_name = 'Booking'

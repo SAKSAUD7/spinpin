@@ -60,6 +60,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+    pagination_class = None  # Opt-in pagination via ?page_size=N
     
     def get_queryset(self):
         queryset = Booking.objects.all()
@@ -109,12 +110,25 @@ class BookingViewSet(viewsets.ModelViewSet):
             elif has_arrived.lower() == 'false':
                 queryset = queryset.filter(arrived=False)
             
+        # Activity filter (e.g. roller-skating, ten-pin-bowling)
+        activity = self.request.query_params.get('activity', None)
+        if activity:
+            queryset = queryset.filter(activity__icontains=activity)
+
         # Ordering
         ordering = self.request.query_params.get('ordering', None)
         if ordering:
             queryset = queryset.order_by(ordering)
         else:
             queryset = queryset.order_by('-created_at')  # Default to newest first
+
+        # Pagination: if page_size is given, paginate; otherwise return all (for backward compat)
+        page_size = self.request.query_params.get('page_size', None)
+        if page_size:
+            from rest_framework.pagination import PageNumberPagination
+            paginator = PageNumberPagination()
+            paginator.page_size = int(page_size)
+            self._paginator_instance = paginator
 
         return queryset.select_related('customer', 'voucher')
     
