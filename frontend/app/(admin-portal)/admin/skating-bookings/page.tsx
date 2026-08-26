@@ -45,8 +45,9 @@ export default function SkatingBookingsPage() {
             });
             if (!response.ok) throw new Error('Failed to load bookings');
             const data = await response.json();
-            // Filter client-side too for safety
-            const skating = (data as any[]).filter((b: any) => {
+            // Handle paginated DRF response {count, results, next, previous}
+            const all = Array.isArray(data) ? data : (data.results ?? []);
+            const skating = all.filter((b: any) => {
                 const act = (b.activity || b.activity_type || "").toLowerCase();
                 return act.includes("skating") || act.includes("roller");
             });

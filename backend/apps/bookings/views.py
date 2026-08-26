@@ -1,3 +1,4 @@
+import rest_framework.pagination
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
@@ -57,10 +58,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
         serializer = EmailLogSerializer(emails, many=True)
         return Response(serializer.data)
 
+class BookingPagination(rest_framework.pagination.PageNumberPagination):
+    """Fast pagination for admin booking lists. Default 50/page, max 200."""
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+    page_query_param = 'page'
+
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
-    pagination_class = None  # Opt-in pagination via ?page_size=N
+    pagination_class = BookingPagination  # 50 per page by default; use ?page_size=N to override
     
     def get_queryset(self):
         queryset = Booking.objects.all()
@@ -130,7 +138,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             paginator.page_size = int(page_size)
             self._paginator_instance = paginator
 
-        return queryset.select_related('customer', 'voucher')
+        return queryset.select_related('customer', 'voucher').prefetch_related('waivers', 'transactions')
     
     def get_permissions(self):
         # Allow public access ONLY for create and ticket retrieval

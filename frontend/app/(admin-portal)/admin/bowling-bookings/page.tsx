@@ -36,7 +36,8 @@ export default function BowlingBookingsPage() {
             });
             if (!response.ok) throw new Error('Failed to load bookings');
             const data = await response.json();
-            const bowling = (data as any[]).filter((b: any) => {
+            const all = Array.isArray(data) ? data : (data.results ?? []);
+            const bowling = all.filter((b: any) => {
                 const act = (b.activity || b.activity_type || "").toLowerCase();
                 return act.includes("bowling");
             });

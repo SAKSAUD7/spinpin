@@ -116,6 +116,8 @@ class Booking(models.Model):
             models.Index(fields=['-created_at']),  # For sorting by newest
             models.Index(fields=['customer']),  # Foreign key lookup
             models.Index(fields=['activity']),   # For skating/bowling filter
+            models.Index(fields=['type']),        # For SESSION/PARTY/MANUAL filter
+            models.Index(fields=['type', 'activity']),  # Composite for activity+type queries
         ]
         ordering = ['-created_at']
         verbose_name = 'Booking'

@@ -107,7 +107,12 @@ class BookingSerializer(serializers.ModelSerializer):
                   'created_at', 'updated_at']
 
     def get_waiver_status(self, obj):
-        # Dynamically check if any waiver is linked to this booking
+        # Use prefetched waivers to avoid N+1 queries
+        # (viewset must prefetch_related('waivers'))
+        prefetched = getattr(obj, '_prefetched_objects_cache', {})
+        if 'waivers' in prefetched:
+            return 'SIGNED' if obj.waivers.all() else (obj.waiver_status or 'PENDING')
+        # Fallback: direct DB hit (only when not prefetched)
         if obj.waivers.exists():
             return 'SIGNED'
         return obj.waiver_status or 'PENDING'

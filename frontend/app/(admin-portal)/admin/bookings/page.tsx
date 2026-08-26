@@ -63,8 +63,10 @@ export default function AdminBookings() {
             }
 
             const data = await response.json();
-            setBookings(data as any[]);
-            setFilteredBookings(data as any[]);
+            // Handle paginated DRF response {count, results, next, previous}
+            const results = Array.isArray(data) ? data : (data.results ?? []);
+            setBookings(results);
+            setFilteredBookings(results);
         } catch (error) {
             console.error('[Bookings Page] Error:', error);
             toast.error('Failed to load bookings: ' + (error as Error).message);

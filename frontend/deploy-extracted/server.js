@@ -1,66 +1,27 @@
-// Azure App Service startup wrapper for Next.js standalone with static file serving
-const { spawn } = require('child_process');
+// Azure App Service - Next.js Standalone Startup
+// Directly requires the Next.js server in-process (no child spawn needed)
+
 const path = require('path');
-const express = require('express');
 
-const PORT = process.env.PORT || 8080;
-const NEXT_PORT = 3001;
+const PORT = process.env.PORT || '8080';
 
-console.log('Starting Next.js server on port', PORT);
-console.log('Current directory:', __dirname);
+process.env.PORT = PORT;
+process.env.HOSTNAME = '0.0.0.0';
 
-// Create Express app to serve static files
-const app = express();
+console.log('=== Azure Next.js Standalone Startup ===');
+console.log('PORT:', PORT);
+console.log('Working directory:', __dirname);
+console.log('Node version:', process.version);
+console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL || 'NOT SET');
 
-// Serve static files from .next/static
-app.use('/_next/static', express.static(path.join(__dirname, '.next/static'), {
-    maxAge: '1y',
-    immutable: true
-}));
+// Path to Next.js standalone server
+const standaloneServerPath = path.join(__dirname, '.next', 'standalone', 'frontend', 'server.js');
+console.log('Loading Next.js from:', standaloneServerPath);
 
-// Serve public files
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Proxy all other requests to Next.js standalone server
-app.use((req, res) => {
-    const http = require('http');
-    const proxyReq = http.request({
-        hostname: 'localhost',
-        port: NEXT_PORT,
-        path: req.url,
-        method: req.method,
-        headers: req.headers
-    }, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-        proxyRes.pipe(res);
-    });
-
-    proxyReq.on('error', (err) => {
-        console.error('Proxy error:', err);
-        res.status(500).send('Proxy error');
-    });
-
-    req.pipe(proxyReq);
-});
-
-// Start Express server
-app.listen(PORT, () => {
-    console.log(`Express proxy server running on port ${PORT}`);
-});
-
-// Start the Next.js standalone server on different port
-const server = spawn('node', [path.join(__dirname, '.next/standalone/frontend/server.js')], {
-    env: { ...process.env, PORT: NEXT_PORT },
-    stdio: 'inherit',
-    cwd: __dirname
-});
-
-server.on('error', (err) => {
-    console.error('Failed to start Next.js server:', err);
+try {
+    require(standaloneServerPath);
+    console.log('✅ Next.js server loaded successfully');
+} catch (err) {
+    console.error('❌ Failed to load Next.js server:', err);
     process.exit(1);
-});
-
-server.on('exit', (code) => {
-    console.log('Next.js server exited with code:', code);
-    process.exit(code);
-});
+}
