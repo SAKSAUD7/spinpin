@@ -270,7 +270,7 @@ export function isValidBookingDate(date: string): boolean {
 
 // Get available time slots for SpinPin opening hours:
 //
-// EVERY DAY:  12:00 – 22:00 (10 pm)
+// EVERY DAY EXCEPT SAT:  12:00 / 14:00 – 22:00 (10 pm)
 // SATURDAY:   12:00 – 23:00 (11 pm)
 // MONDAY:     CLOSED — except school holidays & public holidays (OPEN)
 //
@@ -287,19 +287,23 @@ export function getAvailableTimeSlots(date: string, activity?: string): string[]
     const isSaturday = dayOfWeek === 6;
     let allSlots: string[];
 
+    const isHoliday = isHolidayOpen(date);
+
     if (isBowling) {
-        // 90-min intervals — same for all open days
-        // Saturday closes 23:00: last slot 21:00 (ends ~22:30)
-        // Other days close 22:00: last slot 20:30 → use 21:00 for practical fit
-        allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
+        // 90-min intervals
+        if (isSaturday || dayOfWeek === 0 || isHoliday) {
+            allSlots = ["12:00", "13:30", "15:00", "16:30", "18:00", "19:30", "21:00"];
+        } else {
+            allSlots = ["14:00", "15:30", "17:00", "18:30", "20:00"];
+        }
     } else {
         // Skating: hourly slots
         if (isSaturday) {
-            // Saturday 12:00–23:00 — last slot 22:00 (session ends at 23:00)
             allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
-        } else {
-            // All other days (incl. Monday on holidays) 12:00–22:00 — last slot 21:00
+        } else if (dayOfWeek === 0 || isHoliday) {
             allSlots = ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+        } else {
+            allSlots = ["14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
         }
     }
 

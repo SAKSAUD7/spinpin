@@ -174,13 +174,13 @@ const OPENING_HOURS: Record<number, { open: string; close: string } | null> = {
 
     1: null,                               // Monday – closed
 
-    2: { open: "12:00", close: "22:00" }, // Tuesday  12 PM – 10 PM
+    2: { open: "14:00", close: "22:00" }, // Tuesday  2 PM – 10 PM
 
-    3: { open: "12:00", close: "22:00" }, // Wednesday
+    3: { open: "14:00", close: "22:00" }, // Wednesday 2 PM - 10 PM
 
-    4: { open: "12:00", close: "22:00" }, // Thursday
+    4: { open: "14:00", close: "22:00" }, // Thursday 2 PM - 10 PM
 
-    5: { open: "12:00", close: "22:00" }, // Friday
+    5: { open: "14:00", close: "22:00" }, // Friday 2 PM - 10 PM
 
     6: { open: "12:00", close: "23:00" }, // Saturday 12 PM – 11 PM
 
@@ -1177,8 +1177,8 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                             const isHoliday = isHolidayOpen(formData.date);
 
-                                            // Monday open during holidays
-                                            if (dow === 1 && isHoliday) {
+                                            // Weekdays open early at 12 PM during holidays (and Monday isn't closed)
+                                            if (dow >= 1 && dow <= 5 && isHoliday) {
 
                                                 return (
 
@@ -1186,7 +1186,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                         <School className="w-4 h-4 mt-0.5 flex-shrink-0" />
 
-                                                        <span><strong>Holiday!</strong> We're open today (Mon) 🎉 Book from <strong>12:00 PM</strong>. Perfect for families!</span>
+                                                        <span><strong>Holiday!</strong> We're open from <strong>12:00 PM</strong> today 🎉 Perfect for families!</span>
 
                                                     </div>
 
@@ -1211,11 +1211,11 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                             const hoursMap: Record<number, string> = {
 
-                                                0: 'Sun: 12:00 – 22:00', 2: 'Tue: 12:00 – 22:00',
+                                                0: 'Sun: 12:00 – 22:00', 2: 'Tue: 14:00 – 22:00',
 
-                                                3: 'Wed: 12:00 – 22:00', 4: 'Thu: 12:00 – 22:00',
+                                                3: 'Wed: 14:00 – 22:00', 4: 'Thu: 14:00 – 22:00',
 
-                                                5: 'Fri: 12:00 – 22:00', 6: 'Sat: 12:00 – 23:00',
+                                                5: 'Fri: 14:00 – 22:00', 6: 'Sat: 12:00 – 23:00',
 
                                             };
 

@@ -540,7 +540,17 @@ export default function PartyBookingWizard({ cmsContent = [] }: PartyBookingWiza
                                             className="w-full px-4 py-3 bg-background-dark border-2 border-surface-700 rounded-xl focus:border-primary focus:outline-none transition-colors text-white"
                                         >
                                             <option value="">Select time</option>
-                                            {(config?.available_time_slots || ["12:00 PM", "2:00 PM", "4:00 PM", "6:00 PM"]).map((slot: string) => (
+                                            {(config?.available_time_slots || ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"]).filter((slot: string) => {
+                                                if (!formData.date) return true;
+                                                const dow = new Date(formData.date + 'T12:00:00').getDay();
+                                                const isHoliday = isHolidayOpen(formData.date);
+                                                // Tue-Fri (2-5) open at 14:00 unless holiday
+                                                if (dow >= 2 && dow <= 5 && !isHoliday) {
+                                                    const hour = parseInt(slot.split(':')[0]);
+                                                    if (hour < 14) return false;
+                                                }
+                                                return true;
+                                            }).map((slot: string) => (
                                                 <option key={slot} value={slot}>{slot}</option>
                                             ))}
                                         </select>

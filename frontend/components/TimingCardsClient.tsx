@@ -14,18 +14,7 @@
 
 import { Clock } from "lucide-react";
 import { isHolidayOpen } from "../lib/api/types";
-
-// Standard weekly schedule (index = day-of-week: 0=Sun ... 6=Sat)
-// Display order: Mon → Tue → Wed → Thu → Fri → Sat → Sun
-const WEEKLY_SCHEDULE = [
-    { dow: 1, label: "Monday",    open: null,    close: null    }, // CLOSED unless holiday
-    { dow: 2, label: "Tuesday",   open: "12:00", close: "22:00" },
-    { dow: 3, label: "Wednesday", open: "12:00", close: "22:00" },
-    { dow: 4, label: "Thursday",  open: "12:00", close: "22:00" },
-    { dow: 5, label: "Friday",    open: "12:00", close: "22:00" },
-    { dow: 6, label: "Saturday",  open: "12:00", close: "23:00" },
-    { dow: 0, label: "Sunday",    open: "12:00", close: "22:00" },
-];
+import { useEffect, useState } from "react";
 
 function getLocalDateString(): string {
     const now = new Date();
@@ -36,26 +25,65 @@ function getLocalDateString(): string {
 }
 
 export function TimingCardsClient() {
+    const [schedule, setSchedule] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetch('/api/timing-cards')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    // Map CMS data into expected format
+                    const dayNameToDow: Record<string, number> = {
+                        "Monday": 1, "Tuesday": 2, "Wednesday": 3,
+                        "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 0
+                    };
+                    const mapped = data.map((item: any) => {
+                        const dow = dayNameToDow[item.day_label] ?? -1;
+                        const isClosed = !item.open_time || item.open_time === "CLOSED" || item.open_time.toLowerCase() === "closed";
+                        return {
+                            dow,
+                            label: item.day_label,
+                            open: isClosed ? null : item.open_time,
+                            close: isClosed ? null : item.close_time
+                        };
+                    });
+                    setSchedule(mapped);
+                }
+            })
+            .catch(err => console.error("Failed to load timing cards", err));
+    }, []);
+
     const today = getLocalDateString();
     const todayDow = new Date().getDay();
 
-    // Is Monday a holiday today? If so, override Monday to open.
-    const mondayHolidayToday = todayDow === 1 && isHolidayOpen(today);
+    // Is today a weekday holiday?
+    const isWeekdayHolidayToday = (todayDow >= 1 && todayDow <= 5) && isHolidayOpen(today);
 
-    const cards = WEEKLY_SCHEDULE.map((day) => {
+    // Default to empty array until fetch completes
+    const cards = schedule.map((day) => {
         const isToday = day.dow === todayDow;
+        const isWeekday = day.dow >= 1 && day.dow <= 5;
         const isMonday = day.dow === 1;
 
-        // Monday: open only if today AND it's a holiday
-        const open = isMonday
-            ? (isToday && mondayHolidayToday ? "12:00" : null)
-            : day.open;
-        const close = isMonday
-            ? (isToday && mondayHolidayToday ? "22:00" : null)
-            : day.close;
+        // Holiday override for weekdays
+        let open = day.open;
+        let close = day.close;
+        let isHolidayOverride = false;
 
-        return { ...day, open, close, isToday, isHolidayOverride: isMonday && isToday && mondayHolidayToday };
+        if (isToday && isWeekday && isWeekdayHolidayToday) {
+            open = "12:00";
+            close = "22:00"; // Assuming all holidays close at 10 PM
+            isHolidayOverride = true;
+        } else if (isMonday && !isHolidayOverride) {
+            // If it's Monday and NOT a holiday today, it's closed
+            open = null;
+            close = null;
+        }
+
+        return { ...day, open, close, isToday, isHolidayOverride };
     });
+
+    if (cards.length === 0) return null;
 
     return (
         <div className="relative z-20 w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-y border-white/10 py-3 px-3">
