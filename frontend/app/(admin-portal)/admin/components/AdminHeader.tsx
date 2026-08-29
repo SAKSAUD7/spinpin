@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { getUnreadNotifications, getUnreadCount, markAsRead, markAllAsRead, type Notification } from "@/app/actions/notifications";
 import Link from "next/link";
 import { GlobalSearch } from "./GlobalSearch";
+import { useAdminSession } from "@/hooks/useAdminSession";
 
 interface AdminHeaderProps {
     title?: string;
@@ -18,6 +19,9 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ title, description, actions, user }: AdminHeaderProps) {
+    // Silently refresh the JWT token every 45 min to prevent session expiry crashes
+    useAdminSession();
+
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);

@@ -230,7 +230,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Short-lived; refresh token handles long sessions
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),   # 8 hours — covers a full working shift
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',

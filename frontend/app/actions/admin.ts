@@ -140,18 +140,30 @@ export async function loginAdmin(formData: FormData) {
 
         const data = await res.json();
         const token = data.access;
+        const refreshToken = data.refresh;
 
         // Get the cookies instance
         const cookieStore = cookies();
 
-        // Set the cookie
+        // Set the access token cookie (used for all API requests)
         cookieStore.set("admin_token", token, {
-            httpOnly: true, // Keep secure
+            httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
+            maxAge: 60 * 60 * 8, // 8 hours (matches new JWT lifetime)
             path: "/",
             sameSite: "lax"
         });
+
+        // Set the refresh token cookie (used to silently renew the access token)
+        if (refreshToken) {
+            cookieStore.set("admin_refresh_token", refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                maxAge: 60 * 60 * 24 * 30, // 30 days
+                path: "/",
+                sameSite: "lax"
+            });
+        }
 
         console.log('[Login Debug] Cookie set successfully, redirecting to /admin');
 
@@ -166,6 +178,7 @@ export async function loginAdmin(formData: FormData) {
 
 export async function logoutAdmin() {
     cookies().delete("admin_token");
+    cookies().delete("admin_refresh_token");
     redirect("/admin/login");
 }
 
