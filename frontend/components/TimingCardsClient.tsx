@@ -19,13 +19,12 @@
  */
 
 import { Clock } from "lucide-react";
-import { isHolidayOpen, todayInUK } from "../lib/api/types";
+import { isHolidayOpen, todayInUK, nowInUK } from "@/lib/api/types";
 import { useEffect, useState } from "react";
 
-function getLocalDowString(): number {
-    // Returns 0=Sun, 1=Mon, ... 6=Sat in the device's local timezone.
-    // For a UK venue this is fine — users are in the UK.
-    return new Date().getDay();
+function getUKDow(): number {
+    // Use UK timezone for day-of-week so Monday detection is correct for UK visitors
+    return nowInUK().getDay(); // 0=Sun, 1=Mon, ... 6=Sat
 }
 
 const DAY_NAME_TO_DOW: Record<string, number> = {
@@ -86,7 +85,7 @@ export function TimingCardsClient() {
     }, []);
 
     const today = todayInUK();
-    const todayDow = getLocalDowString();
+    const todayDow = getUKDow(); // UK timezone day-of-week
 
     // Holiday fallback: is today a school/bank holiday?
     const isFallbackHoliday = isHolidayOpen(today);
