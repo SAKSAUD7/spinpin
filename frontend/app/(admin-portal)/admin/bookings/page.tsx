@@ -51,8 +51,8 @@ export default function AdminBookings() {
         try {
             setLoading(true);
 
-            // Use API route proxy instead of client-side fetch
-            const response = await fetch('/api/bookings?type=SESSION', {
+            // Use API route proxy instead of client-side fetch, and limit to recent bookings
+            const response = await fetch('/api/bookings?type=SESSION&page_size=100', {
                 credentials: 'include',
                 cache: 'no-store',
             });

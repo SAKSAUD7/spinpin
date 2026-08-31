@@ -30,7 +30,7 @@ export default function BowlingBookingsPage() {
     async function loadBookings() {
         try {
             setLoading(true);
-            const response = await fetch('/api/bookings?type=SESSION&activity=ten-pin-bowling', {
+            const response = await fetch('/api/bookings?type=SESSION&activity=ten-pin-bowling&page_size=100', {
                 credentials: 'include',
                 cache: 'no-store',
             });

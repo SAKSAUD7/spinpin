@@ -1400,10 +1400,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                             <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
                                                 <span className="text-2xl">🎳</span>
                                                 <div>
-                                                    <div className="text-blue-200 font-bold text-sm mb-1">90-Minute Bowling Session — £9.95 per game</div>
-                                                    <div className="text-blue-300/80 text-xs leading-relaxed">
-                                                        Each booking is a <strong className="text-blue-200">90-minute time slot</strong> — one game per booking at <strong className="text-blue-200">£9.95 per person</strong>. Your lane will be reserved and ready for you at your chosen time.
-                                                    </div>
+                                                    <div className="text-blue-200 font-bold text-sm mb-1">Bowling Session — £9.95 per game</div>
                                                 </div>
                                             </div>
                                         )}

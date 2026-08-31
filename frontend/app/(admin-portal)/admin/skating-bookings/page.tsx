@@ -39,7 +39,7 @@ export default function SkatingBookingsPage() {
     async function loadBookings() {
         try {
             setLoading(true);
-            const response = await fetch('/api/bookings?type=SESSION&activity=roller-skating', {
+            const response = await fetch('/api/bookings?type=SESSION&activity=roller-skating&page_size=100', {
                 credentials: 'include',
                 cache: 'no-store',
             });

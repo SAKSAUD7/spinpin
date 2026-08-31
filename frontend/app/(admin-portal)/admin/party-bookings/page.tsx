@@ -52,8 +52,8 @@ export default function PartyBookingsPage() {
         try {
             setLoading(true);
 
-            // Use API route proxy instead of direct backend call
-            const response = await fetch('/api/bookings?type=PARTY', {
+            // Use API route proxy instead of client-side fetch, and limit to recent bookings
+            const response = await fetch('/api/bookings?type=PARTY&page_size=100', {
                 credentials: 'include',
                 cache: 'no-store',
             });

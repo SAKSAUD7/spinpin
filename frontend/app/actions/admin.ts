@@ -505,7 +505,11 @@ export async function getWaivers(search?: string, bookingId?: string, partyBooki
     if (!res || !res.ok) return [];
 
     const data = await res.json();
-    return data.map(transformWaiver);
+    
+    // Handle paginated response ({count, results}) or legacy flat array
+    const results = Array.isArray(data) ? data : (data.results ?? []);
+    
+    return results.map(transformWaiver);
 }
 
 // --- Customer Actions ---

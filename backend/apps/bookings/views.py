@@ -687,8 +687,8 @@ def waiver_list_view(request):
         if not (request.user and request.user.is_authenticated and request.user.is_staff):
             return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        # List all waivers
-        queryset = Waiver.objects.all()
+        # List all waivers with select_related to fix N+1 query performance issues
+        queryset = Waiver.objects.select_related('booking', 'party_booking', 'customer').all()
         
         # Filter by booking
         booking_id = request.query_params.get('booking_id', None)
@@ -707,8 +707,17 @@ def waiver_list_view(request):
                 queryset = queryset.filter(is_verified=False)
             
         waivers = queryset.order_by('-created_at')
+
+        # Implement pagination to prevent loading thousands of waivers at once
+        page_size = request.query_params.get('page_size', 50)
+        
+        from rest_framework.pagination import PageNumberPagination
+        paginator = PageNumberPagination()
+        paginator.page_size = int(page_size)
+        paginated_waivers = paginator.paginate_queryset(waivers, request)
+        
         data = []
-        for waiver in waivers:
+        for waiver in paginated_waivers:
             waiver_data = {
                 'id': waiver.id,
                 'name': waiver.name,
@@ -723,7 +732,7 @@ def waiver_list_view(request):
                 'ip_address': waiver.ip_address,
                 'minors': waiver.minors,
                 'adults': waiver.adults,
-                'is_verified': waiver.is_verified,  # Add this field
+                'is_verified': waiver.is_verified,
                 'booking': waiver.booking.id if waiver.booking else None,
                 'party_booking': waiver.party_booking.id if waiver.party_booking else None,
                 'customer': waiver.customer.id if waiver.customer else None,
@@ -743,7 +752,8 @@ def waiver_list_view(request):
                 waiver_data['booking_type'] = 'UNKNOWN'
             
             data.append(waiver_data)
-        return Response(data)
+        
+        return paginator.get_paginated_response(data)
     
     elif request.method == 'POST':
         try:

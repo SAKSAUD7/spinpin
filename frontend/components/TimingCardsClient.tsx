@@ -3,48 +3,55 @@
 /**
  * TimingCardsClient — Dynamic Opening Hours Bar
  *
- * Computes the schedule from the same holiday logic used in the booking wizard.
- * No backend CMS required — stays automatically in sync with the booking calendar.
+ * Schedule driven by:
+ *  1. The /api/bookings/site-alerts endpoint (booking calendar = source of truth)
+ *     - OPEN_TODAY  block  → Monday (or any weekday) is OPEN today (holiday/event)
+ *     - CLOSED_TODAY block → venue is CLOSED today regardless of day
+ *  2. Hard-coded school holiday / public holiday fallback (isHolidayOpen) so
+ *     the strip still works correctly even if no admin block is created.
  *
- * Rules:
- *   Mon–Sun (exc. Mon): 12:00 – 22:00
- *   Saturday:           12:00 – 23:00
- *   Monday:             CLOSED — unless today is a school holiday or public holiday → 12:00 – 22:00
+ * Rules (in priority order):
+ *   Admin CLOSED_TODAY block → ALL days show the today badge as closed
+ *   Admin OPEN_TODAY block   → today shows as open (even if Monday)
+ *   isHolidayOpen(today)     → today is open (school/bank holiday)
+ *   Monday default           → CLOSED
+ *   All other days           → use CMS timing card hours
  */
 
 import { Clock } from "lucide-react";
-import { isHolidayOpen } from "../lib/api/types";
+import { isHolidayOpen, todayInUK } from "../lib/api/types";
 import { useEffect, useState } from "react";
 
-function getLocalDateString(): string {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+function getLocalDowString(): number {
+    // Returns 0=Sun, 1=Mon, ... 6=Sat in the device's local timezone.
+    // For a UK venue this is fine — users are in the UK.
+    return new Date().getDay();
 }
+
+const DAY_NAME_TO_DOW: Record<string, number> = {
+    Monday: 1, Tuesday: 2, Wednesday: 3,
+    Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0,
+};
 
 export function TimingCardsClient() {
     const [schedule, setSchedule] = useState<any[]>([]);
+    // null = not yet fetched, false = no override, 'open' | 'closed' = admin override
+    const [todayAdminOverride, setTodayAdminOverride] = useState<null | false | 'open' | 'closed'>(null);
 
+    // Fetch the CMS timing cards (static per-weekday hours)
     useEffect(() => {
         fetch('/api/timing-cards')
             .then(res => res.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    // Map CMS data into expected format
-                    const dayNameToDow: Record<string, number> = {
-                        "Monday": 1, "Tuesday": 2, "Wednesday": 3,
-                        "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 0
-                    };
                     const mapped = data.map((item: any) => {
-                        const dow = dayNameToDow[item.day_label] ?? -1;
+                        const dow = DAY_NAME_TO_DOW[item.day_label] ?? -1;
                         const isClosed = !item.open_time || item.open_time === "CLOSED" || item.open_time.toLowerCase() === "closed";
                         return {
                             dow,
                             label: item.day_label,
                             open: isClosed ? null : item.open_time,
-                            close: isClosed ? null : item.close_time
+                            close: isClosed ? null : item.close_time,
                         };
                     });
                     setSchedule(mapped);
@@ -53,37 +60,80 @@ export function TimingCardsClient() {
             .catch(err => console.error("Failed to load timing cards", err));
     }, []);
 
-    const today = getLocalDateString();
-    const todayDow = new Date().getDay();
+    // Fetch site-alerts from the BOOKING CALENDAR to get today's admin override
+    useEffect(() => {
+        const todayStr = todayInUK();
+        fetch('/api/bookings/site-alerts')
+            .then(res => res.json())
+            .then((alerts: any[]) => {
+                if (!Array.isArray(alerts) || alerts.length === 0) {
+                    setTodayAdminOverride(false);
+                    return;
+                }
+                // Find a block that covers today
+                let override: false | 'open' | 'closed' = false;
+                for (const alert of alerts) {
+                    const start = (alert.start_date || '').split('T')[0];
+                    const end = (alert.end_date || '').split('T')[0];
+                    if (todayStr >= start && todayStr <= end) {
+                        if (alert.type === 'OPEN_TODAY') { override = 'open'; break; }
+                        if (alert.type === 'CLOSED_TODAY') { override = 'closed'; break; }
+                    }
+                }
+                setTodayAdminOverride(override);
+            })
+            .catch(() => setTodayAdminOverride(false));
+    }, []);
 
-    // Is today a weekday holiday?
-    const isWeekdayHolidayToday = (todayDow >= 1 && todayDow <= 5) && isHolidayOpen(today);
+    const today = todayInUK();
+    const todayDow = getLocalDowString();
 
-    // Default to empty array until fetch completes
+    // Holiday fallback: is today a school/bank holiday?
+    const isFallbackHoliday = isHolidayOpen(today);
+
+    // Determine final open/closed for today
+    const isTodayForceOpen =
+        todayAdminOverride === 'open' ||          // admin marked OPEN_TODAY in booking calendar
+        (todayAdminOverride !== 'closed' && isFallbackHoliday); // school/bank holiday fallback
+
+    const isTodayForceClosed = todayAdminOverride === 'closed';
+
+    // Wait until both fetches have resolved before rendering
+    if (schedule.length === 0 || todayAdminOverride === null) return null;
+
     const cards = schedule.map((day) => {
         const isToday = day.dow === todayDow;
-        const isWeekday = day.dow >= 1 && day.dow <= 5;
         const isMonday = day.dow === 1;
 
-        // Holiday override for weekdays
         let open = day.open;
         let close = day.close;
         let isHolidayOverride = false;
+        let isAdminOpen = false;
 
-        if (isToday && isWeekday && isWeekdayHolidayToday) {
-            open = "12:00";
-            close = "22:00"; // Assuming all holidays close at 10 PM
-            isHolidayOverride = true;
-        } else if (isMonday && !isHolidayOverride) {
-            // If it's Monday and NOT a holiday today, it's closed
+        if (isToday) {
+            if (isTodayForceClosed) {
+                // Admin explicitly closed today
+                open = null;
+                close = null;
+            } else if (isTodayForceOpen && (!open || isMonday)) {
+                // Open today via booking calendar or holiday fallback
+                open = "12:00";
+                close = "22:00";
+                isHolidayOverride = !!(todayAdminOverride === 'open');
+                isAdminOpen = todayAdminOverride === 'open';
+            } else if (isMonday && !isTodayForceOpen) {
+                // Regular closed Monday
+                open = null;
+                close = null;
+            }
+        } else if (isMonday) {
+            // Non-today Mondays are always shown as closed in the strip
             open = null;
             close = null;
         }
 
-        return { ...day, open, close, isToday, isHolidayOverride };
+        return { ...day, open, close, isToday, isHolidayOverride, isAdminOpen };
     });
-
-    if (cards.length === 0) return null;
 
     return (
         <div className="relative z-20 w-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-y border-white/10 py-3 px-3">
@@ -129,7 +179,10 @@ export function TimingCardsClient() {
                                         {card.isToday && (
                                             <span className="ml-1 text-[9px] opacity-50 font-normal">(today)</span>
                                         )}
-                                        {card.isHolidayOverride && (
+                                        {card.isAdminOpen && (
+                                            <span className="ml-1 text-[9px] text-emerald-400 font-bold">OPEN</span>
+                                        )}
+                                        {card.isHolidayOverride && !card.isAdminOpen && (
                                             <span className="ml-1 text-[9px] text-emerald-400 font-bold">HOLIDAY</span>
                                         )}
                                     </span>
