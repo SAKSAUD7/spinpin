@@ -214,6 +214,8 @@ function getDefaultDashboardStats() {
         monthlyRevenue: [],
         bookingsByStatus: {},
         topActivities: [],
+        charityBookingsCount: 0,
+        charityDonationTotal: 0,
     };
 }
 

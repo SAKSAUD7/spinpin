@@ -24,7 +24,8 @@ import {
     Mail,
     MousePointerClick,
     UserPlus,
-    UserMinus
+    UserMinus,
+    Heart
 } from "lucide-react";
 import { PaymentOverviewWidget } from "./components/PaymentOverviewWidget";
 import { RecentBookingsTable } from "./components/RecentBookingsTable";
@@ -103,7 +104,7 @@ export default async function AdminDashboard() {
             </div>
 
             {/* New Revenue & Trends Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard
                     title="Today's Revenue"
                     value={`£${stats.todayRevenue.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -127,6 +128,14 @@ export default async function AdminDashboard() {
                     trend="All Time"
                     trendUp={true}
                     color="teal"
+                />
+                <StatCard
+                    title="Charity Donations"
+                    value={`£${stats.charityDonationTotal.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    icon={<Heart className="text-pink-600" />}
+                    trend={`${stats.charityBookingsCount} bookings selected`}
+                    trendUp={stats.charityBookingsCount > 0}
+                    color="pink"
                 />
             </div>
 

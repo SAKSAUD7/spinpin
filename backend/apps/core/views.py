@@ -289,6 +289,15 @@ class DashboardViewSet(viewsets.ViewSet):
 
         waiver_completion_rate = 100 if total_waivers == 0 else int((signed_waivers / total_waivers) * 100)
 
+        # Charity Stats
+        session_charity_count = Booking.objects.filter(payment_status='PAID', charity_selected=True).exclude(booking_status='CANCELLED').count()
+        party_charity_count = PartyBooking.objects.filter(status__in=['CONFIRMED', 'COMPLETED'], charity_selected=True).count()
+        charity_bookings_count = session_charity_count + party_charity_count
+        
+        session_charity_amount = Booking.objects.filter(payment_status='PAID', charity_selected=True).exclude(booking_status='CANCELLED').aggregate(Sum('amount'))['amount__sum'] or 0
+        party_charity_amount = PartyBooking.objects.filter(status__in=['CONFIRMED', 'COMPLETED'], charity_selected=True).aggregate(Sum('amount'))['amount__sum'] or 0
+        charity_donation_total = session_charity_amount + party_charity_amount
+
         # NEW METRICS FOR DASHBOARD REDESIGN
         
         # Unread Contact Messages
@@ -358,6 +367,8 @@ class DashboardViewSet(viewsets.ViewSet):
             "thisWeekBookings": this_week_bookings,
             "lastWeekBookings": last_week_bookings,
             "bookingGrowth": booking_growth,
+            "charityBookingsCount": charity_bookings_count,
+            "charityDonationTotal": float(charity_donation_total),
         })
     
     @action(detail=False, methods=['get'])
