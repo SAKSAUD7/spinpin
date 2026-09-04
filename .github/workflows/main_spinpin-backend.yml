@@ -82,14 +82,6 @@ jobs:
           app-name: 'spinpin-backend'
           slot-name: 'Production'
 
-      - name: Run Django Migrations
-        uses: azure/CLI@v2
-        with:
-          inlineScript: |
-            RG=$(az webapp list --query "[?name=='spinpin-backend'].resourceGroup" -o tsv)
-            az webapp ssh --name spinpin-backend --resource-group $RG --command "cd /home/site/wwwroot && python manage.py migrate --noinput" || \
-            az webapp config appsettings set --name spinpin-backend --resource-group $RG --settings POST_DEPLOY_CMD="python manage.py migrate --noinput" 2>/dev/null || true
-
       - name: Start Azure Web App
         if: always()
         uses: azure/CLI@v2
