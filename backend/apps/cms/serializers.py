@@ -4,7 +4,7 @@ from .models import (
     StatCard, InstagramReel, MenuSection, GroupPackage, GuidelineCategory, LegalDocument,
     PageSection, PricingPlan, ContactInfo, PartyPackage, TimelineItem, ValueItem, FacilityItem,
     Page, ContactMessage, FreeEntry, SessionBookingConfig, PartyBookingConfig, PricingCarouselImage,
-    BookingInformation, TimingCard, CustomerAccountConfig
+    BookingInformation, TimingCard, CustomerAccountConfig, CharityConfig
 )
 
 
@@ -148,4 +148,10 @@ class TimingCardSerializer(serializers.ModelSerializer):
 class CustomerAccountConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerAccountConfig
+        fields = '__all__'
+
+
+class CharityConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CharityConfig
         fields = '__all__'

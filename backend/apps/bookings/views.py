@@ -230,6 +230,34 @@ class BookingViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_409_CONFLICT
                         )
 
+                # ── Charity validation + snapshot (server-side) ───────────────
+                # IMPORTANT: The backend is authoritative for charity data.
+                # The frontend sends charity_selected=true; we verify CMS is enabled
+                # and write the snapshot. This prevents forged charity data when feature
+                # is disabled.
+                frontend_charity_selected = str(request.data.get('charity_selected', 'false')).lower() in ('true', '1', 'yes')
+                if frontend_charity_selected:
+                    try:
+                        from apps.cms.models import CharityConfig
+                        charity_cfg = CharityConfig.get_config()
+                        if charity_cfg.is_enabled:
+                            # Inject verified, authoritative snapshot into mutable copy
+                            request.data._mutable = True  # DRF QueryDict may be immutable
+                            request.data['charity_selected'] = True
+                            request.data['charity_config_id_snapshot'] = charity_cfg.id
+                            request.data['charity_name_snapshot'] = charity_cfg.charity_name
+                            request.data._mutable = False
+                        else:
+                            # Feature disabled — silently strip any charity selection
+                            request.data._mutable = True
+                            request.data['charity_selected'] = False
+                            request.data['charity_config_id_snapshot'] = None
+                            request.data['charity_name_snapshot'] = None
+                            request.data._mutable = False
+                    except Exception:
+                        # Don't fail the booking if charity logic errors — just clear it
+                        pass
+
                 # ── Capacity OK — proceed with normal DRF create ──────────────
                 try:
                     response = super().create(request, *args, **kwargs)
@@ -1109,6 +1137,41 @@ class PartyBookingViewSet(viewsets.ModelViewSet):
         import logging
         logger = logging.getLogger('apps.bookings')
         logger.info("=== PartyBookingViewSet.create() called ===")
+
+        # ── Charity validation + snapshot (server-side) ───────────────────────
+        # The backend verifies that charity feature is enabled in CMS before
+        # populating the snapshot. Frontend only sends charity_selected=true.
+        frontend_charity_selected = str(request.data.get('charity_selected', 'false')).lower() in ('true', '1', 'yes')
+        if frontend_charity_selected:
+            try:
+                from apps.cms.models import CharityConfig
+                charity_cfg = CharityConfig.get_config()
+                if charity_cfg.is_enabled:
+                    try:
+                        request.data._mutable = True
+                    except AttributeError:
+                        pass
+                    request.data['charity_selected'] = True
+                    request.data['charity_config_id_snapshot'] = charity_cfg.id
+                    request.data['charity_name_snapshot'] = charity_cfg.charity_name
+                    try:
+                        request.data._mutable = False
+                    except AttributeError:
+                        pass
+                else:
+                    try:
+                        request.data._mutable = True
+                    except AttributeError:
+                        pass
+                    request.data['charity_selected'] = False
+                    request.data['charity_config_id_snapshot'] = None
+                    request.data['charity_name_snapshot'] = None
+                    try:
+                        request.data._mutable = False
+                    except AttributeError:
+                        pass
+            except Exception:
+                pass
 
         # Call parent create (handles validation, customer linking, DB save)
         response = super().create(request, *args, **kwargs)

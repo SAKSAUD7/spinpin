@@ -754,3 +754,79 @@ class CustomerAccountConfig(models.Model):
         if created:
             config.save()
         return config
+
+
+class CharityConfig(models.Model):
+    """
+    Singleton model for configuring the charity/cause feature in the booking wizard.
+    When is_enabled=False, the charity component is hidden from the booking wizard and
+    no charity-related data is processed. All customer-facing copy is CMS-controlled.
+    """
+    # Master switch
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable or disable the charity option in the booking wizard"
+    )
+
+    # Charity identity (configurable so admin can change from Nepal to any future charity)
+    charity_name = models.CharField(
+        max_length=255,
+        default="Nepal Charity",
+        help_text="Name of the charity/cause (e.g. 'Nepal Charity', 'Flood Relief India')"
+    )
+    charity_title = models.CharField(
+        max_length=255,
+        default="Support Nepal",
+        help_text="Display title shown in the booking wizard"
+    )
+    charity_description = models.TextField(
+        default="By confirming this booking for charity, the full booking amount will be donated to support Nepal.",
+        help_text="Short description of the charity/cause shown to the customer"
+    )
+
+    # Customer-facing copy
+    checkbox_text = models.CharField(
+        max_length=512,
+        default="Yes, I confirm this booking amount should go to Nepal Charity",
+        help_text="Text shown next to the charity confirmation checkbox"
+    )
+    info_text = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Optional supporting/informational text shown below the description"
+    )
+    success_text = models.CharField(
+        max_length=512,
+        null=True,
+        blank=True,
+        default="Thank you! Your booking amount will go to Nepal Charity.",
+        help_text="Confirmation text shown after the customer selects the charity option"
+    )
+
+    # Optional media
+    image_url = models.URLField(
+        null=True,
+        blank=True,
+        help_text="Optional charity logo or image URL"
+    )
+
+    # Metadata
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Charity Configuration"
+        verbose_name_plural = "Charity Configuration"
+
+    def __str__(self):
+        status = "ENABLED" if self.is_enabled else "DISABLED"
+        return f"Charity Config [{status}] — {self.charity_name}"
+
+    @classmethod
+    def get_config(cls):
+        """Get or create singleton config — ID is always 1"""
+        config, created = cls.objects.get_or_create(id=1)
+        if created:
+            config.save()
+        return config

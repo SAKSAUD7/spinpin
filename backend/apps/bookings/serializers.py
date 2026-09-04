@@ -103,6 +103,7 @@ class BookingSerializer(serializers.ModelSerializer):
                   'voucher_code', 'status', 'booking_status', 'payment_status', 'waiver_status',
                   'type', 'activity', 'add_ons', 'parking_plates', 'qr_code', 'customer', 'customer_details',
                   'voucher', 'transactions', 'arrived', 'arrived_at',
+                  'charity_selected', 'charity_config_id_snapshot', 'charity_name_snapshot',
                   # 'waivers',  # Temporarily removed
                   'created_at', 'updated_at']
 
@@ -190,7 +191,9 @@ class PartyBookingSerializer(serializers.ModelSerializer):
                   'birthday_child_name', 'birthday_child_age',
                   'special_requests', 'dietary_restrictions',
                   'participants', 'waiver_signed', 'waiver_signed_at', 'waiver_ip_address',
-                  'status', 'customer', 'arrived', 'arrived_at', 'created_at', 'updated_at',
+                  'status', 'customer', 'arrived', 'arrived_at',
+                  'charity_selected', 'charity_config_id_snapshot', 'charity_name_snapshot',
+                  'created_at', 'updated_at',
                   'duration', 'qr_code', 'payment_status', 'waiver_status', 'booking_status']
 
     def get_duration(self, obj):

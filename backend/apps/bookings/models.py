@@ -100,7 +100,26 @@ class Booking(models.Model):
     # Arrival tracking
     arrived = models.BooleanField(default=False)
     arrived_at = models.DateTimeField(null=True, blank=True)
-    
+
+    # Charity fields — populated by the backend when customer selects charity in booking wizard.
+    # The snapshot fields preserve the charity identity at the time of booking,
+    # so historical bookings are not affected when the CMS charity config is changed later.
+    charity_selected = models.BooleanField(
+        default=False,
+        help_text="Whether the customer designated this booking amount for the configured charity"
+    )
+    charity_config_id_snapshot = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID of the CharityConfig at the time of booking (for traceability)"
+    )
+    charity_name_snapshot = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Name of the charity as recorded at the time of booking (historical accuracy)"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -213,7 +232,24 @@ class PartyBooking(models.Model):
     # Arrival tracking (matching Booking model)
     arrived = models.BooleanField(default=False)
     arrived_at = models.DateTimeField(null=True, blank=True)
-    
+
+    # Charity fields — see Booking model for documentation
+    charity_selected = models.BooleanField(
+        default=False,
+        help_text="Whether the customer designated this booking amount for the configured charity"
+    )
+    charity_config_id_snapshot = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID of the CharityConfig at the time of booking (for traceability)"
+    )
+    charity_name_snapshot = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Name of the charity as recorded at the time of booking (historical accuracy)"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -379,7 +415,12 @@ class SessionBookingHistory(models.Model):
     payment_transaction_id = models.CharField(max_length=255, null=True, blank=True, help_text="Payment gateway transaction ID")
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Amount actually paid")
     failure_reason = models.TextField(help_text="Why this booking went to history (e.g., 'Payment succeeded but save failed')")
-    
+
+    # Charity fields — copied from Booking at history record creation time
+    charity_selected = models.BooleanField(default=False, help_text="Whether the customer designated this booking amount for charity")
+    charity_config_id_snapshot = models.IntegerField(null=True, blank=True)
+    charity_name_snapshot = models.CharField(max_length=255, null=True, blank=True)
+
     # Restore tracking
     restored = models.BooleanField(default=False, help_text="Whether this booking has been restored")
     restored_at = models.DateTimeField(null=True, blank=True, help_text="When the booking was restored")
@@ -425,7 +466,12 @@ class PartyBookingHistory(models.Model):
     payment_transaction_id = models.CharField(max_length=255, null=True, blank=True, help_text="Payment gateway transaction ID")
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Amount actually paid")
     failure_reason = models.TextField(help_text="Why this booking went to history (e.g., 'Payment succeeded but save failed')")
-    
+
+    # Charity fields — copied from PartyBooking at history record creation time
+    charity_selected = models.BooleanField(default=False, help_text="Whether the customer designated this booking amount for charity")
+    charity_config_id_snapshot = models.IntegerField(null=True, blank=True)
+    charity_name_snapshot = models.CharField(max_length=255, null=True, blank=True)
+
     # Restore tracking
     restored = models.BooleanField(default=False, help_text="Whether this booking has been restored")
     restored_at = models.DateTimeField(null=True, blank=True, help_text="When the booking was restored")
@@ -435,6 +481,7 @@ class PartyBookingHistory(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     
     class Meta:
         ordering = ['-created_at']

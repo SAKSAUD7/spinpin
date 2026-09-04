@@ -74,7 +74,12 @@ const navigation: NavGroup[] = [
             { name: "Templates", href: "/admin/marketing/templates", icon: "FileText", permission: { entity: 'marketing', action: 'read' } },
         ]
     },
-    // Content Management section removed - use CMS section instead to avoid duplicates
+    {
+        name: "Content Management",
+        items: [
+            { name: "Charity Settings", href: "/admin/cms/charity", icon: "Heart", permission: { entity: 'cms', action: 'write' } },
+        ]
+    },
     {
         name: "System",
         items: [

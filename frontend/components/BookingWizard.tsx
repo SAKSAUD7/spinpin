@@ -16,7 +16,7 @@ import {
 
     ChevronRight, ChevronLeft, AlertCircle, Loader2, Sparkles,
 
-    User, Phone, Mail, Clock, Zap, Star, Info, Plus, Minus, School
+    User, Phone, Mail, Clock, Zap, Star, Info, Plus, Minus, School, Heart
 
 } from "lucide-react";
 
@@ -264,6 +264,9 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
     const [selectedGlobalAddOns, setSelectedGlobalAddOns] = useState<Record<string, number>>({});
 
     const [parkingPlates, setParkingPlates] = useState<string[]>([]);
+    
+    const [charityConfig, setCharityConfig] = useState<any>(null);
+    const [charitySelected, setCharitySelected] = useState<boolean>(false);
 
     const [bookingBlocks, setBookingBlocks] = useState<BookingBlock[]>([]);
 
@@ -362,6 +365,13 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                 const data = await res.json();
 
                 setConfig(data);
+                
+                // Fetch Charity config
+                const charityRes = await fetch(`${API_URL}/cms/charity-config/`);
+                if (charityRes.ok) {
+                    const charityData = await charityRes.json();
+                    setCharityConfig(charityData);
+                }
 
             } catch {
 
@@ -710,7 +720,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
             }
 
-            const result = await onSubmit({ ...data, activity: selectedActivity, addOns: selectedAddOns, globalAddOns: selectedGlobalAddOns, parkingPlates, customerId: customer?.id });
+            const result = await onSubmit({ ...data, activity: selectedActivity, addOns: selectedAddOns, globalAddOns: selectedGlobalAddOns, parkingPlates, customerId: customer?.id, charitySelected });
 
             if (result.success && result.bookingId) {
 
@@ -2067,6 +2077,56 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
 
                                             <div className="border-t border-white/10 pt-3 mt-3">
+
+                                                {charityConfig?.is_enabled && (
+                                                    <div className="mb-4 bg-pink-500/10 border border-pink-500/20 rounded-xl p-4 overflow-hidden relative group">
+                                                        <div className="absolute top-0 right-0 -mr-4 -mt-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                            <Heart className="w-24 h-24 text-pink-500 fill-pink-500 transform rotate-12" />
+                                                        </div>
+                                                        <div className="relative z-10">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
+                                                                <h4 className="text-white font-bold">{charityConfig.charity_title || 'Support Our Cause'}</h4>
+                                                            </div>
+                                                            
+                                                            {charityConfig.image_url && (
+                                                                <div className="mb-3 rounded-lg overflow-hidden h-24 relative w-full">
+                                                                    <img src={charityConfig.image_url} alt="Charity" className="w-full h-full object-cover" />
+                                                                </div>
+                                                            )}
+                                                            
+                                                            <p className="text-white/70 text-sm mb-3">
+                                                                {charityConfig.charity_description}
+                                                            </p>
+                                                            
+                                                            {charityConfig.info_text && (
+                                                                <p className="text-white/50 text-xs mb-3 italic">
+                                                                    {charityConfig.info_text}
+                                                                </p>
+                                                            )}
+
+                                                            <label className="flex items-start gap-3 p-3 bg-black/20 rounded-lg cursor-pointer hover:bg-black/30 transition-colors border border-white/5 hover:border-pink-500/30">
+                                                                <div className="pt-0.5">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        className="w-4 h-4 rounded border-white/20 bg-black/50 text-pink-500 focus:ring-pink-500 focus:ring-offset-0"
+                                                                        checked={charitySelected}
+                                                                        onChange={(e) => setCharitySelected(e.target.checked)}
+                                                                    />
+                                                                </div>
+                                                                <span className="text-sm font-medium text-white/90">
+                                                                    {charityConfig.checkbox_text || 'Yes, I want my booking amount to go to this charity'}
+                                                                </span>
+                                                            </label>
+
+                                                            {charitySelected && charityConfig.success_text && (
+                                                                <div className="mt-3 text-sm text-pink-400 font-medium animate-in fade-in slide-in-from-top-2">
+                                                                    {charityConfig.success_text}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
 
                                                 <div className="flex justify-between text-white/60 text-sm mb-1">
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Loader2, CreditCard } from "lucide-react";
+import { ArrowLeft, Check, X, Printer, Mail, Users, User, CheckCircle, FileSignature, Loader2, CreditCard, Heart } from "lucide-react";
 import { PaymentHistoryCard } from "../../components/PaymentHistoryCard";
 import { toast } from "sonner";
 
@@ -224,6 +224,31 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
                                     <span className="font-bold text-green-600">
                                         £{booking.add_ons.reduce((s: number, ao: any) => s + Number(ao.subtotal), 0).toFixed(2)}
                                     </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Charity Donation */}
+                    {booking.charity_selected && (
+                        <div className="bg-white rounded-xl shadow-sm border border-pink-200 p-6">
+                            <h2 className="text-lg font-bold text-pink-600 mb-4 flex items-center gap-2">
+                                <Heart className="fill-pink-500 text-pink-500 w-5 h-5" />
+                                Charity Designated
+                            </h2>
+                            <div className="bg-pink-50 rounded-lg p-4 border border-pink-100">
+                                <p className="text-slate-700 text-sm mb-2">
+                                    The customer has designated this booking to support a charity.
+                                </p>
+                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <label className="text-xs text-pink-500/70 uppercase font-bold">Charity Snapshot Name</label>
+                                        <p className="text-pink-900 font-semibold">{booking.charity_name_snapshot}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-pink-500/70 uppercase font-bold">Config ID Snapshot</label>
+                                        <p className="text-pink-900 font-mono text-sm">{booking.charity_config_id_snapshot}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

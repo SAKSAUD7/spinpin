@@ -10,7 +10,7 @@ from .models import (
     StatCard, InstagramReel, MenuSection, GroupPackage, GuidelineCategory, LegalDocument,
     PageSection, PricingPlan, ContactInfo, PartyPackage, TimelineItem, ValueItem, FacilityItem,
     Page, ContactMessage, FreeEntry, SessionBookingConfig, PartyBookingConfig, PricingCarouselImage,
-    BookingInformation, TimingCard, CustomerAccountConfig
+    BookingInformation, TimingCard, CustomerAccountConfig, CharityConfig
 )
 from .serializers import (
     BannerSerializer, ActivitySerializer, FaqSerializer, 
@@ -20,7 +20,8 @@ from .serializers import (
     PageSectionSerializer, PricingPlanSerializer, ContactInfoSerializer, PartyPackageSerializer,
     TimelineItemSerializer, ValueItemSerializer, FacilityItemSerializer,
     PageSerializer, ContactMessageSerializer, FreeEntrySerializer, SessionBookingConfigSerializer, PartyBookingConfigSerializer,
-    PricingCarouselImageSerializer, BookingInformationSerializer, TimingCardSerializer, CustomerAccountConfigSerializer
+    PricingCarouselImageSerializer, BookingInformationSerializer, TimingCardSerializer, CustomerAccountConfigSerializer,
+    CharityConfigSerializer
 )
 
 class BaseCmsViewSet(viewsets.ModelViewSet):
@@ -552,3 +553,23 @@ class TimingCardViewSet(BaseCmsViewSet):
     filterset_fields = ['active']
     ordering_fields = ['order']
     ordering = ['order']
+
+
+class CharityConfigViewSet(BaseCmsViewSet):
+    """Singleton viewset for charity feature configuration.
+    GET is public (booking wizard needs it). Write requires CMS manager/admin.
+    """
+    queryset = CharityConfig.objects.all()
+    serializer_class = CharityConfigSerializer
+
+    def list(self, request, *args, **kwargs):
+        """Return the singleton charity config"""
+        config = CharityConfig.get_config()
+        serializer = self.get_serializer(config)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Always return the singleton config regardless of ID"""
+        config = CharityConfig.get_config()
+        serializer = self.get_serializer(config)
+        return Response(serializer.data)

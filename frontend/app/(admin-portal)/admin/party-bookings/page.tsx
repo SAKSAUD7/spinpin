@@ -24,7 +24,8 @@ import {
     Package,
     Eye,
     Plus,
-    PartyPopper
+    PartyPopper,
+    Heart
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -298,7 +299,14 @@ export default function PartyBookingsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-medium text-slate-900">{booking.customerName || booking.name}</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-sm font-medium text-slate-900">{booking.customerName || booking.name}</span>
+                                                    {booking.charity_selected && (
+                                                        <span className="inline-flex items-center justify-center p-0.5 rounded-full bg-pink-100 text-pink-600" title={`Charity: ${booking.charity_name_snapshot}`}>
+                                                            <Heart size={12} className="fill-current" />
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-xs text-slate-500">{booking.customerEmail || booking.email}</span>
                                                 <span className="text-xs text-slate-500">{booking.customerPhone || booking.phone}</span>
                                             </div>

@@ -291,6 +291,7 @@ export async function createBooking(formData: any) {
             add_ons: addOnsList.length > 0 ? addOnsList : null,
             parking_plates: (formData.parkingPlates as string[] || []).filter(Boolean),
             customer_id: formData.customerId || null,
+            charity_selected: formData.charitySelected || false,
         };
 
         const bookingRes = await fetch(`${API_URL}/bookings/bookings/`, {
