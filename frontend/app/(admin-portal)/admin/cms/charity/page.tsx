@@ -1,5 +1,6 @@
 import { getAdminSession } from "@/app/lib/admin-auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { CMSBackLink } from "@/components/admin/cms/CMSBackLink";
 import CharityEditor from "./components/CharityEditor";
 
@@ -8,6 +9,8 @@ export default async function CharityConfigPage() {
     if (!session) {
         redirect("/admin/login");
     }
+    
+    const adminToken = cookies().get('admin_token')?.value || '';
 
     return (
         <div className="p-8">
@@ -18,7 +21,7 @@ export default async function CharityConfigPage() {
                 <p className="text-slate-500 mt-1">Configure the charity donation feature for the booking wizard</p>
             </div>
 
-            <CharityEditor />
+            <CharityEditor adminToken={adminToken} />
         </div>
     );
 }

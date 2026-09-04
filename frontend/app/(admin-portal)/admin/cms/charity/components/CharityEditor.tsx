@@ -6,7 +6,7 @@ import { Save, Loader2, Heart, HeartOff } from "lucide-react";
 import { fetchCharityConfig, updateCharityConfig } from "@/lib/api/cms";
 import { Button } from "@/components/admin/Button";
 
-export default function CharityEditor() {
+export default function CharityEditor({ adminToken }: { adminToken: string }) {
     const [config, setConfig] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -18,7 +18,7 @@ export default function CharityEditor() {
     async function loadConfig() {
         try {
             setLoading(true);
-            const data = await fetchCharityConfig();
+            const data = await fetchCharityConfig(adminToken);
             setConfig(data);
         } catch (error) {
             console.error("Failed to load charity config:", error);
@@ -34,7 +34,7 @@ export default function CharityEditor() {
 
         try {
             setSaving(true);
-            const updated = await updateCharityConfig(config.id, config);
+            const updated = await updateCharityConfig(config.id, config, adminToken);
             setConfig(updated);
             toast.success("Charity configuration saved successfully");
         } catch (error) {
