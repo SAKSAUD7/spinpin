@@ -5,7 +5,6 @@ import { ScrollReveal, BouncyButton, SectionDivider } from "@repo/ui";
 import { motion } from "framer-motion";
 import { Check, Clock, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { formatCurrency } from "@repo/utils";
 import { getMediaUrl } from "@/lib/media-utils";
 import PricingCarousel from "./PricingCarousel";
 import { TimingCardsClient } from "@/components/TimingCardsClient";
@@ -41,16 +40,20 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
     // Ensure active plans only
     const activePlans = plans.filter(p => !p.hasOwnProperty('active') || p.active);
 
-    // Dynamically resolve prices from CMS
+    // Dynamically resolve prices from CMS — match individual activity plans
+    const skatingPlan      = findPlan(activePlans, 'skating');
+    const bowlingPlan      = findPlan(activePlans, 'bowling');
+    const vrPlan           = findPlan(activePlans, 'vr');
     const skateHirePlan    = findPlan(activePlans, 'skate hire', 'roller skate');
     const spectatorPlan    = findPlan(activePlans, 'spectator (4', 'spectator(4');
-    const standardPlan     = findPlan(activePlans, 'standard entry');
     const parkingPlan      = findPlan(activePlans, 'parking');
     const lockerPlan       = findPlan(activePlans, 'locker');
 
-    const skateHirePrice   = formatPrice(skateHirePlan?.price)  ?? '3.95';
+    const skatingPrice     = formatPrice(skatingPlan?.price)    ?? '11.95';
+    const bowlingPrice     = formatPrice(bowlingPlan?.price)    ?? '9.95';
+    const vrPrice          = formatPrice(vrPlan?.price)         ?? '7.95';
+    const skateHirePrice   = formatPrice(skateHirePlan?.price)  ?? '4.95';
     const spectatorPrice   = formatPrice(spectatorPlan?.price)  ?? '2.95';
-    const standardPrice    = formatPrice(standardPlan?.price)   ?? '9.95';
     const parkingPrice     = formatPrice(parkingPlan?.price)    ?? '3.00';
     const lockerPrice      = formatPrice(lockerPlan?.price)     ?? '2.00';
 
@@ -116,7 +119,8 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Skating/Bowling/VR Card */}
+
+                        {/* Roller Skating Card */}
                         <ScrollReveal animation="scale" delay={0}>
                             <motion.div
                                 whileHover={{ y: -10 }}
@@ -125,30 +129,31 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-black font-bold py-1 px-4 rounded-full text-sm">
                                     MOST POPULAR
                                 </div>
+                                <div className="text-4xl mb-3">🛼</div>
                                 <h3 className="text-2xl font-display font-bold mb-2 text-primary">
-                                    Skating / Bowling / VR
+                                    Roller Skating
                                 </h3>
-                                <p className="text-white/60 mb-6">Per Game / Person</p>
+                                <p className="text-white/60 mb-6">Per Session / Person</p>
                                 <div className="mb-8">
-                                    <span className="text-5xl font-black text-white">£{standardPrice}</span>
-                                    <span className="text-white/60 text-sm">/ game</span>
+                                    <span className="text-5xl font-black text-white">£{skatingPrice}</span>
+                                    <span className="text-white/60 text-sm"> / person</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
                                     <li className="flex items-start gap-3 text-white/80">
                                         <Check className="w-5 h-5 text-primary shrink-0" />
-                                        <span className="text-sm">Ten Pin Bowling</span>
-                                    </li>
-                                    <li className="flex items-start gap-3 text-white/80">
-                                        <Check className="w-5 h-5 text-primary shrink-0" />
-                                        <span className="text-sm">Roller Skating</span>
-                                    </li>
-                                    <li className="flex items-start gap-3 text-white/80">
-                                        <Check className="w-5 h-5 text-primary shrink-0" />
-                                        <span className="text-sm">VR Gaming</span>
+                                        <span className="text-sm">90-min session</span>
                                     </li>
                                     <li className="flex items-start gap-3 text-white/80">
                                         <Check className="w-5 h-5 text-primary shrink-0" />
                                         <span className="text-sm">All ages welcome</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-primary shrink-0" />
+                                        <span className="text-sm">Music &amp; disco lighting</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-primary shrink-0" />
+                                        <span className="text-sm">Leicester's first indoor rink</span>
                                     </li>
                                 </ul>
                                 <Link href="/book" className="w-full">
@@ -161,19 +166,106 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                             </motion.div>
                         </ScrollReveal>
 
-                        {/* Roller Skate Hire Card */}
+                        {/* Ten Pin Bowling Card */}
                         <ScrollReveal animation="scale" delay={0.1}>
+                            <motion.div
+                                whileHover={{ y: -10 }}
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-secondary bg-surface-800/80 backdrop-blur-sm h-full flex flex-col"
+                            >
+                                <div className="text-4xl mb-3">🎳</div>
+                                <h3 className="text-2xl font-display font-bold mb-2 text-secondary">
+                                    Ten Pin Bowling
+                                </h3>
+                                <p className="text-white/60 mb-6">Per Game / Person</p>
+                                <div className="mb-8">
+                                    <span className="text-5xl font-black text-white">£{bowlingPrice}</span>
+                                    <span className="text-white/60 text-sm"> / person</span>
+                                </div>
+                                <ul className="space-y-4 mb-8 flex-grow">
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-secondary shrink-0" />
+                                        <span className="text-sm">Per game pricing</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-secondary shrink-0" />
+                                        <span className="text-sm">Automatic scoring system</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-secondary shrink-0" />
+                                        <span className="text-sm">Food &amp; drinks at lane</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-secondary shrink-0" />
+                                        <span className="text-sm">Great for groups &amp; parties</span>
+                                    </li>
+                                </ul>
+                                <Link href="/book" className="w-full">
+                                    <div className="w-full">
+                                        <BouncyButton size="lg" variant="secondary" className="w-full">
+                                            Book Now
+                                        </BouncyButton>
+                                    </div>
+                                </Link>
+                            </motion.div>
+                        </ScrollReveal>
+
+                        {/* VR Gaming Card */}
+                        <ScrollReveal animation="scale" delay={0.2}>
+                            <motion.div
+                                whileHover={{ y: -10 }}
+                                className="relative p-5 md:p-8 rounded-3xl border-2 border-accent bg-surface-800/80 backdrop-blur-sm h-full flex flex-col"
+                            >
+                                <div className="text-4xl mb-3">🥽</div>
+                                <h3 className="text-2xl font-display font-bold mb-2 text-accent">
+                                    VR Gaming
+                                </h3>
+                                <p className="text-white/60 mb-6">Per Session / Person</p>
+                                <div className="mb-8">
+                                    <span className="text-5xl font-black text-white">£{vrPrice}</span>
+                                    <span className="text-white/60 text-sm"> / person</span>
+                                </div>
+                                <ul className="space-y-4 mb-8 flex-grow">
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-accent shrink-0" />
+                                        <span className="text-sm">30-min session</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-accent shrink-0" />
+                                        <span className="text-sm">Latest VR headsets</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-accent shrink-0" />
+                                        <span className="text-sm">Multiple game titles</span>
+                                    </li>
+                                    <li className="flex items-start gap-3 text-white/80">
+                                        <Check className="w-5 h-5 text-accent shrink-0" />
+                                        <span className="text-sm">All ages welcome</span>
+                                    </li>
+                                </ul>
+                                <Link href="/book" className="w-full">
+                                    <div className="w-full">
+                                        <BouncyButton size="lg" variant="accent" className="w-full">
+                                            Book Now
+                                        </BouncyButton>
+                                    </div>
+                                </Link>
+                            </motion.div>
+                        </ScrollReveal>
+
+                        {/* Roller Skate Hire Card */}
+                        <ScrollReveal animation="scale" delay={0.3}>
                             <motion.div
                                 whileHover={{ y: -10 }}
                                 className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
+                                <div className="text-4xl mb-3">⛸️</div>
                                 <h3 className="text-2xl font-display font-bold mb-2 text-secondary">
                                     Roller Skate Hire
                                 </h3>
                                 <p className="text-white/60 mb-6">Equipment Rental</p>
                                 <div className="mb-8">
                                     <span className="text-5xl font-black text-white">£{skateHirePrice}</span>
-                                    <span className="text-white/60 text-sm">/ pair</span>
+                                    <span className="text-white/60 text-sm"> / pair</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
                                     <li className="flex items-start gap-3 text-white/80">
@@ -186,7 +278,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                     </li>
                                     <li className="flex items-start gap-3 text-white/80">
                                         <Check className="w-5 h-5 text-secondary shrink-0" />
-                                        <span className="text-sm">Clean & sanitized</span>
+                                        <span className="text-sm">Clean &amp; sanitized</span>
                                     </li>
                                 </ul>
                                 <Link href="/book" className="w-full">
@@ -200,18 +292,19 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         </ScrollReveal>
 
                         {/* Spectators (Age 4+) Card */}
-                        <ScrollReveal animation="scale" delay={0.2}>
+                        <ScrollReveal animation="scale" delay={0.4}>
                             <motion.div
                                 whileHover={{ y: -10 }}
                                 className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
+                                <div className="text-4xl mb-3">👀</div>
                                 <h3 className="text-2xl font-display font-bold mb-2 text-accent">
                                     Spectators (Age 4+)
                                 </h3>
-                                <p className="text-white/60 mb-6">Watching & Waiting</p>
+                                <p className="text-white/60 mb-6">Watching &amp; Waiting</p>
                                 <div className="mb-8">
                                     <span className="text-5xl font-black text-white">£{spectatorPrice}</span>
-                                    <span className="text-white/60 text-sm">/ person</span>
+                                    <span className="text-white/60 text-sm"> / person</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
                                     <li className="flex items-start gap-3 text-white/80">
@@ -238,7 +331,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         </ScrollReveal>
 
                         {/* Spectators Under 4 Card */}
-                        <ScrollReveal animation="scale" delay={0.3}>
+                        <ScrollReveal animation="scale" delay={0.5}>
                             <motion.div
                                 whileHover={{ y: -10 }}
                                 className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
@@ -246,6 +339,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-500 text-black font-bold py-1 px-4 rounded-full text-sm">
                                     FREE
                                 </div>
+                                <div className="text-4xl mb-3">👶</div>
                                 <h3 className="text-2xl font-display font-bold mb-2 text-primary">
                                     Spectators Under 4
                                 </h3>
@@ -278,18 +372,19 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         </ScrollReveal>
 
                         {/* Parking Card */}
-                        <ScrollReveal animation="scale" delay={0.4}>
+                        <ScrollReveal animation="scale" delay={0.6}>
                             <motion.div
                                 whileHover={{ y: -10 }}
                                 className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
+                                <div className="text-4xl mb-3">🚗</div>
                                 <h3 className="text-2xl font-display font-bold mb-2 text-secondary">
                                     Parking
                                 </h3>
                                 <p className="text-white/60 mb-6">Per Car</p>
                                 <div className="mb-8">
                                     <span className="text-5xl font-black text-white">£{parkingPrice}</span>
-                                    <span className="text-white/60 text-sm">/ car</span>
+                                    <span className="text-white/60 text-sm"> / car</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
                                     <li className="flex items-start gap-3 text-white/80">
@@ -314,18 +409,19 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                         </ScrollReveal>
 
                         {/* Locker Hire Card */}
-                        <ScrollReveal animation="scale" delay={0.5}>
+                        <ScrollReveal animation="scale" delay={0.7}>
                             <motion.div
                                 whileHover={{ y: -10 }}
                                 className="relative p-5 md:p-8 rounded-3xl border-2 border-white/10 bg-surface-800/50 backdrop-blur-sm h-full flex flex-col"
                             >
+                                <div className="text-4xl mb-3">🔒</div>
                                 <h3 className="text-2xl font-display font-bold mb-2 text-accent">
                                     Locker Hire
                                 </h3>
                                 <p className="text-white/60 mb-6">Secure Storage</p>
                                 <div className="mb-8">
                                     <span className="text-5xl font-black text-white">£{lockerPrice}</span>
-                                    <span className="text-white/60 text-sm">/ locker</span>
+                                    <span className="text-white/60 text-sm"> / locker</span>
                                 </div>
                                 <ul className="space-y-4 mb-8 flex-grow">
                                     <li className="flex items-start gap-3 text-white/80">
@@ -348,6 +444,7 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                 </div>
                             </motion.div>
                         </ScrollReveal>
+
                     </div>
                 </div>
             </section>
@@ -368,11 +465,15 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                         <span className="font-bold text-white">Closed</span>
                                     </li>
                                     <li className="flex justify-between">
-                                        <span>Tuesday - Sunday</span>
+                                        <span>Tuesday - Friday</span>
+                                        <span className="font-bold text-white">2:00 PM - 10:00 PM</span>
+                                    </li>
+                                    <li className="flex justify-between">
+                                        <span>Saturday - Sunday</span>
                                         <span className="font-bold text-white">12:00 PM - 10:00 PM</span>
                                     </li>
                                     <li className="text-sm text-white/60 mt-2">
-                                        * Peak times: School & Bank holidays
+                                        * Peak times: School &amp; Bank holidays
                                     </li>
                                 </ul>
                             </div>
@@ -385,8 +486,10 @@ export default function PricingContent({ plans, settings, info, hero, carouselIm
                                     Pricing Details
                                 </h3>
                                 <ul className="space-y-3 text-white/80 text-sm">
-                                    <li>• <strong>Skating/Bowling/VR:</strong> £{standardPrice} per game/person</li>
-                                    <li>• <strong>Roller Skate Hire:</strong> £{skateHirePrice} each</li>
+                                    <li>• <strong>Roller Skating:</strong> £{skatingPrice} per person</li>
+                                    <li>• <strong>Ten Pin Bowling:</strong> £{bowlingPrice} per game/person</li>
+                                    <li>• <strong>VR Gaming:</strong> £{vrPrice} per session (30 mins)</li>
+                                    <li>• <strong>Roller Skate Hire:</strong> £{skateHirePrice} per pair</li>
                                     <li>• <strong>Spectators (Age 4+):</strong> £{spectatorPrice} each</li>
                                     <li>• <strong>Spectators under 4:</strong> FREE</li>
                                     <li>• <strong>Parking:</strong> £{parkingPrice} per car</li>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 
@@ -54,7 +54,7 @@ const ACTIVITIES = [
 
         description: "Glide around our spectacular indoor roller skating rink in the heart of Leicester city centre. Perfect for all ages and groups.",
 
-        highlights: ["90-min session", "Skate hire available \u00A32.95", "All levels welcome", "Music & disco lighting"],
+        highlights: ["90-min session", "Skate hire available", "All levels welcome", "Music & disco lighting"],
 
         color: "from-pink-500 to-rose-600",
 
@@ -477,7 +477,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
         gstRate: (config && config.gst_rate) ? parseFloat(config.gst_rate) : 0,
 
         // Add-ons (from CMS, with GBP fallbacks)
-        skateHire: (config && config.skate_hire_price) ? parseFloat(config.skate_hire_price) : 2.95,
+        skateHire: (config && config.skate_hire_price) ? parseFloat(config.skate_hire_price) : 4.95,
         shoeHire: (config && config.shoe_hire_price) ? parseFloat(config.shoe_hire_price) : 1.50,
         lockerHire: (config && config.locker_hire_price) ? parseFloat(config.locker_hire_price) : 2.00,
         tokenPack20: (config && config.token_pack_20_price) ? parseFloat(config.token_pack_20_price) : 5.00,
@@ -1077,11 +1077,11 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                             {[
 
-                                                { label: "Adults & Kids (7+)", price: "£9.95", note: "per session" },
+                                                { label: "Roller Skating", price: `£${prices.adult.toFixed(2)}`, note: "per session" },
 
-                                                { label: "Kids (1–6 yrs)", price: "£9.95", note: "per session" },
+                                                { label: "Ten Pin Bowling", price: `£${prices.adult.toFixed(2)}`, note: "per game" },
 
-                                                { label: "Spectators (4+)", price: "£2.95", note: "per person" },
+                                                { label: "Spectators (4+)", price: `£${prices.spectator.toFixed(2)}`, note: "per person" },
 
                                                 { label: "Under 4", price: "FREE", note: "no charge" },
 
@@ -1410,7 +1410,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                                             <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
                                                 <span className="text-2xl">🎳</span>
                                                 <div>
-                                                    <div className="text-blue-200 font-bold text-sm mb-1">Bowling Session — £9.95 per game</div>
+                                                    <div className="text-blue-200 font-bold text-sm mb-1">Bowling Session — £{prices.adult.toFixed(2)} per game</div>
                                                 </div>
                                             </div>
                                         )}
