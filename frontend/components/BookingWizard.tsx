@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 
@@ -258,6 +258,7 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
     const [appliedVoucher, setAppliedVoucher] = useState<string | null>(null);
 
     const [config, setConfig] = useState<any>(null);
+    const [pricingPlans, setPricingPlans] = useState<any[]>([]);
 
     const [selectedAddOns, setSelectedAddOns] = useState<Record<string, number>>({});
 
@@ -373,6 +374,13 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
                     setCharityConfig(charityData);
                 }
 
+                // Fetch Pricing Plans
+                const plansRes = await fetch(`${API_URL}/cms/pricing-plans/`);
+                if (plansRes.ok) {
+                    const plansData = await plansRes.json();
+                    setPricingPlans(plansData);
+                }
+
             } catch {
 
                 setConfig({
@@ -470,9 +478,30 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
     // --- Pricing (all from CMS config with fallbacks) -------------------------
 
+    const getPlanPrice = (planName: string, fallback: number) => {
+        if (!pricingPlans || pricingPlans.length === 0) return fallback;
+        const plan = pricingPlans.find(p => p.name?.toLowerCase().includes(planName.toLowerCase()) && p.active !== false);
+        return plan && plan.price !== undefined ? parseFloat(plan.price) : fallback;
+    };
+
+    const defaultAdultPrice = (config && config.adult_price) ? parseFloat(config.adult_price) : 9.95;
+    const defaultKidPrice = (config && config.kid_price) ? parseFloat(config.kid_price) : 9.95;
+
+    // Dynamically set base price depending on the selected activity
+    let currentAdultPrice = defaultAdultPrice;
+    let currentKidPrice = defaultKidPrice;
+
+    if (selectedActivity === 'roller-skating') {
+        currentAdultPrice = getPlanPrice('skating', defaultAdultPrice);
+        currentKidPrice = getPlanPrice('skating', defaultKidPrice);
+    } else if (selectedActivity === 'ten-pin-bowling') {
+        currentAdultPrice = getPlanPrice('bowling', defaultAdultPrice);
+        currentKidPrice = getPlanPrice('bowling', defaultKidPrice);
+    }
+
     const prices = {
-        adult: (config && config.adult_price) ? parseFloat(config.adult_price) : 9.95,
-        kid: (config && config.kid_price) ? parseFloat(config.kid_price) : 9.95,
+        adult: currentAdultPrice,
+        kid: currentKidPrice,
         spectator: (config && config.spectator_price) ? parseFloat(config.spectator_price) : 2.95,
         gstRate: (config && config.gst_rate) ? parseFloat(config.gst_rate) : 0,
 
@@ -1051,7 +1080,9 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                                 <div className={`mt-5 flex items-center gap-2 text-sm font-bold ${act.accentColor}`}>
 
-                                                    From {prices.adult.toFixed(2)} / person <ChevronRight className="w-4 h-4" />
+                                                    From {(act.id === 'roller-skating' ? getPlanPrice('skating', defaultAdultPrice) : 
+                                                          act.id === 'ten-pin-bowling' ? getPlanPrice('bowling', defaultAdultPrice) : 
+                                                          defaultAdultPrice).toFixed(2)} / person <ChevronRight className="w-4 h-4" />
 
                                                 </div>
 
@@ -1077,9 +1108,9 @@ export const BookingWizard = ({ onSubmit, cmsContent = [] }: BookingWizardProps)
 
                                             {[
 
-                                                { label: "Roller Skating", price: `£${prices.adult.toFixed(2)}`, note: "per session" },
+                                                { label: "Roller Skating", price: `£${getPlanPrice('skating', defaultAdultPrice).toFixed(2)}`, note: "per session" },
 
-                                                { label: "Ten Pin Bowling", price: `£${prices.adult.toFixed(2)}`, note: "per game" },
+                                                { label: "Ten Pin Bowling", price: `£${getPlanPrice('bowling', defaultAdultPrice).toFixed(2)}`, note: "per game" },
 
                                                 { label: "Spectators (4+)", price: `£${prices.spectator.toFixed(2)}`, note: "per person" },
 
